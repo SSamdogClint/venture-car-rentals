@@ -168,9 +168,13 @@ F5 (Run button in Visual Studio)
 
 ---
 
-# 👨‍💻 DEVELOPERS
-
-- Clint Eroll Capondag
+# 👥 OUR TEAM
+- Dedumo, Lyle Adrien	  - Project Manager
+- Capondag, Clint Eroll   — Backend Developer
+- Ferrer, Krist Dave	  - UI/UX Designer
+- Cuerda, Carlos Jose	  - Frontend Developer
+- Loyola, Ian Francis	  - Quality Assurance Tester
+- Quillosa, Geian Francis - Product Owner
 
 ---
 
