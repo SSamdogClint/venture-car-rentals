@@ -134,4 +134,4 @@ C:\Users\JS\Desktop\C SHARP PROJECT\VentureCarRentals\VentureCarRentals\obj\Debu
 C:\Users\JS\Desktop\C SHARP PROJECT\VentureCarRentals\VentureCarRentals\obj\Debug\net8.0\VentureCarRentals.pdb
 C:\Users\JS\Desktop\C SHARP PROJECT\VentureCarRentals\VentureCarRentals\obj\Debug\net8.0\VentureCarRentals.genruntimeconfig.cache
 C:\Users\JS\Desktop\C SHARP PROJECT\VentureCarRentals\VentureCarRentals\obj\Debug\net8.0\ref\VentureCarRentals.dll
-C:\Users\JS\Desktop\C SHARP PROJECT\VentureCarRentals\VentureCarRentals\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
+C:\Users\JS\Desktop\C SHARP PROJECT\VentureCarRentals\VentureCarRentals\obj\Debug\net8.0\VentureCarRentals.sourcelink.json
