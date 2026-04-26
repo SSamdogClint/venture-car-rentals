@@ -41,6 +41,7 @@ Admins can:
 
 # 📁 Project Structure
 
+```text
 VentureCarRentals/
 │
 ├── Data/                      # Database context
@@ -56,7 +57,7 @@ VentureCarRentals/
 │   ├── Review.cs
 │   └── MaintenanceLog.cs
 │
-├── Pages/                     # Razor Pages (UI + backend logic)
+├── Pages/                     # Razor Pages
 │   ├── Index.cshtml
 │   ├── Index.cshtml.cs
 │   ├── Privacy.cshtml
@@ -67,17 +68,16 @@ VentureCarRentals/
 │   │   ├── _ValidationScriptsPartial.cshtml
 │   │   └── _ViewImports.cshtml
 │   │
-│   ├── Cars/                 # Car CRUD (to be implemented)
-│   ├── Bookings/             # Booking module (to be implemented)
-│   └── Reports/              # Reports (to be implemented)
+│   ├── Cars/                  # Car CRUD
+│   ├── Bookings/              # Booking module
+│   └── Reports/               # Reports
 │
-├── wwwroot/                  # Static files
+├── wwwroot/                   # Static files
 │   ├── css/
 │   ├── js/
 │   └── lib/
 │
-├── Migrations/               # EF Core migrations
-│
+├── Migrations/                # EF Core migrations
 ├── Properties/
 │   └── launchSettings.json
 │
@@ -86,6 +86,7 @@ VentureCarRentals/
 ├── VentureCarRentals.csproj
 ├── README.md
 └── .gitignore
+```
 
 ---
 
@@ -148,14 +149,14 @@ F5 (Run button in Visual Studio)
 
 # 🔄 SYSTEM FEATURES
 
-✔ User Registration & Login  
-✔ Car Management (CRUD)  
-✔ Booking System  
-✔ Payment Processing  
-✔ Document Verification  
-✔ Maintenance Tracking  
-✔ Reviews & Ratings  
-✔ Reports Generation  
+- User Registration & Login — To be implemented
+- Car Management (CRUD) — To be implemented
+- Booking System — To be implemented
+- Payment Processing — To be implemented
+- Document Verification — To be implemented
+- Maintenance Tracking — To be implemented
+- Reviews & Ratings — To be implemented
+- Reports Generation — To be implemented
 
 ---
 
@@ -170,8 +171,8 @@ F5 (Run button in Visual Studio)
 
 # 👥 OUR TEAM
 - Dedumo, Lyle Adrien	  - Project Manager
-- Capondag, Clint Eroll   — Backend Developer
 - Ferrer, Krist Dave	  - UI/UX Designer
+- Capondag, Clint Eroll   - Backend Developer
 - Cuerda, Carlos Jose	  - Frontend Developer
 - Loyola, Ian Francis	  - Quality Assurance Tester
 - Quillosa, Geian Francis - Product Owner
