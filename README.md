@@ -2,10 +2,10 @@
 
 A web-based **Car Rental Management System** developed using:
 
-- ASP.NET Core Razor Pages (.NET 8)
-- Entity Framework Core (EF Core)
-- SQLite Database
-- C#
+* ASP.NET Core Razor Pages (.NET 8)
+* Entity Framework Core (EF Core)
+* SQLite Database
+* C#
 
 ---
 
@@ -13,29 +13,29 @@ A web-based **Car Rental Management System** developed using:
 
 **Venture Car Rentals** is a system that allows users to:
 
-- Register and log in
-- Browse available cars
-- Book vehicles
-- Upload required documents
-- Make payments
-- Leave reviews
+* Register and log in securely
+* Browse available cars
+* Book rental vehicles
+* Upload required documents
+* Make payments
+* Leave reviews
 
-Admins can:
+Administrators can:
 
-- Manage cars (CRUD)
-- Monitor bookings
-- Approve documents
-- Manage maintenance logs
+* Manage cars (CRUD)
+* Monitor bookings
+* Manage maintenance logs
+* View system reports
 
 ---
 
 # 🛠️ Technologies Used
 
-- C# (.NET 8)
-- ASP.NET Core Razor Pages
-- Entity Framework Core
-- SQLite
-- Bootstrap (UI)
+* C# (.NET 8)
+* ASP.NET Core Razor Pages
+* Entity Framework Core
+* SQLite
+* Bootstrap 5 (Responsive UI)
 
 ---
 
@@ -44,10 +44,11 @@ Admins can:
 ```text
 VentureCarRentals/
 │
-├── Data/                      # Database context
-│   └── AppDbContext.cs
+├── Data/
+│   ├── AppDbContext.cs
+│   └── DbSeeder.cs
 │
-├── Models/                    # Database models
+├── Models/
 │   ├── User.cs
 │   ├── Car.cs
 │   ├── Booking.cs
@@ -57,40 +58,35 @@ VentureCarRentals/
 │   ├── Review.cs
 │   └── MaintenanceLog.cs
 │
-├── Pages/                     # Razor Pages
+├── Pages/
 │   ├── Index.cshtml
-│   ├── Index.cshtml.cs
-│   ├── Privacy.cshtml
-│   ├── Privacy.cshtml.cs
+│   ├── Register.cshtml
+│   ├── Login.cshtml
+│   ├── Logout.cshtml
+│   │
+│   ├── Admin/
+│   │   └── Dashboard.cshtml
+│   │
+│   ├── User/
+│   │   └── Dashboard.cshtml
 │   │
 │   ├── Shared/
-│   │   ├── _Layout.cshtml
-│   │   ├── _ValidationScriptsPartial.cshtml
-│   │   └── _ViewImports.cshtml
-│   │
-│   ├── Cars/                  # Car CRUD
-│   ├── Bookings/              # Booking module
-│   └── Reports/               # Reports
+│   │   └── _Layout.cshtml
 │
-├── wwwroot/                   # Static files
+├── wwwroot/
 │   ├── css/
 │   ├── js/
-│   └── lib/
+│   └── images/
 │
-├── Migrations/                # EF Core migrations
-├── Properties/
-│   └── launchSettings.json
-│
+├── Migrations/
 ├── appsettings.json
 ├── Program.cs
-├── VentureCarRentals.csproj
-├── README.md
-└── .gitignore
+└── README.md
 ```
 
 ---
 
-# ⚙️ HOW TO SETUP (AFTER CLONING)
+# ⚙️ HOW TO SETUP
 
 ## 1. Clone the repository
 
@@ -105,7 +101,9 @@ cd venture-car-rentals
 
 Open using **Visual Studio 2022**
 
+```text
 Open → VentureCarRentals.csproj
+```
 
 ---
 
@@ -123,7 +121,7 @@ dotnet restore
 dotnet ef database update
 ```
 
-This will automatically create the local SQLite database.
+✔ This will automatically create the SQLite database.
 
 ---
 
@@ -133,59 +131,118 @@ This will automatically create the local SQLite database.
 dotnet run
 ```
 
-OR press:
+or press:
 
-F5 (Run button in Visual Studio)
-
----
-
-# ⚠️ IMPORTANT NOTES
-
-- The database file is not included in the repository
-- It will be generated automatically after running migrations
-- Ensure `.gitignore` is properly configured
+```text
+F5 (Run)
+```
 
 ---
 
-# 🔄 SYSTEM FEATURES
+# 🔐 AUTHENTICATION SYSTEM
 
-- User Registration & Login — To be implemented
-- Car Management (CRUD) — To be implemented
-- Booking System — To be implemented
-- Payment Processing — To be implemented
-- Document Verification — To be implemented
-- Maintenance Tracking — To be implemented
-- Reviews & Ratings — To be implemented
-- Reports Generation — To be implemented
+* User registration with password hashing (BCrypt)
+* Login with session-based authentication
+* Role-based redirection:
+
+  * Admin → `/Admin/Dashboard`
+  * User → `/User/Dashboard`
+* Logout clears session and redirects to homepage
+
+---
+
+# 👤 DEFAULT ADMIN ACCOUNT
+
+The system automatically creates an admin account if it does not exist:
+
+```text
+Email: admin@venture.com
+Password: admin123
+```
+
+---
+
+# 🔄 SYSTEM FEATURES (CURRENT STATUS)
+
+### ✅ Completed
+
+* User Registration & Login
+* Password Hashing (BCrypt)
+* Session Management
+* Role-Based Access (Admin/User)
+* Responsive UI (Mobile/Desktop)
+* Dashboard (Admin & User Mockups)
+
+### 🔄 In Progress
+
+* Car Management (CRUD)
+* Booking System (Transaction Module)
+* Payment Integration
+* Document Verification
+* Reports Generation
 
 ---
 
 # 🔐 SECURITY FEATURES
 
-- Password hashing (BCrypt)
-- Role-based access control
-- Input validation
-- Restricted admin actions
+* Password hashing (BCrypt)
+* Session-based authentication
+* Role-based access control
+* Input validation
 
 ---
 
-# 👥 OUR TEAM
-- Dedumo, Lyle Adrien	  - Project Manager
-- Ferrer, Krist Dave	  - UI/UX Designer
-- Capondag, Clint Eroll   - Backend Developer
-- Cuerda, Carlos Jose	  - Frontend Developer
-- Loyola, Ian Francis	  - Quality Assurance Tester
-- Quillosa, Geian Francis - Product Owner
+# 🧪 DEVELOPMENT NOTES
+
+* Hot Reload enabled for faster UI updates
+* Database auto-created via EF Core migrations
+* Admin account seeded automatically on startup
 
 ---
 
-# 📌 NOTES
+# 👥 TEAM
 
-This system is developed for academic purposes and fulfills the requirements:
+* Dedumo, Lyle Adrien — Project Manager
+* Ferrer, Krist Dave — UI/UX Designer
+* Capondag, Clint Eroll — Backend Developer
+* Cuerda, Carlos Jose — Frontend Developer
+* Loyola, Ian Francis — QA Tester
+* Quillosa, Geian Francis — Product Owner
 
-- CRUD Operations
-- Transaction Module
-- Reports Generation
-- Error Handling & Validation
-- Security Implementation
+---
 
+# 📌 PROJECT STATUS
+
+This system is currently in:
+
+```text
+PHASE 11 — FEATURE IMPLEMENTATION
+```
+
+Completed:
+
+* Project setup
+* Database design
+* Authentication system
+* UI design
+
+Next:
+
+* CRUD operations
+* Booking transactions
+* Reports
+
+---
+
+# 🚀 FUTURE IMPROVEMENTS
+
+* REST API integration
+* Mobile app support
+* Online payment gateway
+* Advanced analytics dashboard
+
+---
+
+# 📄 LICENSE
+
+This project is developed for academic purposes.
