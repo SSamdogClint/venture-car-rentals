@@ -11,7 +11,7 @@ using VentureCarRentals.Data;
 namespace VentureCarRentals.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260426085441_InitialCreate")]
+    [Migration("20260426114958_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -250,12 +250,16 @@ namespace VentureCarRentals.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("FullName")
+                    b.Property<string>("FirstName")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("IsAdmin")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()

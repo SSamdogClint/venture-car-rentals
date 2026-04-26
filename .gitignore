@@ -1,5 +1,15 @@
+# Database
+*.db
+*.db-shm
+*.db-wal
+
+# Build
 bin/
 obj/
-*.db
-*.sqlite
+
+# Visual Studio
+.vs/
+*.user
+
+# Logs (optional but good)
 *.log

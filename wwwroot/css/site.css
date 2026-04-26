@@ -1,5 +1,8 @@
-html {
-  font-size: 14px;
+﻿html {
+    font-size: 14px;
+    position: relative;
+    min-height: 100%;
+    overflow-x: hidden;
 }
 
 @media (min-width: 768px) {
@@ -8,15 +11,309 @@ html {
   }
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+/* Focus ring */
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus,
+.form-control:focus, .form-check-input:focus {
   box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
-html {
-  position: relative;
-  min-height: 100%;
+body {
+    background-color: #f5f5f5;
+    margin-bottom: 0;
+    padding-bottom: 0;
+    font-family: 'Segoe UI', sans-serif;
+    overflow-x: hidden;
 }
 
-body {
-  margin-bottom: 60px;
+/* ─── CARD ───────────────────────────────────── */
+.card {
+  border: none;
+  border-radius: 1.25rem;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.10);
+}
+
+/* ─── BUTTONS ────────────────────────────────── */
+.btn-primary {
+  background: #1e6be3;
+  border: none;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  background: #1558c0;
+  border: none;
+}
+
+.btn-outline-primary {
+  border: 2px solid #1e6be3;
+  color: #1e6be3;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.btn-outline-primary:hover {
+  background: #1e6be3;
+  color: #fff;
+}
+
+/* ─── FORM CONTROLS ──────────────────────────── */
+.form-control {
+  border-radius: 50rem;
+  border: 1.5px solid #d0d0d0;
+  padding: 0.6rem 1.1rem;
+  font-size: 0.97rem;
+  background: #fff;
+  color: #333;
+}
+
+.form-control:focus {
+  border-color: #1e6be3;
+  background: #fff;
+}
+
+.form-control::placeholder {
+  color: #aaa;
+}
+
+/* Password eye toggle wrapper */
+.input-icon-wrapper {
+  position: relative;
+}
+
+.input-icon-wrapper .form-control {
+  padding-right: 2.8rem;
+}
+
+.input-icon-wrapper .eye-icon {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #999;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  line-height: 1;
+}
+
+/* ─── LABELS ─────────────────────────────────── */
+.form-label {
+  font-weight: 600;
+  color: #222;
+  margin-bottom: 0.3rem;
+  font-size: 0.95rem;
+}
+
+/* ─── BRAND LOGO SIDE ────────────────────────── */
+.brand-side {
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand-side .brand-name {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #555;
+  letter-spacing: 0.18em;
+  margin-top: 1rem;
+  text-transform: uppercase;
+}
+
+.brand-logo {
+  width: 180px;
+}
+
+.back-home-btn {
+    color: #999;
+    text-decoration: none;
+}
+
+.back-home-btn:hover {
+    color: #1e6be3;
+}
+/* ─── FORM SIDE ──────────────────────────────── */
+.form-side {
+    background-color: #1b1b1c;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Register - form on LEFT, round RIGHT corners */
+.form-side-left {
+    border-radius: 0 2.5rem 2.5rem 0;
+}
+.auth-card-left {
+    border-radius: 0 2.5rem 2.5rem 0;
+}
+
+/* Login - form on RIGHT, round LEFT corners */
+.form-side-right {
+    border-radius: 2.5rem 0 0 2.5rem;
+}
+.auth-card-right {
+    border-radius: 2.5rem 0 0 2.5rem;
+}
+/* ─── AUTH CARD ──────────────────────────────── */
+/* Top corners rounded, bottom corners flat */
+.auth-card {
+    background: #fff;
+    border-radius: 0 2.5rem 2.5rem 0;
+    padding: 2.5rem 2rem 2rem 2rem;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 -8px 32px rgba(0,0,0,0.12);
+    align-self: center;
+}
+
+.auth-card h2 {
+  font-size: 1.9rem;
+  font-weight: 800;
+  color: #111;
+  margin-bottom: 1.2rem;
+  text-align: center;
+}
+
+/* Register - form on LEFT, round RIGHT corners */
+.form-side-left {
+    border-radius: 0 2.5rem 2.5rem 0;
+}
+
+.auth-card-left {
+    border-radius: 0 2.5rem 2.5rem 0;
+}
+
+/* Login - form on RIGHT, round LEFT corners */
+.form-side-right {
+    border-radius: 2.5rem 0 0 2.5rem;
+}
+
+.auth-card-right {
+    border-radius: 2.5rem 0 0 2.5rem;
+}
+
+.mobile-brand {
+    display: none;
+}
+
+
+@media (max-width: 767px) {
+    .brand-side {
+        display: none;
+    }
+
+    .form-side {
+        min-height: 100vh;
+        width: 100%;
+        background-color: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 2rem 1rem;
+    }
+
+    .mobile-brand {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+        .mobile-brand .brand-logo {
+            width: 100px;
+        }
+
+        .mobile-brand .brand-name {
+            font-size: 1.2rem;
+            font-weight: 900;
+            color: #555;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            margin-top: 0.5rem;
+        }
+
+    .auth-card {
+        width: 100%;
+        max-width: 420px;
+        border-radius: 1.5rem;
+        padding: 2rem 1.5rem;
+    }
+}
+
+/* ─── SSO BUTTON ─────────────────────────────── */
+.btn-sso {
+  background: #dbeafe;
+  color: #1e6be3;
+  border: none;
+  font-weight: 600;
+  border-radius: 50rem;
+  padding: 0.6rem 1.5rem;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.btn-sso:hover {
+  background: #bfdbfe;
+  color: #1558c0;
+}
+
+/* ─── DIVIDER OR ─────────────────────────────── */
+.divider-or {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1rem 0;
+  color: #999;
+  font-size: 0.85rem;
+}
+
+.divider-or::before,
+.divider-or::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #e0e0e0;
+}
+
+/* ─── SPLASH / INDEX PAGE ────────────────────── */
+.splash-page {
+  min-height: 100vh;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.splash-page .brand-name {
+  font-size: 2.4rem;
+  font-weight: 900;
+  color: #555;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-top: 1rem;
+}
+
+/* ─── ALERT / MESSAGE ────────────────────────── */
+.auth-message {
+  font-size: 0.9rem;
+  text-align: center;
+  margin-top: 0.75rem;
+}
+
+/* ─── MIN HEIGHT HELPER ──────────────────────── */
+.min-vh-100 {
+    min-height: 100vh;
 }

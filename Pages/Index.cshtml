@@ -1,10 +1,15 @@
 ﻿@page
 @model IndexModel
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "Home";
+    ViewData["HideNavbar"] = true;
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="splash-page">
+    <img src="~/images/logo.png" class="brand-logo" alt="V Car Rentals Logo" />
+    <p class="brand-name">Car Rentals</p>
+    <div class="mt-4 d-flex gap-3">
+        <a href="/Register" class="btn btn-outline-primary px-4 rounded-pill">Sign Up</a>
+        <a href="/Login" class="btn btn-outline-primary px-4 rounded-pill">Sign In</a>
+    </div>
 </div>

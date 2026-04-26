@@ -1,0 +1,85 @@
+﻿@page
+@model VentureCarRentals.Pages.RegisterModel
+@{
+    ViewData["Title"] = "Sign Up";
+    ViewData["HideNavbar"] = true;
+}
+
+<div class="row g-0 min-vh-100">
+
+    <!-- LEFT: FORM SIDE -->
+    <div class="col-md-5 form-side form-side-left">
+        <!-- appear only in mobile screen size -->
+        <div class="mobile-brand">
+            <img src="/images/logo.png" class="brand-logo" alt="Logo" />
+            <span class="brand-name">Car Rentals</span>
+        </div>
+
+        <div class="auth-card auth-card-left">
+            <h2>Sign up</h2>
+            <form method="post">
+                <div class="mb-3">
+                    <label class="form-label">First Name</label>
+                    <input name="FirstName" class="form-control" placeholder="First Name" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Last Name</label>
+                    <input name="LastName" class="form-control" placeholder="Last Name" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Email address</label>
+                    <input asp-for="Email" type="email" class="form-control" placeholder="Email address" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Password</label>
+                    <div class="input-icon-wrapper">
+                        <input asp-for="Password" type="password" id="regPassword" class="form-control" placeholder="Password" />
+                        <button type="button" class="eye-icon" onclick="togglePassword('regPassword')">&#128065;</button>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label">Confirm Password</label>
+                    <div class="input-icon-wrapper">
+                        <input asp-for="ConfirmPassword" type="password" id="confirmPassword" class="form-control" placeholder="Confirm Password" />
+                        <button type="button" class="eye-icon" onclick="togglePassword('confirmPassword')">&#128065;</button>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 rounded-pill py-2">Sign up</button>
+            </form>
+            <p class="text-center mt-3 mb-0 small">
+                Already have an Account? <a href="/Login" class="text-primary fw-semibold">Login</a>
+            </p>
+            @if (!string.IsNullOrEmpty(Model.Message))
+            {
+                <p class="auth-message text-success">@Model.Message</p>
+
+                <script>
+                    setTimeout(function () {
+                        window.location.href = '/Login';
+                    }, 2000); // 2 seconds
+                </script>
+            }
+        </div>
+    </div>
+
+    <!-- RIGHT: BRAND SIDE -->
+    <div class="col-md-7 brand-side position-relative">
+        <a href="/" class="back-home-btn position-absolute top-0 end-0 m-3">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2">
+                <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z" />
+            </svg>
+        </a>
+        <img src="~/images/logo.png" class="brand-logo" alt="V Car Rentals Logo" />
+        <p class="brand-name">Car Rentals</p>
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        function togglePassword(id) {
+            const input = document.getElementById(id);
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+    </script>
+}
