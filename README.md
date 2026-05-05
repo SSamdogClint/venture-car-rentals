@@ -1,52 +1,60 @@
-# 🚗 Venture Car Rentals
+# Venture Car Rentals
 
-A web-based **Car Rental Management System** developed using:
+Venture Car Rentals is a web-based car rental management system developed using ASP.NET Core Razor Pages, Entity Framework Core, SQLite, Bootstrap, and C#.
 
-* ASP.NET Core Razor Pages (.NET 8)
-* Entity Framework Core (EF Core)
-* SQLite Database
-* C#
+The system allows users to browse cars, check car availability by selected borrow and return date/time, complete renter requirements, upload documents, and create bookings. Admin users can manage cars, upload car images, update car status, monitor availability, and view dashboard summaries.
 
 ---
 
-# 📌 Project Description
+## Project Description
 
-**Venture Car Rentals** is a system that allows users to:
+Venture Car Rentals is designed to manage car rental transactions between renters and administrators.
 
-* Register and log in securely
-* Browse available cars
-* Book rental vehicles
-* Upload required documents
-* Make payments
-* Leave reviews
+### User Side
 
-Administrators can:
+Users can:
 
-* Manage cars (CRUD)
-* Monitor bookings
-* Manage maintenance logs
-	* View system reports
+- Register and log in
+- Browse popular cars
+- Search available cars by borrow and return date/time
+- Complete renter profile information
+- Upload required rental documents
+- Book available cars
+
+### Admin Side
+
+Admins can:
+
+- View dashboard statistics
+- Manage cars
+- Add new cars
+- Upload car images
+- Update car status
+- Delete cars without booking records
+- Monitor car availability
 
 ---
 
-# 🛠️ Technologies Used
+## Technologies Used
 
-* C# (.NET 8)
-* ASP.NET Core Razor Pages
-* Entity Framework Core
-* SQLite
-* Bootstrap 5 (Responsive UI)
+- C#
+- ASP.NET Core Razor Pages
+- .NET 8
+- Entity Framework Core
+- SQLite
+- Bootstrap 5
+- Bootstrap Icons
+- Git
+- GitHub
 
 ---
 
-# 📁 Project Structure
+## Project Structure
 
-```text
 VentureCarRentals/
-│
+
 ├── Data/
-│   ├── AppDbContext.cs
-│   └── DbSeeder.cs
+│   └── AppDbContext.cs
 │
 ├── Models/
 │   ├── User.cs
@@ -59,190 +67,385 @@ VentureCarRentals/
 │   └── MaintenanceLog.cs
 │
 ├── Pages/
-│   ├── Index.cshtml
-│   ├── Register.cshtml
-│   ├── Login.cshtml
-│   ├── Logout.cshtml
-│   │
 │   ├── Admin/
-│   │   └── Dashboard.cshtml
+│   │   ├── Dashboard.cshtml
+│   │   ├── Dashboard.cshtml.cs
+│   │   └── Cars/
+│   │       ├── CarPage.cshtml
+│   │       └── CarPage.cshtml.cs
 │   │
 │   ├── User/
-│   │   └── Dashboard.cshtml
+│   │   ├── Home.cshtml
+│   │   ├── Home.cshtml.cs
+│   │   ├── _UserSidebar.cshtml
+│   │   ├── Cars/
+│   │   │   ├── BrowseCars.cshtml
+│   │   │   └── BrowseCars.cshtml.cs
+│   │   ├── Bookings/
+│   │   │   ├── Create.cshtml
+│   │   │   └── Create.cshtml.cs
+│   │   └── Documents/
+│   │       ├── CompleteRequirements.cshtml
+│   │       └── CompleteRequirements.cshtml.cs
 │   │
 │   ├── Shared/
-│   │   └── _Layout.cshtml
+│   │   ├── _Layout.cshtml
+│   │   ├── _AdminSidebar.cshtml
+│   │   └── _ValidationScriptsPartial.cshtml
+│   │
+│   ├── Login.cshtml
+│   ├── Login.cshtml.cs
+│   ├── Register.cshtml
+│   ├── Register.cshtml.cs
+│   ├── Logout.cshtml
+│   └── Logout.cshtml.cs
 │
 ├── wwwroot/
 │   ├── css/
+│   │   └── site.css
 │   ├── js/
-│   └── images/
+│   │   └── site.js
+│   ├── images/
+│   │   ├── logo.png
+│   │   └── cars/
+│   └── uploads/
+│       └── documents/
 │
 ├── Migrations/
+│
+├── Properties/
+│   └── launchSettings.json
+│
 ├── appsettings.json
 ├── Program.cs
-└── README.md
-```
+├── VentureCarRentals.csproj
+├── VentureCarRentals.sln
+├── README.md
+└── .gitignore
 
 ---
 
-# ⚙️ HOW TO SETUP
+## Setup Guide After Cloning
 
-## 1. Clone the repository
+### 1. Clone the Repository
 
-```bash
 git clone https://github.com/SSamdogClint/venture-car-rentals.git
+
+Go inside the repository folder:
+
 cd venture-car-rentals
-```
+
+If the repository has a solution folder and project folder, go inside the project folder before running EF commands:
+
+cd VentureCarRentals
 
 ---
 
-## 2. Open the project
+### 2. Open the Project
 
-Open using **Visual Studio 2022**
+Open the project using Visual Studio 2022.
 
-```text
-Open → VentureCarRentals.csproj
-```
+You may open either:
+
+VentureCarRentals.sln
+
+or
+
+VentureCarRentals.csproj
 
 ---
 
-## 3. Restore dependencies
+### 3. Restore Packages
 
-```bash
+Run:
+
 dotnet restore
-```
 
 ---
 
-## 4. Create database
+## Database Setup
 
-```bash
+The SQLite database file is not included in GitHub. It is generated locally.
+
+### Option A: If the Migrations folder already exists
+
+This is the normal setup after cloning.
+
+Run:
+
 dotnet ef database update
-```
 
-✔ This will automatically create the SQLite database.
+This will create the local SQLite database and apply the existing migrations.
 
 ---
 
-## 5. Run the application
+### Option B: If there is no Migrations folder yet
 
-```bash
+Use this only if the project has no migration files yet.
+
+First, make sure the project builds successfully:
+
+dotnet build
+
+Then create the first migration:
+
+dotnet ef migrations add InitialCreate
+
+Then create/update the database:
+
+dotnet ef database update
+
+---
+
+### Option C: If you added new model fields
+
+Use this when you changed a model, such as adding new fields to User.cs, Car.cs, Booking.cs, etc.
+
+First, build the project:
+
+dotnet build
+
+Then create a new migration with a descriptive name:
+
+dotnet ef migrations add AddUserProfileFields
+
+Then update the database:
+
+dotnet ef database update
+
+---
+
+### If dotnet ef is not found
+
+Install the EF Core CLI tool:
+
+dotnet tool install --global dotnet-ef
+
+If it is already installed, update it:
+
+dotnet tool update --global dotnet-ef
+
+Then close and reopen the terminal.
+
+Check if it works:
+
+dotnet ef
+
+---
+
+## Run the Application
+
+Run using terminal:
+
 dotnet run
-```
 
-or press:
+Or run using Visual Studio:
 
-```text
-F5 (Run)
-```
+Press F5 or click the green Run button.
 
----
+The app will run on a local address such as:
 
-# 🔐 AUTHENTICATION SYSTEM
-
-* User registration with password hashing (BCrypt)
-* Login with session-based authentication
-* Role-based redirection:
-
-  * Admin → `/Admin/Dashboard`
-  * User → `/User/Dashboard`
-* Logout clears session and redirects to homepage
+https://localhost:7173
 
 ---
 
-# 👤 DEFAULT ADMIN ACCOUNT
+## Common New PC Setup Commands
 
-The system automatically creates an admin account if it does not exist:
+After cloning on a new computer, run:
 
-```text
-Email: admin@venture.com
-Password: admin123
-```
+dotnet restore
+dotnet build
+dotnet ef database update
+dotnet run
 
----
+If there is no Migrations folder yet, run:
 
-# 🔄 SYSTEM FEATURES (CURRENT STATUS)
-
-### ✅ Completed
-
-* User Registration & Login
-* Password Hashing (BCrypt)
-* Session Management
-* Role-Based Access (Admin/User)
-* Responsive UI (Mobile/Desktop)
-* Dashboard (Admin & User Mockups)
-
-### 🔄 In Progress
-
-* Car Management (CRUD)
-* Booking System (Transaction Module)
-* Payment Integration
-* Document Verification
-* Reports Generation
+dotnet restore
+dotnet build
+dotnet ef migrations add InitialCreate
+dotnet ef database update
+dotnet run
 
 ---
 
-# 🔐 SECURITY FEATURES
+## Login Flow
 
-* Password hashing (BCrypt)
-* Session-based authentication
-* Role-based access control
-* Input validation
+The system supports user and admin login.
 
----
+After login:
 
-# 🧪 DEVELOPMENT NOTES
-
-* Hot Reload enabled for faster UI updates
-* Database auto-created via EF Core migrations
-* Admin account seeded automatically on startup
+- Admin users are redirected to the admin dashboard
+- Regular users are redirected to the user home page
 
 ---
 
-# 👥 TEAM
+## User Features
 
-* Dedumo, Lyle Adrien — Project Manager
-* Ferrer, Krist Dave — UI/UX Designer
-* Capondag, Clint Eroll — Backend Developer
-* Cuerda, Carlos Jose — Frontend Developer
-* Loyola, Ian Francis — QA Tester
-* Quillosa, Geian Francis — Product Owner
+### User Home
+
+Users can select:
+
+- Borrow date
+- Borrow time
+- Return date
+- Return time
+
+After clicking Find Available Cars, the system displays cars that are available for the selected schedule.
+
+### Browse Cars
+
+If the user opens Browse Cars directly from the sidebar without selecting a date/time, the page displays popular available cars.
+
+If the user searches using a borrow and return schedule, the system only shows cars that:
+
+- Have status available
+- Do not have overlapping bookings during the selected date and time
+
+### Booking
+
+When the user clicks Book, the system checks if the user has completed their renter profile and uploaded the required documents.
+
+If the renter profile or documents are not complete, the user is redirected to the Complete Requirements page.
+
+### Renter Requirements
+
+First-time local renters must complete:
+
+- Middle name
+- Phone number
+- Address
+- Birthday
+- Driver’s license
+- Secondary ID
+
+Accepted secondary IDs may include:
+
+- National ID
+- Police Clearance
+- NBI Clearance
+- PhilHealth ID
+- SSS ID
+- UMID
+- Voter’s ID
+- Company ID
+
+Foreign renters must upload:
+
+- Passport
+- International Driving Permit or License
 
 ---
 
-# 📌 PROJECT STATUS
+## Admin Features
 
-This system is currently in:
+### Admin Dashboard
 
-```text
-PHASE 11 — FEATURE IMPLEMENTATION
-```
+The admin dashboard displays:
 
-Completed:
+- Income summary
+- Maintenance summary
+- Booking status summary
+- Live car status
+- Booking summary
 
-* Project setup
-* Database design
-* Authentication system
-* UI design
+### Car Management
 
-Next:
+Admins can:
 
-* CRUD operations
-* Booking transactions
-* Reports
+- Add cars
+- Upload car images
+- View car details
+- Update car status
+- Delete cars without booking records
+
+Car statuses include:
+
+- available
+- booked
+- maintenance
+- inactive
 
 ---
 
-# 🚀 FUTURE IMPROVEMENTS
+## Booking Availability Logic
 
-* REST API integration
-* Mobile app support
-* Online payment gateway
-* Advanced analytics dashboard
+A car will not appear as available if it has an existing booking that overlaps with the selected borrow and return date/time.
+
+Overlap checking uses this logic:
+
+borrowDateTime < booking.EndDate && returnDateTime > booking.StartDate
+
+This prevents double-booking of the same car.
 
 ---
 
-# 📄 LICENSE
+## Uploaded Files
 
-This project is developed for academic purposes.
+Car images are saved in:
+
+wwwroot/images/cars/
+
+User documents are saved in:
+
+wwwroot/uploads/documents/
+
+Only the file path is stored in the database.
+
+---
+
+## Important Notes
+
+The SQLite database file is not included in GitHub.
+
+The following files and folders should be ignored:
+
+*.db
+*.db-shm
+*.db-wal
+bin/
+obj/
+.vs/
+*.user
+
+If the database gets deleted locally, recreate it using:
+
+dotnet ef database update
+
+If the build shows old Razor errors, stop the app, delete bin and obj, then rebuild:
+
+dotnet clean
+dotnet build
+
+---
+
+## Team Roles
+
+- Dedumo, Lyle Adrien — Project Manager
+- Capondag, Clint Eroll — Backend Developer
+- Ferrer, Krist Dave — UI/UX Designer
+- Cuerda, Carlos Jose — Frontend Developer
+- Loyola, Ian Francis — Quality Assurance Tester
+- Quillosa, Geian Francis — Product Owner
+
+---
+
+## Project Requirements Covered
+
+This system includes:
+
+- C# .NET Application
+- Database Integration
+- User-Friendly Interface
+- Master File Management
+- Transaction Module
+- Reports / Dashboard Summary
+- Error Handling and Validation
+- Basic Security Implementation
+- Role-Based Access
+- File Upload Handling
+
+---
+
+## Developer Note
+
+This project is developed for academic purposes as a car rental management system using ASP.NET Core Razor Pages and SQLite.
