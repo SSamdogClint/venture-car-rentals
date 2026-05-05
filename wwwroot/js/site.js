@@ -1,4 +1,25 @@
-﻿// Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
-// for details on configuring this project to bundle and minify static web assets.
+﻿function toggleUserSidebar() {
+    const sidebar = document.getElementById("userSidebar");
+    const overlay = document.getElementById("userSidebarOverlay");
 
-// Write your JavaScript code.
+    if (sidebar && overlay) {
+        sidebar.classList.toggle("show");
+        overlay.classList.toggle("show");
+    }
+}
+
+function closeUserSidebar() {
+    const sidebar = document.getElementById("userSidebar");
+    const overlay = document.getElementById("userSidebarOverlay");
+
+    if (sidebar && overlay) {
+        sidebar.classList.remove("show");
+        overlay.classList.remove("show");
+    }
+}
+
+window.addEventListener("resize", function () {
+    if (window.innerWidth > 993) {
+        closeUserSidebar();
+    }
+});

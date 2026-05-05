@@ -1,0 +1,186 @@
+﻿@page
+@model VentureCarRentals.Pages.User.HomeModel
+@{
+    ViewData["Title"] = "Home";
+    Layout = "_Layout";
+}
+
+<div class="user-wrapper">
+
+    @await Html.PartialAsync("/Pages/User/_UserSidebar.cshtml")
+
+    <main class="user-main">
+
+        <div class="user-topbar">
+            <button type="button" class="user-menu-btn" onclick="toggleUserSidebar()">
+                <i class="bi bi-list"></i>
+            </button>
+
+            <i class="bi bi-bell notification-bell"></i>
+        </div>  
+
+        <section class="booking-hero">
+            <h1>Start Your Booking Now</h1>
+
+            <div class="booking-card">
+                <form method="get" asp-page="/User/Cars/BrowseCars">
+                    <div class="row g-4">
+
+                        <div class="col-md-6">
+                            <label class="form-label">Borrow Date</label>
+                            <div class="user-input-card">
+                                <input type="date"
+                                       name="BorrowDate"
+                                       value="@DateTime.Today.ToString("yyyy-MM-dd")"
+                                       required />
+                                <i class="bi bi-calendar-event"></i>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Borrow Time</label>
+                            <div class="user-input-card">
+                                <input type="time"
+                                       name="BorrowTime"
+                                       value="08:00"
+                                       required />
+                                <i class="bi bi-clock"></i>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Return Date</label>
+                            <div class="user-input-card">
+                                <input type="date"
+                                       name="ReturnDate"
+                                       value="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")"
+                                       required />
+                                <i class="bi bi-calendar-event"></i>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Return Time</label>
+                            <div class="user-input-card">
+                                <input type="time"
+                                       name="ReturnTime"
+                                       value="17:00"
+                                       required />
+                                <i class="bi bi-clock"></i>
+                            </div>
+                        </div>
+
+                        <div class="col-12 text-center">
+                            <button type="submit" class="find-car-btn">
+                                Find Available Cars
+                            </button>
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <section class="review-section">
+            <h2>What our customers are saying about Car Rentals</h2>
+
+            <div class="row g-4 mt-2">
+
+                <div class="col-lg-3 col-md-6">
+                    <div class="review-card">
+                        <div class="stars">
+                            <i class="bi bi-star"></i>
+                            <i class="bi bi-star"></i>
+                            <i class="bi bi-star"></i>
+                            <i class="bi bi-star"></i>
+                            <i class="bi bi-star"></i>
+                        </div>
+
+                        <h5>Review title</h5>
+                        <p>Review body</p>
+
+                        <div class="reviewer">
+                            <img src="https://i.pravatar.cc/60?img=1" alt="Reviewer" />
+                            <div>
+                                <strong>Reviewer name</strong>
+                                <small>Date</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <div class="review-card">
+                        <div class="stars">
+                            <i class="bi bi-star"></i>
+                            <i class="bi bi-star"></i>
+                            <i class="bi bi-star"></i>
+                            <i class="bi bi-star"></i>
+                            <i class="bi bi-star"></i>
+                        </div>
+
+                        <h5>Review title</h5>
+                        <p>Review body</p>
+
+                        <div class="reviewer">
+                            <img src="https://i.pravatar.cc/60?img=2" alt="Reviewer" />
+                            <div>
+                                <strong>Reviewer name</strong>
+                                <small>Date</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <div class="review-card">
+                        <div class="stars">
+                            <i class="bi bi-star"></i>
+                            <i class="bi bi-star"></i>
+                            <i class="bi bi-star"></i>
+                            <i class="bi bi-star"></i>
+                            <i class="bi bi-star"></i>
+                        </div>
+
+                        <h5>Review title</h5>
+                        <p>Review body</p>
+
+                        <div class="reviewer">
+                            <img src="https://i.pravatar.cc/60?img=3" alt="Reviewer" />
+                            <div>
+                                <strong>Reviewer name</strong>
+                                <small>Date</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <div class="review-card">
+                        <div class="stars">
+                            <i class="bi bi-star"></i>
+                            <i class="bi bi-star"></i>
+                            <i class="bi bi-star"></i>
+                            <i class="bi bi-star"></i>
+                            <i class="bi bi-star"></i>
+                        </div>
+
+                        <h5>Review title</h5>
+                        <p>Review body</p>
+
+                        <div class="reviewer">
+                            <img src="https://i.pravatar.cc/60?img=4" alt="Reviewer" />
+                            <div>
+                                <strong>Reviewer name</strong>
+                                <small>Date</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+</div>

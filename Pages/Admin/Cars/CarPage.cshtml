@@ -1,0 +1,398 @@
+﻿@page
+@model VentureCarRentals.Pages.Admin.Cars.CarPageModel
+@{
+    ViewData["Title"] = "Cars";
+    Layout = "_Layout";
+}
+
+<div class="row g-4">
+
+    <!-- LEFT STATISTICS -->
+    <div class="col-lg-3">
+        <div class="dashboard-header mb-3">
+            <h5>Todays Statistics</h5>
+            <p>@DateTime.Now.ToString("ddd, dd MMMM, yyyy, hh:mm tt")</p>
+        </div>
+
+        @if (TempData["Success"] != null)
+        {
+            <div id="pageAlert" class="alert alert-success small">
+                @TempData["Success"]
+            </div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div id="pageAlert" class="alert alert-danger small">
+                @TempData["Error"]
+            </div>
+        }
+
+        <div class="stat-card">
+            <div class="d-flex justify-content-between">
+                <span>Available</span>
+                <small>Today</small>
+            </div>
+
+            <h3>@Model.AvailableCars</h3>
+            <p>Available cars in the system</p>
+            <strong>Total Cars <span>@Model.TotalCars</span></strong>
+        </div>
+
+        <div class="stat-card">
+            <div class="d-flex justify-content-between">
+                <span>Not Available</span>
+                <small>Today</small>
+            </div>
+
+            <h3>@Model.NotAvailableCars</h3>
+            <p>Booked, maintenance, or inactive cars</p>
+            <strong>Total Cars <span>@Model.TotalCars</span></strong>
+        </div>
+
+        <div class="stat-card">
+            <div class="d-flex justify-content-between">
+                <span>Available vs Not Available</span>
+                <small>Today</small>
+            </div>
+
+            <div class="donut-chart car-donut mx-auto my-3"
+                 style="background: conic-gradient(#4ade80 0 @(Model.AvailablePercent)%, #111 @(Model.AvailablePercent)% 100%);">
+            </div>
+
+            <div class="chart-label">
+                <p>
+                    <span><span class="dot green"></span>Total Available</span>
+                    <b>@Model.AvailablePercent%</b>
+                </p>
+
+                <p>
+                    <span><span class="dot dark"></span>Total Not Available</span>
+                    <b>@Model.NotAvailablePercent%</b>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT CAR LIST -->
+    <div class="col-lg-9">
+
+        <div class="topbar mb-4">
+            <div></div>
+
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-bell-fill notification-icon"></i>
+
+                <form method="get" class="search-box">
+                    <input type="text" name="SearchTerm" value="@Model.SearchTerm" placeholder="Search here">
+                    <button type="submit" class="border-0 bg-transparent">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h6 class="mb-0">Car List</h6>
+                    <span class="text-muted small">
+                        Showing @Model.Cars.Count car(s)
+                    </span>
+                </div>
+
+                <button class="btn add-car-btn" data-bs-toggle="modal" data-bs-target="#addCarModal">
+                    <i class="bi bi-plus-circle"></i> Add Car
+                </button>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table align-middle admin-table">
+                    <thead>
+                        <tr>
+                            <th>No.</th>
+                            <th>Car no.</th>
+                            <th>Car Model</th>
+                            <th>Status</th>
+                            <th>Seater</th>
+                            <th>Price / Day</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @if (Model.Cars.Any())
+                        {
+                            var count = 1;
+
+                            foreach (var car in Model.Cars)
+                            {
+                                <tr>
+                                    <td>@count.ToString("00")</td>
+
+                                    <td>
+                                        <span class="car-code">@car.CarId.ToString("0000")</span>   
+                                    </td>
+
+                                    <td>
+                                        <strong>@car.Make @car.Model</strong>
+                                        <br />
+                                        <small class="text-muted">@car.Category • @car.Transmission</small>
+                                    </td>
+
+                                    <td>
+                                        <span class="status @(car.Status == "available" ? "available" : "unavailable")"></span>
+                                        <span class="text-capitalize">@car.Status</span>
+                                    </td>
+
+                                    <td>@car.Seats</td>
+
+                                    <td>₱@car.PricePerDay.ToString("N2")</td>
+
+                                    <td>
+                                        <button class="details-btn"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#carDetailsModal-@car.CarId">
+                                            Details
+                                        </button>
+                                    </td>
+                                </tr>
+
+                                count++;
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-5">
+                                    No cars found in the database yet.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ADD CAR MODAL -->
+<div class="modal fade" id="addCarModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content admin-modal">
+            <form method="post" asp-page-handler="Add" enctype="multipart/form-data">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Car</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="row g-3">
+
+                        <div class="col-md-6">
+                            <label class="form-label">Make</label>
+                            <input asp-for="NewCar.Make" class="form-control" placeholder="Toyota" required />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Model</label>
+                            <input asp-for="NewCar.Model" class="form-control" placeholder="Vios" required />
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Year</label>
+                            <input asp-for="NewCar.Year" type="number" class="form-control" required />
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Category</label>
+                            <input asp-for="NewCar.Category" class="form-control" placeholder="Sedan, SUV, Van" required />
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Price Per Day</label>
+                            <input asp-for="NewCar.PricePerDay" type="number" step="0.01" class="form-control" required />
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Status</label>
+                            <select asp-for="NewCar.Status" class="form-control" required>
+                                <option value="available">available</option>
+                                <option value="booked">booked</option>
+                                <option value="maintenance">maintenance</option>
+                                <option value="inactive">inactive</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Seats</label>
+                            <input asp-for="NewCar.Seats" type="number" class="form-control" required />
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Transmission</label>
+                            <select asp-for="NewCar.Transmission" class="form-control" required>
+                                <option value="Automatic">Automatic</option>
+                                <option value="Manual">Manual</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-12">
+                            <label class="form-label">Car Image</label>
+                            <input asp-for="CarImage" type="file" class="form-control" accept="image/*" />
+                            <small class="text-muted">Upload JPG, PNG, or WEBP image.</small>
+                        </div>
+
+                        <div class="col-md-12">
+                            <label class="form-label">Description</label>
+                            <textarea asp-for="NewCar.Description" class="form-control" rows="3" placeholder="Car description"></textarea>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn add-car-btn">Save Car</button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- DETAILS MODALS -->
+@foreach (var car in Model.Cars)
+{
+    <div class="modal fade" id="carDetailsModal-@car.CarId" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content admin-modal">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">@car.Make @car.Model</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="row g-4">
+
+                        <div class="col-md-5">
+                            @if (!string.IsNullOrWhiteSpace(car.ImageUrl))
+                            {
+                                <img src="@car.ImageUrl" class="modal-car-img" alt="@car.Make @car.Model" />
+                            }
+                            else
+                            {
+                                <div class="no-image-box">
+                                    <i class="bi bi-car-front"></i>
+                                    <span>No image available</span>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="col-md-7">
+                            <div class="car-detail-grid">
+                                <p><strong>Car ID:</strong> @car.CarId.ToString("0000")</p>
+                                <p><strong>Make:</strong> @car.Make</p>
+                                <p><strong>Model:</strong> @car.Model</p>
+                                <p><strong>Year:</strong> @car.Year</p>
+                                <p><strong>Category:</strong> @car.Category</p>
+                                <p><strong>Seats:</strong> @car.Seats</p>
+                                <p><strong>Transmission:</strong> @car.Transmission</p>
+                                <p><strong>Price Per Day:</strong> ₱@car.PricePerDay.ToString("N2")</p>
+                                <p><strong>Status:</strong> <span class="text-capitalize">@car.Status</span></p>
+                                <p><strong>Created At:</strong> @car.CreatedAt.ToString("MMM dd, yyyy")</p>
+                            </div>
+
+                            <div class="mt-3">
+                                <strong>Description:</strong>
+                                <p class="text-muted mt-1">@car.Description</p>
+                            </div>
+
+                            <hr />
+
+                            <form method="post" asp-page-handler="UpdateStatus" class="mb-3">
+                                <input type="hidden" name="CarId" value="@car.CarId" />
+
+                                <label class="form-label">Edit Status</label>
+
+                                <div class="d-flex gap-2">
+                                    <select name="Status" class="form-control">
+                                        @if (car.Status == "available")
+                                        {
+                                            <option value="available" selected>available</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="available">available</option>
+                                        }
+
+                                        @if (car.Status == "booked")
+                                        {
+                                            <option value="booked" selected>booked</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="booked">booked</option>
+                                        }
+
+                                        @if (car.Status == "maintenance")
+                                        {
+                                            <option value="maintenance" selected>maintenance</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="maintenance">maintenance</option>
+                                        }
+
+                                        @if (car.Status == "inactive")
+                                        {
+                                            <option value="inactive" selected>inactive</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="inactive">inactive</option>
+                                        }
+                                    </select>
+
+                                    <button type="submit" class="btn btn-dark">
+                                        Update
+                                    </button>
+                                </div>
+                            </form>
+
+                            <form method="post" asp-page-handler="Delete" onsubmit="return confirm('Are you sure you want to delete this car?');">
+                                <input type="hidden" name="CarId" value="@car.CarId" />
+
+                                <button type="submit" class="btn btn-danger w-100">
+                                    <i class="bi bi-trash"></i> Delete Car
+                                </button>
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        setTimeout(function () {
+            const alertBox = document.getElementById("pageAlert");
+
+            if (alertBox) {
+                alertBox.style.transition = "opacity 0.5s ease";
+                alertBox.style.opacity = "0";
+
+                setTimeout(function () {
+                    alertBox.remove();
+                }, 500);
+            }
+        }, 2000);
+    </script>
+}

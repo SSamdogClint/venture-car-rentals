@@ -46,7 +46,7 @@ namespace VentureCarRentals.Pages
                 return RedirectToPage("/Admin/Dashboard");
             }
 
-            return RedirectToPage("/User/Dashboard");
+            return RedirectToPage("/User/Home");
         }
     }
 }

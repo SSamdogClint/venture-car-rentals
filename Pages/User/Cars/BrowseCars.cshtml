@@ -1,0 +1,160 @@
+﻿@page
+@model VentureCarRentals.Pages.User.Cars.BrowseCarsModel
+@{
+    ViewData["Title"] = "Browse Cars";
+    Layout = "_Layout";
+}
+
+<div class="user-wrapper">
+
+    @await Html.PartialAsync("/Pages/User/_UserSidebar.cshtml")
+
+    <main class="user-main">
+
+        <div class="user-topbar">
+            <div class="d-flex align-items-center gap-3">
+                <button type="button" class="user-menu-btn" onclick="toggleUserSidebar()">
+                    <i class="bi bi-list"></i>
+                </button>
+
+                <a asp-page="/User/Home" class="back-link">
+                    <i class="bi bi-arrow-left"></i> Back
+                </a>
+            </div>
+
+            <i class="bi bi-bell notification-bell"></i>
+        </div>
+
+        <section class="available-cars-section">
+
+            <h3>@Model.PageHeading</h3>
+            <hr />
+
+            @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+            {
+                <div class="alert alert-danger">
+                    @Model.ErrorMessage
+                </div>
+            }
+            else
+            {
+                @if (Model.IsSearchMode)
+                {
+                    <div class="selected-date-box mb-3">
+                        <strong>Borrow:</strong> @Model.BorrowDateTime.ToString("MMM dd, yyyy hh:mm tt")
+                        <span class="mx-2">|</span>
+                        <strong>Return:</strong> @Model.ReturnDateTime.ToString("MMM dd, yyyy hh:mm tt")
+                    </div>
+                }
+                else
+                {
+                    <div class="selected-date-box mb-3">
+                        Showing popular cars. Select a borrow and return schedule from the home page to check exact availability.
+                    </div>
+                }
+
+                @if (Model.Cars.Any())
+                {
+                    foreach (var car in Model.Cars)
+                    {
+                        var totalPrice = Model.IsSearchMode
+                        ? Model.TotalDays * car.PricePerDay
+                        : car.PricePerDay;
+
+                        <div class="vehicle-card">
+
+                            <div class="vehicle-image-box">
+                                @if (!string.IsNullOrWhiteSpace(car.ImageUrl))
+                                {
+                                    <img src="@car.ImageUrl" alt="@car.Make @car.Model" />
+                                }
+                                else
+                                {
+                                    <div class="vehicle-no-image">
+                                        <i class="bi bi-car-front"></i>
+                                        <span>No Image</span>
+                                    </div>
+                                }
+
+                                <div class="rating-box">
+                                    <i class="bi bi-star"></i>
+                                    <i class="bi bi-star"></i>
+                                    <i class="bi bi-star"></i>
+                                    <i class="bi bi-star"></i>
+                                    <i class="bi bi-star"></i>
+                                    <small>0 Ratings</small>
+                                </div>
+                            </div>
+
+                            <div class="vehicle-info">
+                                <h5>@car.Make @car.Model - @car.Category</h5>
+
+                                <div class="vehicle-features">
+                                    <p><i class="bi bi-calendar"></i> @car.Year Model</p>
+                                    <p><i class="bi bi-people"></i> @car.Seats Seats</p>
+                                    <p><i class="bi bi-gear"></i> @car.Transmission</p>
+                                    <p><i class="bi bi-check-circle"></i> @car.Status</p>
+                                    <p><i class="bi bi-snow"></i> Airconditioning</p>
+                                    <p><i class="bi bi-steering-wheel"></i> Power Steering</p>
+                                </div>
+                            </div>
+
+                            <div class="vehicle-price">
+                                <h4>₱@car.PricePerDay.ToString("N2") <span>/ day</span></h4>
+
+                                @if (Model.IsSearchMode)
+                                {
+                                    <p>
+                                        ₱@totalPrice.ToString("N2") total for<br />
+                                        @Model.TotalDays day(s)
+                                    </p>
+                                    <small>Excl. taxes & insurance(s)</small>
+
+                                    <a class="book-btn"
+                                       asp-page="/User/Bookings/Create"
+                                       asp-route-carId="@car.CarId"
+                                       asp-route-borrowDate="@Model.BorrowDate"
+                                       asp-route-borrowTime="@Model.BorrowTime"
+                                       asp-route-returnDate="@Model.ReturnDate"
+                                       asp-route-returnTime="@Model.ReturnTime">
+                                        Book
+                                    </a>
+                                }
+                                else
+                                {
+                                    <p>Check schedule first to book this car.</p>
+                                    <small>Price may vary depending on duration.</small>
+
+                                    <a class="book-btn" asp-page="/User/Home">
+                                        Check Availability
+                                    </a>
+                                }
+                            </div>
+
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="empty-result-box">
+                        <i class="bi bi-car-front"></i>
+
+                        @if (Model.IsSearchMode)
+                        {
+                            <h5>No available cars found</h5>
+                            <p>All available cars may already be booked for your selected date and time.</p>
+                        }
+                        else
+                        {
+                            <h5>No popular cars found</h5>
+                            <p>No available cars have been added yet.</p>
+                        }
+                    </div>
+                }
+            }
+
+        </section>
+
+    </main>
+
+</div>

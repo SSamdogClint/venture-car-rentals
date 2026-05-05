@@ -1,0 +1,58 @@
+﻿@{
+    var currentPage = ViewContext.RouteData.Values["page"]?.ToString() ?? "";
+}
+
+<div id="userSidebarOverlay" class="user-sidebar-overlay" onclick="closeUserSidebar()"></div>
+
+<aside id="userSidebar" class="user-sidebar">
+    <div class="user-brand-box">
+        <img src="~/images/logo.png" asp-append-version="true" alt="Logo" class="user-sidebar-logo" />
+        <span>CAR RENTALS</span>
+    </div>
+
+    <nav class="user-sidebar-menu">
+
+        <a class="@(currentPage == "/User/Home" ? "active" : "")" asp-page="/User/Home">
+            <i class="bi bi-grid"></i> Home
+        </a>
+
+        <a class="@(currentPage.StartsWith("/User/Cars") ? "active" : "")" asp-page="/User/Cars/BrowseCars">
+            <i class="bi bi-car-front"></i> Browse Cars
+        </a>
+
+        <a class="@(currentPage.StartsWith("/User/Bookings") ? "active" : "")" asp-page="/User/Bookings/MyBookings">
+            <i class="bi bi-calendar-check"></i> My Bookings
+        </a>
+
+        <a class="@(currentPage.StartsWith("/User/Payments") ? "active" : "")" asp-page="/User/Payments/Index">
+            <i class="bi bi-credit-card"></i> Payments
+        </a>
+
+        <a class="@(currentPage.StartsWith("/User/Agreements") ? "active" : "")" asp-page="/User/Agreements/Index">
+            <i class="bi bi-file-earmark-text"></i> Agreements
+        </a>
+
+        <a class="@(currentPage.StartsWith("/User/Reviews") ? "active" : "")" asp-page="/User/Reviews/Index">
+            <i class="bi bi-star"></i> Reviews
+        </a>
+
+        <hr />
+
+        <a class="@(currentPage == "/User/Profile" ? "active" : "")" asp-page="/User/Profile">
+            <i class="bi bi-person"></i> Profile
+        </a>
+
+        <a class="@(currentPage.StartsWith("/User/Documents") ? "active" : "")" asp-page="/User/Documents/Index">
+            <i class="bi bi-file-earmark"></i> My Documents
+        </a>
+
+        <a class="@(currentPage == "/User/Settings" ? "active" : "")" asp-page="/User/Settings">
+            <i class="bi bi-gear"></i> Settings
+        </a>
+
+    </nav>
+
+    <a asp-page="/Logout" class="user-logout-btn">
+        <i class="bi bi-box-arrow-right"></i> Logout
+    </a>
+</aside>

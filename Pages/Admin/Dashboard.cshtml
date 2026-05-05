@@ -2,29 +2,185 @@
 @model VentureCarRentals.Pages.Admin.DashboardModel
 @{
     ViewData["Title"] = "Admin Dashboard";
+    Layout = "_Layout";
 }
 
-<h1>Admin Dashboard</h1>
+<div class="row g-4">
 
-<div class="row">
-    <div class="col-md-4">
-        <div class="card p-3 shadow-sm">
-            <h4>Manage Cars</h4>
-            <p>Add, edit, delete, and update car status.</p>
+    <div class="col-lg-3">
+        <div class="dashboard-header mb-3">
+            <h5>Todays Statistics</h5>
+            <p>@DateTime.Now.ToString("ddd, dd MMMM, yyyy, hh:mm tt")</p>
+        </div>
+
+        <div class="stat-card">
+            <div class="d-flex justify-content-between">
+                <span>Income</span>
+                <small>Today</small>
+            </div>
+
+            <h3>₱ @Model.TodayIncome.ToString("N2") <span class="up">↑ @Model.IncomePercent.ToString("N1")%</span></h3>
+            <p>Compared to last week income</p>
+            <strong>Last week Income <span>₱@Model.LastWeekIncome.ToString("N2")</span></strong>
+        </div>
+
+        <div class="stat-card">
+            <div class="d-flex justify-content-between">
+                <span>Maintenance</span>
+                <small>Today</small>
+            </div>
+
+            <h3>₱ @Model.TodayMaintenance.ToString("N2") <span class="up">↑ @Model.MaintenancePercent.ToString("N1")%</span></h3>
+            <p>Compared to last week expenses</p>
+            <strong>Last week expenses <span>₱@Model.LastWeekMaintenance.ToString("N2")</span></strong>
+        </div>
+
+        <div class="stat-card">
+            <div class="d-flex justify-content-between">
+                <span>Rent vs Cancel</span>
+                <small>Today</small>
+            </div>
+
+            <div class="donut-chart mx-auto my-3"></div>
+
+            <div class="chart-label">
+                <p><span><span class="dot dark"></span>Total Rent</span> <b>@Model.RentPercent% ↑</b></p>
+                <p><span><span class="dot green"></span>Total Cancel</span> <b>@Model.CancelPercent% ↑</b></p>
+                <p><span><span class="dot red"></span>Total Pending</span> <b>@Model.PendingPercent% ↓</b></p>
+            </div>
         </div>
     </div>
 
-    <div class="col-md-4">
-        <div class="card p-3 shadow-sm">
-            <h4>Bookings</h4>
-            <p>Monitor customer bookings.</p>
-        </div>
-    </div>
+    <div class="col-lg-9">
 
-    <div class="col-md-4">
-        <div class="card p-3 shadow-sm">
-            <h4>Reports</h4>
-            <p>View booking and revenue reports.</p>
+        <div class="topbar mb-4">
+            <div></div>
+
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-bell-fill notification-icon"></i>
+
+                <div class="search-box">
+                    <input type="text" placeholder="Search here">
+                    <i class="bi bi-search"></i>
+                </div>
+            </div>
         </div>
+
+        <div class="content-card mb-4">
+            <h6>Car Availability</h6>
+
+            <form method="get" class="row g-3 align-items-center mt-2">
+                <div class="col-md-3">
+                    <div class="input-card">
+                        <i class="bi bi-car-front"></i>
+                        <select name="SelectedCarId">
+                            <option value="">Car number</option>
+
+                            @foreach (var car in Model.CarOptions)
+                            {
+                                <option value="@car.CarId">@car.CarNumber - @car.CarName</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="input-card">
+                        <i class="bi bi-calendar"></i>
+                        <input type="date" name="SelectedDate" value="@Model.SelectedDate.ToString("yyyy-MM-dd")">
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="input-card">
+                        <i class="bi bi-clock"></i>
+                        <input type="time" name="SelectedTime" value="@Model.SelectedTime">
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <button type="submit" class="btn check-btn w-100">Check</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="content-card mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6>Live Car Status</h6>
+
+                <button class="filter-btn">
+                    <i class="bi bi-sliders"></i> Filter
+                </button>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table align-middle admin-table">
+                    <thead>
+                        <tr>
+                            <th>No.</th>
+                            <th>Car no.</th>
+                            <th>Car</th>
+                            <th>Status</th>
+                            <th>Earning</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @if (Model.LiveCars.Any())
+                        {
+                            var count = 1;
+
+                            foreach (var car in Model.LiveCars)
+                            {
+                                <tr>
+                                    <td>@count.ToString("00")</td>
+                                    <td><span class="car-code">@car.CarNumber</span></td>
+                                    <td>@car.CarName</td>
+                                    <td>
+                                        <span class="status @(car.Status.ToLower() == "available" ? "available" : "unavailable")"></span>
+                                        @car.Status
+                                    </td>
+                                    <td>₱@car.Earning.ToString("N2")</td>
+                                    <td>
+                                        <a asp-page="/Admin/Cars/Details" asp-route-id="@car.CarId" class="details-btn">Details</a>
+                                    </td>
+                                </tr>
+
+                                count++;
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">
+                                    No cars found.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6>Booking Summary</h6>
+                <small>@Model.BookingRangeLabel</small>
+            </div>
+
+            <div class="booking-bars">
+                @foreach (var item in Model.BookingSummary)
+                {
+                    <div class="bar-item">
+                        <div class="bar-wrapper">
+                            <div class="bar-fill" style="height:@item.BarHeight%"></div>
+                        </div>
+                        <span>@item.Month</span>
+                    </div>
+                }
+            </div>
+        </div>
+
     </div>
 </div>

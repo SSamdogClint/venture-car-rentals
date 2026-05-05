@@ -1,0 +1,214 @@
+﻿@page
+@model VentureCarRentals.Pages.User.Documents.CompleteRequirementsModel
+@{
+    ViewData["Title"] = "Complete Requirements";
+    Layout = "_Layout";
+}
+
+<div class="user-wrapper">
+
+    @await Html.PartialAsync("/Pages/User/_UserSidebar.cshtml")
+
+    <main class="user-main">
+
+        <div class="user-topbar">
+            <a asp-page="/User/Home" class="back-link">
+                <i class="bi bi-arrow-left"></i> Back
+            </a>
+
+            <i class="bi bi-bell notification-bell"></i>
+        </div>
+
+        <section class="renter-form-section">
+
+            <h3>Renter’s Information</h3>
+            <hr />
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger">@TempData["Error"]</div>
+            }
+
+            <form method="post" enctype="multipart/form-data">
+
+                <input type="hidden" asp-for="CarId" />
+                <input type="hidden" asp-for="BorrowDate" />
+                <input type="hidden" asp-for="BorrowTime" />
+                <input type="hidden" asp-for="ReturnDate" />
+                <input type="hidden" asp-for="ReturnTime" />
+
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <input asp-for="FirstName" class="form-control renter-input" placeholder="First Name" required />
+                    </div>
+
+                    <div class="col-md-4">
+                        <input asp-for="MiddleName" class="form-control renter-input" placeholder="Middle Name" />
+                    </div>
+
+                    <div class="col-md-4">
+                        <input asp-for="LastName" class="form-control renter-input" placeholder="Last Name" required />
+                    </div>
+
+                    <div class="col-md-6">
+                        <input asp-for="Email" class="form-control renter-input" placeholder="Email Address" readonly />
+                    </div>
+
+                    <div class="col-md-6">
+                        <input asp-for="PhoneNumber" class="form-control renter-input" placeholder="Phone Number" required />
+                    </div>
+
+                    <div class="col-md-6">
+                        <input asp-for="Street" class="form-control renter-input" placeholder="Street" required />
+                    </div>
+
+                    <div class="col-md-6">
+                        <input asp-for="Barangay" class="form-control renter-input" placeholder="Barangay" required />
+                    </div>
+
+                    <div class="col-md-6">
+                        <input asp-for="City" class="form-control renter-input" placeholder="City" required />
+                    </div>
+
+                    <div class="col-md-6">
+                        <input asp-for="State" class="form-control renter-input" placeholder="State / Province" required />
+                    </div>
+
+                    <div class="col-md-6">
+                        <input asp-for="ZipCode" class="form-control renter-input" placeholder="Zip Code" required />
+                    </div>
+
+                    <div class="col-md-6">
+                        <select asp-for="Country" class="form-control renter-input" required>
+                            <option value="">Country</option>
+                            <option value="Philippines">Philippines</option>
+                            <option value="Foreign">Foreign</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <input asp-for="Birthday" type="date" class="form-control renter-input" required />
+                    </div>
+                </div>
+
+                <h3 class="mt-4">Rental Documents</h3>
+                <hr />
+
+                <div class="mb-3">
+                    <label class="form-label">Renter Type</label>
+                    <select asp-for="RenterType" class="form-control renter-input" id="renterType" onchange="toggleDocumentFields()" required>
+                        <option value="local">Local Renter</option>
+                        <option value="foreign">Foreign Renter</option>
+                    </select>
+                </div>
+
+                <div id="localDocuments">
+                    <h5 class="mt-3">Driver’s License</h5>
+
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <input asp-for="DriverLicenseNumber" class="form-control renter-input" placeholder="License Number" />
+                        </div>
+
+                        <div class="col-md-4">
+                            <input asp-for="DriverLicenseExpiry" type="date" class="form-control renter-input" />
+                        </div>
+
+                        <div class="col-md-4">
+                            <input asp-for="DriverLicenseFile" type="file" class="form-control renter-input" accept="image/*,.pdf" />
+                        </div>
+                    </div>
+
+                    <h5 class="mt-4">Secondary ID</h5>
+
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <select asp-for="SecondaryDocType" class="form-control renter-input">
+                                <option value="">Select Secondary ID</option>
+                                <option value="national_id">National ID</option>
+                                <option value="police_clearance">Police Clearance</option>
+                                <option value="nbi_clearance">NBI Clearance</option>
+                                <option value="philhealth_id">PhilHealth ID</option>
+                                <option value="sss_id">SSS ID</option>
+                                <option value="umid">UMID</option>
+                                <option value="voters_id">Voter’s ID</option>
+                                <option value="company_id">Company ID</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <input asp-for="SecondaryDocNumber" class="form-control renter-input" placeholder="Document Number" />
+                        </div>
+
+                        <div class="col-md-4">
+                            <input asp-for="SecondaryDocFile" type="file" class="form-control renter-input" accept="image/*,.pdf" />
+                        </div>
+                    </div>
+                </div>
+
+                <div id="foreignDocuments" style="display:none;">
+                    <h5 class="mt-3">Passport</h5>
+
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <input asp-for="PassportNumber" class="form-control renter-input" placeholder="Passport Number" />
+                        </div>
+
+                        <div class="col-md-4">
+                            <input asp-for="PassportExpiry" type="date" class="form-control renter-input" />
+                        </div>
+
+                        <div class="col-md-4">
+                            <input asp-for="PassportFile" type="file" class="form-control renter-input" accept="image/*,.pdf" />
+                        </div>
+                    </div>
+
+                    <h5 class="mt-4">International Driving Permit / License</h5>
+
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <input asp-for="InternationalPermitNumber" class="form-control renter-input" placeholder="Permit / License Number" />
+                        </div>
+
+                        <div class="col-md-4">
+                            <input asp-for="InternationalPermitExpiry" type="date" class="form-control renter-input" />
+                        </div>
+
+                        <div class="col-md-4">
+                            <input asp-for="InternationalPermitFile" type="file" class="form-control renter-input" accept="image/*,.pdf" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-end mt-5">
+                    <button type="submit" class="btn btn-primary px-5">
+                        Save and Continue
+                    </button>
+                </div>
+
+            </form>
+
+        </section>
+
+    </main>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleDocumentFields() {
+            const renterType = document.getElementById("renterType").value;
+            const localDocs = document.getElementById("localDocuments");
+            const foreignDocs = document.getElementById("foreignDocuments");
+
+            if (renterType === "foreign") {
+                localDocs.style.display = "none";
+                foreignDocs.style.display = "block";
+            } else {
+                localDocs.style.display = "block";
+                foreignDocs.style.display = "none";
+            }
+        }
+
+        toggleDocumentFields();
+    </script>
+}

@@ -1,0 +1,54 @@
+﻿@{
+    var currentPage = ViewContext.RouteData.Values["page"]?.ToString() ?? "";
+}
+
+<aside class="admin-sidebar">
+    <div class="brand-box">
+        <img src="~/images/logo2.png" asp-append-version="true" alt="Venture Car Rentals Logo" class="admin-logo" />
+        <span>CAR RENTALS</span>
+    </div>
+
+    <nav class="sidebar-menu">
+
+        <a class="@(currentPage == "/Admin/Dashboard" ? "active" : "")" asp-page="/Admin/Dashboard">
+            <i class="bi bi-grid"></i> Dashboard
+        </a>
+
+        <a class="@(currentPage.StartsWith("/Admin/Cars") ? "active" : "")" asp-page="/Admin/Cars/CarPage">
+    <i class="bi bi-car-front"></i> Cars
+</a>
+
+        <a class="@(currentPage.StartsWith("/Admin/Bookings") ? "active" : "")" asp-page="/Admin/Bookings/Index">
+            <i class="bi bi-calendar-check"></i> Bookings
+        </a>
+
+        <a class="@(currentPage == "/Admin/Notifications" ? "active" : "")" asp-page="/Admin/Notifications">
+            <i class="bi bi-bell"></i> Notifications
+        </a>
+
+        <a class="@(currentPage == "/Admin/Settings" ? "active" : "")" asp-page="/Admin/Settings">
+            <i class="bi bi-gear"></i> Settings
+        </a>
+
+        <hr />
+
+        <small>Report</small>
+
+        <a class="@(currentPage == "/Admin/Payments" ? "active" : "")" asp-page="/Admin/Payments">
+            <i class="bi bi-credit-card"></i> Payment Details
+        </a>
+
+        <a class="@(currentPage == "/Admin/Transactions" ? "active" : "")" asp-page="/Admin/Transactions">
+            <i class="bi bi-arrow-left-right"></i> Transactions
+        </a>
+
+        <a class="@(currentPage == "/Admin/Reports" ? "active" : "")" asp-page="/Admin/Reports">
+            <i class="bi bi-file-earmark-text"></i> Car Report
+        </a>
+
+    </nav>
+
+    <a asp-page="/Logout" class="logout-btn">
+        <i class="bi bi-box-arrow-right"></i> Logout
+    </a>
+</aside>

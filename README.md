@@ -25,7 +25,7 @@ Administrators can:
 * Manage cars (CRUD)
 * Monitor bookings
 * Manage maintenance logs
-* View system reports
+	* View system reports
 
 ---
 

@@ -1,0 +1,56 @@
+﻿@page
+@model VentureCarRentals.Pages.User.Bookings.CreateModel
+@{
+    ViewData["Title"] = "Confirm Booking";
+    Layout = "_Layout";
+}
+
+<div class="user-wrapper">
+
+    @await Html.PartialAsync("/Pages/User/_UserSidebar.cshtml")
+
+    <main class="user-main">
+
+        <div class="user-topbar">
+            <a asp-page="/User/Cars/BrowseCars" class="back-link">
+                <i class="bi bi-arrow-left"></i> Back
+            </a>
+
+            <i class="bi bi-bell notification-bell"></i>
+        </div>
+
+        <section class="available-cars-section">
+            <h3>Confirm Booking</h3>
+            <hr />
+
+            @if (Model.Car != null)
+            {
+                <div class="content-card">
+                    <h4>@Model.Car.Make @Model.Car.Model</h4>
+                    <p class="text-muted">@Model.Car.Category • @Model.Car.Transmission • @Model.Car.Seats seats</p>
+
+                    <p><strong>Borrow:</strong> @Model.BorrowDateTime.ToString("MMM dd, yyyy hh:mm tt")</p>
+                    <p><strong>Return:</strong> @Model.ReturnDateTime.ToString("MMM dd, yyyy hh:mm tt")</p>
+                    <p><strong>Total Days:</strong> @Model.TotalDays day(s)</p>
+                    <p><strong>Price Per Day:</strong> ₱@Model.Car.PricePerDay.ToString("N2")</p>
+
+                    <h4>Total Price: ₱@Model.TotalPrice.ToString("N2")</h4>
+
+                    <form method="post">
+                        <input type="hidden" asp-for="CarId" />
+                        <input type="hidden" asp-for="BorrowDate" />
+                        <input type="hidden" asp-for="BorrowTime" />
+                        <input type="hidden" asp-for="ReturnDate" />
+                        <input type="hidden" asp-for="ReturnTime" />
+
+                        <button type="submit" class="btn btn-primary mt-3">
+                            Confirm Booking
+                        </button>
+                    </form>
+                </div>
+            }
+
+        </section>
+
+    </main>
+</div>
