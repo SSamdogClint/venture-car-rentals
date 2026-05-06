@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VentureCarRentals.Data;
 
@@ -10,9 +11,11 @@ using VentureCarRentals.Data;
 namespace VentureCarRentals.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260506112607_AddUserPaymentMethods")]
+    partial class AddUserPaymentMethods
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.11");
@@ -347,52 +350,6 @@ namespace VentureCarRentals.Migrations
                     b.ToTable("UserDocuments");
                 });
 
-            modelBuilder.Entity("VentureCarRentals.Models.UserPaymentMethod", b =>
-                {
-                    b.Property<int>("UserPaymentMethodId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("CardBrand")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("CardHolderName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("ExpiryDate")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<bool>("IsDefault")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Last4")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("MaskedCardNumber")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("PaymentType")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("UserPaymentMethodId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("UserPaymentMethods");
-                });
-
             modelBuilder.Entity("VentureCarRentals.Models.Booking", b =>
                 {
                     b.HasOne("VentureCarRentals.Models.Car", "Car")
@@ -484,17 +441,6 @@ namespace VentureCarRentals.Migrations
                 {
                     b.HasOne("VentureCarRentals.Models.User", "User")
                         .WithMany("UserDocuments")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("VentureCarRentals.Models.UserPaymentMethod", b =>
-                {
-                    b.HasOne("VentureCarRentals.Models.User", "User")
-                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

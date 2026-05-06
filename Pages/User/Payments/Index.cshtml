@@ -1,0 +1,100 @@
+﻿@page
+@model VentureCarRentals.Pages.User.Payments.IndexModel
+@{
+    ViewData["Title"] = "Payment Methods";
+    Layout = "_Layout";
+}
+
+<div class="user-wrapper">
+
+    @await Html.PartialAsync("/Pages/User/_UserSidebar.cshtml")
+
+    <main class="user-main">
+
+        <div class="user-topbar">
+            <div class="d-flex align-items-center gap-3">
+                <button type="button" class="user-menu-btn" onclick="toggleUserSidebar()">
+                    <i class="bi bi-list"></i>
+                </button>
+
+                <a asp-page="/User/Home" class="back-link">
+                    <i class="bi bi-arrow-left"></i> Back
+                </a>
+            </div>
+
+            <i class="bi bi-bell notification-bell"></i>
+        </div>
+
+        <section class="saved-payment-section">
+
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h3>Payment Methods</h3>
+
+                <a asp-page="/User/Home" class="btn btn-primary">
+                    <i class="bi bi-plus"></i> Add Payment Method
+                </a>
+            </div>
+
+            <div class="summary-line mb-3"></div>
+
+            @if (Model.PaymentMethods.Any())
+            {
+                <div class="saved-payment-grid">
+
+                    @foreach (var method in Model.PaymentMethods)
+                    {
+                        <div class="saved-payment-card">
+
+                            <div class="payment-card-logo">
+                                @if (method.CardBrand == "mastercard")
+                                {
+                                    <div class="mastercard-logo">
+                                        <span></span>
+                                        <span></span>
+                                    </div>
+                                    <small>mastercard</small>
+                                }
+                                else if (method.CardBrand == "visa")
+                                {
+                                    <div class="visa-logo">VISA</div>
+                                }
+                                else if (method.CardBrand == "jcb")
+                                {
+                                    <div class="jcb-logo">JCB</div>
+                                }
+                                else if (method.CardBrand == "amex")
+                                {
+                                    <div class="amex-logo">AMEX</div>
+                                }
+                                else
+                                {
+                                    <div class="gcash-logo">G</div>
+                                    <small>GCash</small>
+                                }
+                            </div>
+
+                            <div class="saved-payment-info">
+                                <small class="text-capitalize">@method.CardBrand</small>
+                                <strong>@method.MaskedCardNumber</strong>
+                                <p>@method.CardHolderName</p>
+                                <small>Expires: @method.ExpiryDate</small>
+                            </div>
+
+                        </div>
+                    }
+
+                </div>
+            }
+            else
+            {
+                <div class="empty-result-box">
+                    <i class="bi bi-credit-card"></i>
+                    <h5>No saved payment methods yet</h5>
+                    <p>Your payment method will appear here after your first payment.</p>
+                </div>
+            }
+
+        </section>
+
+    </main>
+</div>

@@ -13,8 +13,11 @@ namespace VentureCarRentals.Pages
             _context = context;
         }
 
-        [BindProperty] public string Email { get; set; } = "";
-        [BindProperty] public string Password { get; set; } = "";
+        [BindProperty]
+        public string Email { get; set; } = "";
+
+        [BindProperty]
+        public string Password { get; set; } = "";
 
         public string Message { get; set; } = "";
 
@@ -39,7 +42,9 @@ namespace VentureCarRentals.Pages
             HttpContext.Session.SetInt32("UserId", user.UserId);
             HttpContext.Session.SetString("UserName", user.FirstName + " " + user.LastName);
             HttpContext.Session.SetString("UserEmail", user.Email);
-            HttpContext.Session.SetString("IsAdmin", user.IsAdmin.ToString());
+
+            // Save role in lowercase so Program.cs can check it properly.
+            HttpContext.Session.SetString("IsAdmin", user.IsAdmin ? "true" : "false");
 
             if (user.IsAdmin)
             {

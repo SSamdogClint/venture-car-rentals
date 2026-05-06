@@ -135,7 +135,14 @@ namespace VentureCarRentals.Pages.User.Documents
             State = user.State;
             ZipCode = user.ZipCode;
             Country = string.IsNullOrWhiteSpace(user.Country) ? "Philippines" : user.Country;
-            Birthday = user.Birthday;
+
+            // Default birthday shows 18 years old if no birthday is saved yet
+            Birthday = user.Birthday ?? DateTime.Today.AddYears(-18);
+
+            // Default expiry dates so the input will not show only mm/dd/yyyy
+            DriverLicenseExpiry = DateTime.Today.AddYears(5);
+            PassportExpiry = DateTime.Today.AddYears(5);
+            InternationalPermitExpiry = DateTime.Today.AddYears(5);
 
             return Page();
         }
@@ -252,14 +259,9 @@ namespace VentureCarRentals.Pages.User.Documents
 
             await _context.SaveChangesAsync();
 
-            return RedirectToPage("/User/Bookings/Create", new
-            {
-                carId = CarId,
-                borrowDate = BorrowDate,
-                borrowTime = BorrowTime,
-                returnDate = ReturnDate,
-                returnTime = ReturnTime
-            });
+            TempData["VerificationSubmitted"] = "Thank you for submitting your verification requirements. Please wait for 30 minutes to 1 day while the admin reviews and confirms your account verification.";
+
+            return RedirectToPage("/User/Home");
         }
 
         private async Task SaveDocumentAsync(

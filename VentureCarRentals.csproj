@@ -20,7 +20,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Pages\User\Bookings\" />
     <Folder Include="wwwroot\images\cars\" />
+    <Folder Include="wwwroot\uploads\documents\" />
   </ItemGroup>
 
 </Project>

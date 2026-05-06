@@ -38,57 +38,71 @@
                 <input type="hidden" asp-for="ReturnTime" />
 
                 <div class="row g-3">
-                    <div class="col-md-4">
-                        <input asp-for="FirstName" class="form-control renter-input" placeholder="First Name" required />
-                    </div>
 
                     <div class="col-md-4">
-                        <input asp-for="MiddleName" class="form-control renter-input" placeholder="Middle Name" />
+                        <label class="form-label">First Name</label>
+                        <input asp-for="FirstName" class="form-control renter-input" placeholder="Juan" required />
                     </div>
 
                     <div class="col-md-4">
-                        <input asp-for="LastName" class="form-control renter-input" placeholder="Last Name" required />
+                        <label class="form-label">Middle Name</label>
+                        <input asp-for="MiddleName" class="form-control renter-input" placeholder="Santos" />
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Last Name</label>
+                        <input asp-for="LastName" class="form-control renter-input" placeholder="Dela Cruz" required />
                     </div>
 
                     <div class="col-md-6">
-                        <input asp-for="Email" class="form-control renter-input" placeholder="Email Address" readonly />
+                        <label class="form-label">Email Address</label>
+                        <input asp-for="Email" class="form-control renter-input" placeholder="juan@example.com" readonly />
                     </div>
 
                     <div class="col-md-6">
-                        <input asp-for="PhoneNumber" class="form-control renter-input" placeholder="Phone Number" required />
+                        <label class="form-label">Phone Number</label>
+                        <input asp-for="PhoneNumber" class="form-control renter-input" placeholder="09XXXXXXXXX" required />
                     </div>
 
                     <div class="col-md-6">
-                        <input asp-for="Street" class="form-control renter-input" placeholder="Street" required />
+                        <label class="form-label">Street</label>
+                        <input asp-for="Street" class="form-control renter-input" placeholder="123 Mango Street" required />
                     </div>
 
                     <div class="col-md-6">
-                        <input asp-for="Barangay" class="form-control renter-input" placeholder="Barangay" required />
+                        <label class="form-label">Barangay</label>
+                        <input asp-for="Barangay" class="form-control renter-input" placeholder="Lahug" required />
                     </div>
 
                     <div class="col-md-6">
-                        <input asp-for="City" class="form-control renter-input" placeholder="City" required />
+                        <label class="form-label">City</label>
+                        <input asp-for="City" class="form-control renter-input" placeholder="Cebu City" required />
                     </div>
 
                     <div class="col-md-6">
-                        <input asp-for="State" class="form-control renter-input" placeholder="State / Province" required />
+                        <label class="form-label">State / Province</label>
+                        <input asp-for="State" class="form-control renter-input" placeholder="Cebu" required />
                     </div>
 
                     <div class="col-md-6">
-                        <input asp-for="ZipCode" class="form-control renter-input" placeholder="Zip Code" required />
+                        <label class="form-label">Zip Code</label>
+                        <input asp-for="ZipCode" class="form-control renter-input" placeholder="6000" required />
                     </div>
 
                     <div class="col-md-6">
+                        <label class="form-label">Country</label>
                         <select asp-for="Country" class="form-control renter-input" required>
-                            <option value="">Country</option>
+                            <option value="">Select Country</option>
                             <option value="Philippines">Philippines</option>
                             <option value="Foreign">Foreign</option>
                         </select>
                     </div>
 
                     <div class="col-md-6">
+                        <label class="form-label">Birthday</label>
                         <input asp-for="Birthday" type="date" class="form-control renter-input" required />
                     </div>
+
                 </div>
 
                 <h3 class="mt-4">Rental Documents</h3>
@@ -103,26 +117,35 @@
                 </div>
 
                 <div id="localDocuments">
+
                     <h5 class="mt-3">Driver’s License</h5>
 
                     <div class="row g-3">
+
                         <div class="col-md-4">
-                            <input asp-for="DriverLicenseNumber" class="form-control renter-input" placeholder="License Number" />
+                            <label class="form-label">Driver’s License Number</label>
+                            <input asp-for="DriverLicenseNumber" class="form-control renter-input" placeholder="N01-23-456789" />
                         </div>
 
                         <div class="col-md-4">
+                            <label class="form-label">Driver’s License Expiration Date</label>
                             <input asp-for="DriverLicenseExpiry" type="date" class="form-control renter-input" />
                         </div>
 
                         <div class="col-md-4">
+                            <label class="form-label">Driver’s License Image / File</label>
                             <input asp-for="DriverLicenseFile" type="file" class="form-control renter-input" accept="image/*,.pdf" />
+                            <small class="text-muted">Example: clear photo or PDF copy.</small>
                         </div>
+
                     </div>
 
                     <h5 class="mt-4">Secondary ID</h5>
 
                     <div class="row g-3">
+
                         <div class="col-md-4">
+                            <label class="form-label">Secondary ID Type</label>
                             <select asp-for="SecondaryDocType" class="form-control renter-input">
                                 <option value="">Select Secondary ID</option>
                                 <option value="national_id">National ID</option>
@@ -137,47 +160,66 @@
                         </div>
 
                         <div class="col-md-4">
-                            <input asp-for="SecondaryDocNumber" class="form-control renter-input" placeholder="Document Number" />
+                            <label class="form-label">Secondary ID Number</label>
+                            <input asp-for="SecondaryDocNumber" class="form-control renter-input" placeholder="1234-5678-9012" />
                         </div>
 
                         <div class="col-md-4">
+                            <label class="form-label">Secondary ID Image / File</label>
                             <input asp-for="SecondaryDocFile" type="file" class="form-control renter-input" accept="image/*,.pdf" />
+                            <small class="text-muted">Example: clear photo or PDF copy.</small>
                         </div>
+
                     </div>
+
                 </div>
 
                 <div id="foreignDocuments" style="display:none;">
+
                     <h5 class="mt-3">Passport</h5>
 
                     <div class="row g-3">
+
                         <div class="col-md-4">
-                            <input asp-for="PassportNumber" class="form-control renter-input" placeholder="Passport Number" />
+                            <label class="form-label">Passport Number</label>
+                            <input asp-for="PassportNumber" class="form-control renter-input" placeholder="P1234567" />
                         </div>
 
                         <div class="col-md-4">
+                            <label class="form-label">Passport Expiration Date</label>
                             <input asp-for="PassportExpiry" type="date" class="form-control renter-input" />
                         </div>
 
                         <div class="col-md-4">
+                            <label class="form-label">Passport Image / File</label>
                             <input asp-for="PassportFile" type="file" class="form-control renter-input" accept="image/*,.pdf" />
+                            <small class="text-muted">Example: clear photo or PDF copy.</small>
                         </div>
+
                     </div>
 
                     <h5 class="mt-4">International Driving Permit / License</h5>
 
                     <div class="row g-3">
+
                         <div class="col-md-4">
-                            <input asp-for="InternationalPermitNumber" class="form-control renter-input" placeholder="Permit / License Number" />
+                            <label class="form-label">International Permit / License Number</label>
+                            <input asp-for="InternationalPermitNumber" class="form-control renter-input" placeholder="IDP-123456" />
                         </div>
 
                         <div class="col-md-4">
+                            <label class="form-label">International Permit Expiration Date</label>
                             <input asp-for="InternationalPermitExpiry" type="date" class="form-control renter-input" />
                         </div>
 
                         <div class="col-md-4">
+                            <label class="form-label">International Permit Image / File</label>
                             <input asp-for="InternationalPermitFile" type="file" class="form-control renter-input" accept="image/*,.pdf" />
+                            <small class="text-muted">Example: clear photo or PDF copy.</small>
                         </div>
+
                     </div>
+
                 </div>
 
                 <div class="text-end mt-5">

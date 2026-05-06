@@ -4,7 +4,7 @@
 
 <aside class="admin-sidebar">
     <div class="brand-box">
-        <img src="~/images/logo2.png" asp-append-version="true" alt="Venture Car Rentals Logo" class="admin-logo" />
+        <img src="~/images/logo.png" asp-append-version="true" alt="Venture Car Rentals Logo" class="admin-logo" />
         <span>CAR RENTALS</span>
     </div>
 
@@ -15,11 +15,23 @@
         </a>
 
         <a class="@(currentPage.StartsWith("/Admin/Cars") ? "active" : "")" asp-page="/Admin/Cars/CarPage">
-    <i class="bi bi-car-front"></i> Cars
-</a>
+            <i class="bi bi-car-front"></i> Cars
+        </a>
 
         <a class="@(currentPage.StartsWith("/Admin/Bookings") ? "active" : "")" asp-page="/Admin/Bookings/Index">
             <i class="bi bi-calendar-check"></i> Bookings
+        </a>
+
+        <a class="@(currentPage.StartsWith("/Admin/Users") ? "active" : "")" asp-page="/Admin/Users/UserControl">
+            <i class="bi bi-people"></i> Users
+        </a>
+
+        <a class="@(currentPage.StartsWith("/Admin/Documents") ? "active" : "")" asp-page="/Admin/Documents/Verification">
+            <i class="bi bi-file-earmark-check"></i> Document Verification
+        </a>
+
+        <a class="@(currentPage.StartsWith("/Admin/Maintenance") ? "active" : "")" asp-page="/Admin/Maintenance/Index">
+            <i class="bi bi-tools"></i> Maintenance
         </a>
 
         <a class="@(currentPage == "/Admin/Notifications" ? "active" : "")" asp-page="/Admin/Notifications">
@@ -42,8 +54,12 @@
             <i class="bi bi-arrow-left-right"></i> Transactions
         </a>
 
-        <a class="@(currentPage == "/Admin/Reports" ? "active" : "")" asp-page="/Admin/Reports">
+        <a class="@(currentPage == "/Admin/Reports/CarReport" ? "active" : "")" asp-page="/Admin/Reports/CarReport">
             <i class="bi bi-file-earmark-text"></i> Car Report
+        </a>
+
+        <a class="@(currentPage == "/Admin/Reports/BookingReport" ? "active" : "")" asp-page="/Admin/Reports/BookingReport">
+            <i class="bi bi-journal-text"></i> Booking Report
         </a>
 
     </nav>

@@ -1,0 +1,264 @@
+﻿@page
+@model VentureCarRentals.Pages.Admin.Documents.VerificationModel
+@{
+    ViewData["Title"] = "Document Verification";
+    Layout = "_Layout";
+}
+
+<div class="row g-4">
+
+    <div class="col-lg-3">
+        <div class="dashboard-header mb-3">
+            <h5>Document Statistics</h5>
+            <p>@DateTime.Now.ToString("ddd, dd MMMM, yyyy, hh:mm tt")</p>
+        </div>
+
+        @if (TempData["Success"] != null)
+        {
+            <div id="pageAlert" class="alert alert-success small">
+                @TempData["Success"]
+            </div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div id="pageAlert" class="alert alert-danger small">
+                @TempData["Error"]
+            </div>
+        }
+
+        <div class="stat-card">
+            <div class="d-flex justify-content-between">
+                <span>Total Documents</span>
+                <small>All</small>
+            </div>
+            <h3>@Model.TotalDocuments</h3>
+            <p>Total submitted user documents</p>
+            <strong>Documents <span>@Model.TotalDocuments</span></strong>
+        </div>
+
+        <div class="stat-card">
+            <div class="d-flex justify-content-between">
+                <span>Pending</span>
+                <small>Review</small>
+            </div>
+            <h3>@Model.PendingDocuments</h3>
+            <p>Documents waiting for approval</p>
+            <strong>Pending <span>@Model.PendingDocuments</span></strong>
+        </div>
+
+        <div class="stat-card">
+            <div class="d-flex justify-content-between">
+                <span>Approved</span>
+                <small>Verified</small>
+            </div>
+            <h3>@Model.ApprovedDocuments</h3>
+            <p>Documents already approved</p>
+            <strong>Approved <span>@Model.ApprovedDocuments</span></strong>
+        </div>
+
+        <div class="stat-card">
+            <div class="d-flex justify-content-between">
+                <span>Rejected</span>
+                <small>Denied</small>
+            </div>
+            <h3>@Model.RejectedDocuments</h3>
+            <p>Documents rejected by admin</p>
+            <strong>Rejected <span>@Model.RejectedDocuments</span></strong>
+        </div>
+
+        <div class="stat-card">
+            <div class="d-flex justify-content-between">
+                <span>Expired</span>
+                <small>Date</small>
+            </div>
+            <h3>@Model.ExpiredDocuments</h3>
+            <p>Documents with expired date</p>
+            <strong>Expired <span>@Model.ExpiredDocuments</span></strong>
+        </div>
+    </div>
+
+    <div class="col-lg-9">
+
+        <div class="topbar mb-4">
+            <div></div>
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-bell-fill notification-icon"></i>
+                <div class="search-box">
+                    <input type="text" placeholder="Search documents">
+                    <i class="bi bi-search"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h6 class="mb-0">Document Verification</h6>
+                    <span class="text-muted small">Showing @Model.Documents.Count document(s)</span>
+                </div>
+
+                @if (Model.UserId != null)
+                {
+                    <a asp-page="/Admin/Documents/Verification" class="btn btn-light">
+                        Show All Documents
+                    </a>
+                }
+            </div>
+
+            <div class="table-responsive">
+                <table class="table align-middle admin-table">
+                    <thead>
+                        <tr>
+                            <th>No.</th>
+                            <th>User</th>
+                            <th>Document</th>
+                            <th>Number</th>
+                            <th>Expiry</th>
+                            <th>Status</th>
+                            <th>File</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @if (Model.Documents.Any())
+                        {
+                            var count = 1;
+
+                            foreach (var document in Model.Documents)
+                            {
+                                <tr>
+                                    <td>@count.ToString("00")</td>
+
+                                    <td>
+                                        <strong>@document.UserFullName</strong>
+                                        <br />
+                                        <small class="text-muted">@document.UserEmail</small>
+                                    </td>
+
+                                    <td>
+                                        <span class="text-capitalize">
+                                            @document.DocType.Replace("_", " ")
+                                        </span>
+                                        <br />
+                                        <small class="text-muted">@document.IssuingCountry</small>
+                                    </td>
+
+                                    <td>@document.DocNumber</td>
+
+                                    <td>
+                                        @if (document.ExpiryDate != null)
+                                        {
+                                            @document.ExpiryDate.Value.ToString("MMM dd, yyyy")
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">No expiry</span>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        @if (document.Status == "approved")
+                                        {
+                                            <span class="badge bg-success">Approved</span>
+                                        }
+                                        else if (document.Status == "rejected")
+                                        {
+                                            <span class="badge bg-danger">Rejected</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark">Pending</span>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        @if (!string.IsNullOrWhiteSpace(document.FileUrl))
+                                        {
+                                            <a href="@document.FileUrl" target="_blank" class="btn btn-sm btn-outline-dark">
+                                                Open
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">No file</span>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        <form method="post" asp-page-handler="UpdateStatus" class="d-flex gap-2">
+                                            <input type="hidden" name="UserDocumentId" value="@document.UserDocumentId" />
+                                            <input type="hidden" name="UserId" value="@Model.UserId" />
+
+                                            <select name="Status" class="form-control form-control-sm">
+                                                @if (document.Status == "pending")
+                                                {
+                                                    <option value="pending" selected>pending</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="pending">pending</option>
+                                                }
+
+                                                @if (document.Status == "approved")
+                                                {
+                                                    <option value="approved" selected>approved</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="approved">approved</option>
+                                                }
+
+                                                @if (document.Status == "rejected")
+                                                {
+                                                    <option value="rejected" selected>rejected</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="rejected">rejected</option>
+                                                }
+                                            </select>
+
+                                            <button type="submit" class="btn btn-sm btn-dark">
+                                                Save
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+
+                                count++;
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="8" class="text-center text-muted py-5">
+                                    No documents found.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        setTimeout(function () {
+            const alertBox = document.getElementById("pageAlert");
+
+            if (alertBox) {
+                alertBox.style.transition = "opacity 0.5s ease";
+                alertBox.style.opacity = "0";
+
+                setTimeout(function () {
+                    alertBox.remove();
+                }, 500);
+            }
+        }, 2000);
+    </script>
+}

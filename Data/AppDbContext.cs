@@ -18,6 +18,7 @@ namespace VentureCarRentals.Data
         public DbSet<UserDocument> UserDocuments { get; set; }
         public DbSet<Review> Reviews { get; set; }
         public DbSet<MaintenanceLog> MaintenanceLogs { get; set; }
+        public DbSet<UserPaymentMethod> UserPaymentMethods { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

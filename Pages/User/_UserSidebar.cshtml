@@ -20,7 +20,7 @@
             <i class="bi bi-car-front"></i> Browse Cars
         </a>
 
-        <a class="@(currentPage.StartsWith("/User/Bookings") ? "active" : "")" asp-page="/User/Bookings/MyBookings">
+        <a class="@(currentPage == "/User/Bookings/MyBookings" ? "active" : "")" asp-page="/User/Bookings/MyBookings">
             <i class="bi bi-calendar-check"></i> My Bookings
         </a>
 

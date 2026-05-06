@@ -108,17 +108,42 @@
                                         ₱@totalPrice.ToString("N2") total for<br />
                                         @Model.TotalDays day(s)
                                     </p>
+
                                     <small>Excl. taxes & insurance(s)</small>
 
-                                    <a class="book-btn"
-                                       asp-page="/User/Bookings/Create"
-                                       asp-route-carId="@car.CarId"
-                                       asp-route-borrowDate="@Model.BorrowDate"
-                                       asp-route-borrowTime="@Model.BorrowTime"
-                                       asp-route-returnDate="@Model.ReturnDate"
-                                       asp-route-returnTime="@Model.ReturnTime">
-                                        Book
-                                    </a>
+                                    @if (Model.VerificationStatus == "verified")
+                                    {
+                                        <a class="book-btn"
+                                           asp-page="/User/Cars/Create"
+                                           asp-route-carId="@car.CarId"
+                                           asp-route-borrowDate="@Model.BorrowDate"
+                                           asp-route-borrowTime="@Model.BorrowTime"
+                                           asp-route-returnDate="@Model.ReturnDate"
+                                           asp-route-returnTime="@Model.ReturnTime">
+                                            Book
+                                        </a>
+                                    }
+                                    else if (Model.VerificationStatus == "needs_requirements")
+                                    {
+                                        <button type="button"
+                                                class="book-btn border-0"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#verifyAccountModal-@car.CarId">
+                                            Book
+                                        </button>
+                                    }
+                                    else if (Model.VerificationStatus == "pending")
+                                    {
+                                        <button type="button" class="book-btn not-verified-btn border-0" disabled>
+                                            Not verified yet
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <a class="book-btn" asp-page="/Login">
+                                            Login to Book
+                                        </a>
+                                    }
                                 }
                                 else
                                 {
@@ -132,6 +157,46 @@
                             </div>
 
                         </div>
+
+                        @if (Model.IsSearchMode && Model.VerificationStatus == "needs_requirements")
+                        {
+                            <div class="modal fade" id="verifyAccountModal-@car.CarId" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content verification-modal">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Verify Account First</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+
+                                        <div class="modal-body text-center">
+                                            <i class="bi bi-shield-check verification-icon"></i>
+
+                                            <h5 class="mt-3">Account verification required</h5>
+
+                                            <p class="text-muted">
+                                                Before booking this car, please complete your renter information and upload the required documents for verification.
+                                            </p>
+                                        </div>
+
+                                        <div class="modal-footer justify-content-center">
+                                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                                                Cancel
+                                            </button>
+
+                                            <a class="btn btn-primary"
+                                               asp-page="/User/Documents/CompleteRequirements"
+                                               asp-route-carId="@car.CarId"
+                                               asp-route-borrowDate="@Model.BorrowDate"
+                                               asp-route-borrowTime="@Model.BorrowTime"
+                                               asp-route-returnDate="@Model.ReturnDate"
+                                               asp-route-returnTime="@Model.ReturnTime">
+                                                Continue Verification
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
                     }
                 }
                 else

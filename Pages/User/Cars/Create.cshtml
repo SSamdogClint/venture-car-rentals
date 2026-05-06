@@ -1,0 +1,211 @@
+﻿@page
+@model VentureCarRentals.Pages.User.Cars.CreateModel
+@{
+    ViewData["Title"] = "Booking Summary";
+    Layout = "_Layout";
+}
+
+<div class="user-wrapper">
+
+    @await Html.PartialAsync("/Pages/User/_UserSidebar.cshtml")
+
+    <main class="user-main">
+
+        <div class="user-topbar">
+            <div class="d-flex align-items-center gap-3">
+                <button type="button" class="user-menu-btn" onclick="toggleUserSidebar()">
+                    <i class="bi bi-list"></i>
+                </button>
+
+                <a asp-page="/User/Cars/BrowseCars" class="back-link">
+                    <i class="bi bi-arrow-left"></i> Back
+                </a>
+            </div>
+
+            <i class="bi bi-bell notification-bell"></i>
+        </div>
+
+        <section class="booking-summary-section">
+
+            <h3>Summary</h3>
+
+            <div class="summary-block">
+                <h5>Date and Time</h5>
+
+                <div class="summary-line"></div>
+
+                <div class="row g-3 summary-date-row">
+                    <div class="col-md-3 col-6">
+                        <strong>Borrow Date</strong>
+                        <p>@Model.BorrowDateTime.ToString("MM/dd/yyyy")</p>
+                    </div>
+
+                    <div class="col-md-3 col-6">
+                        <strong>Borrow Time</strong>
+                        <p>@Model.BorrowDateTime.ToString("hh:mm tt")</p>
+                    </div>
+
+                    <div class="col-md-3 col-6">
+                        <strong>Return Date</strong>
+                        <p>@Model.ReturnDateTime.ToString("MM/dd/yyyy")</p>
+                    </div>
+
+                    <div class="col-md-3 col-6">
+                        <strong>Return Time</strong>
+                        <p>@Model.ReturnDateTime.ToString("hh:mm tt")</p>
+                    </div>
+                </div>
+            </div>
+
+            @if (Model.Car != null)
+            {
+                <div class="summary-block mt-3">
+                    <h5>Selected Vehicle</h5>
+
+                    <div class="summary-line"></div>
+
+                    <div class="selected-vehicle-card">
+
+                        <div class="summary-car-image">
+                            @if (!string.IsNullOrWhiteSpace(Model.Car.ImageUrl))
+                            {
+                                <img src="@Model.Car.ImageUrl" alt="@Model.Car.Make @Model.Car.Model" />
+                            }
+                            else
+                            {
+                                <div class="summary-no-image">
+                                    <i class="bi bi-car-front"></i>
+                                    <span>No Image</span>
+                                </div>
+                            }
+
+                            <div class="summary-rating">
+                                <i class="bi bi-star"></i>
+                                <i class="bi bi-star"></i>
+                                <i class="bi bi-star"></i>
+                                <i class="bi bi-star"></i>
+                                <i class="bi bi-star"></i>
+                            </div>
+                        </div>
+
+                        <div class="summary-car-info">
+                            <h5>@Model.Car.Make @Model.Car.Model - @Model.Car.Category</h5>
+
+                            <div class="summary-features">
+                                <p><i class="bi bi-fuel-pump"></i> Fuel / Standard</p>
+                                <p><i class="bi bi-person-seat"></i> Cloth Seats</p>
+                                <p><i class="bi bi-bluetooth"></i> Bluetooth Stereo</p>
+                                <p><i class="bi bi-door-open"></i> 4-doors</p>
+                                <p><i class="bi bi-car-front"></i> @Model.Car.Transmission Transmission</p>
+                                <p><i class="bi bi-snow"></i> Airconditioning</p>
+                                <p><i class="bi bi-steering-wheel"></i> Power Steering</p>
+                                <p><i class="bi bi-people"></i> @Model.Car.Seats Seats</p>
+                            </div>
+                        </div>
+
+                        <div class="summary-price">
+                            <h4>₱@Model.Car.PricePerDay.ToString("N2") <span>/ day</span></h4>
+                            <p>
+                                ₱@Model.TotalPrice.ToString("N2") total for<br />
+                                @Model.TotalDays day(s)
+                            </p>
+                            <small>Excl. taxes & insurance(s)</small>
+                        </div>
+
+                    </div>
+                </div>
+            }
+
+            @if (Model.Renter != null)
+            {
+                <div class="summary-block mt-3">
+                    <h5>Renter’s Information</h5>
+
+                    <div class="summary-line"></div>
+
+                    <div class="row g-3 renter-summary-row">
+
+                        <div class="col-md-4">
+                            <strong>Last Name</strong>
+                            <p>@Model.Renter.LastName</p>
+                        </div>
+
+                        <div class="col-md-4">
+                            <strong>First Name</strong>
+                            <p>@Model.Renter.FirstName</p>
+                        </div>
+
+                        <div class="col-md-4">
+                            <strong>Middle Name</strong>
+                            <p>
+                                @if (!string.IsNullOrWhiteSpace(Model.Renter.MiddleName))
+                                {
+                                    @Model.Renter.MiddleName
+                                }
+                                else
+                                {
+                                    <span class="text-muted">N/A</span>
+                                }
+                            </p>
+                        </div>
+
+                        <div class="col-md-6">
+                            <strong>Email Address</strong>
+                            <p>@Model.Renter.Email</p>
+                        </div>
+
+                        <div class="col-md-6">
+                            <strong>Phone Number</strong>
+                            <p>@Model.Renter.PhoneNumber</p>
+                        </div>
+
+                        <div class="col-md-6">
+                            <strong>Street</strong>
+                            <p>@Model.Renter.Street</p>
+                        </div>
+
+                        <div class="col-md-6">
+                            <strong>Barangay</strong>
+                            <p>@Model.Renter.Barangay</p>
+                        </div>
+
+                        <div class="col-md-6">
+                            <strong>City</strong>
+                            <p>@Model.Renter.City</p>
+                        </div>
+
+                        <div class="col-md-6">
+                            <strong>Province</strong>
+                            <p>@Model.Renter.State</p>
+                        </div>
+
+                        <div class="col-md-6">
+                            <strong>Zip Code</strong>
+                            <p>@Model.Renter.ZipCode</p>
+                        </div>
+
+                        <div class="col-md-6">
+                            <strong>Country</strong>
+                            <p>@Model.Renter.Country</p>
+                        </div>
+
+                    </div>
+                </div>
+            }
+
+            <form method="post" class="summary-action-form">
+                <input type="hidden" asp-for="CarId" />
+                <input type="hidden" asp-for="BorrowDate" />
+                <input type="hidden" asp-for="BorrowTime" />
+                <input type="hidden" asp-for="ReturnDate" />
+                <input type="hidden" asp-for="ReturnTime" />
+
+                <button type="submit" class="btn btn-primary px-5">
+                    Confirm Booking
+                </button>
+            </form>
+
+        </section>
+
+    </main>
+</div>
