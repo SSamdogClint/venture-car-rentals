@@ -3,6 +3,16 @@
 @{
     ViewData["Title"] = "Payment Methods";
     Layout = "_Layout";
+
+    /*
+        These values are used by the reusable _AddPaymentModal partial.
+        Since this page is only for managing saved cards, there is no booking schedule.
+    */
+    ViewData["AddCardCarId"] = "";
+    ViewData["AddCardBorrowDate"] = "";
+    ViewData["AddCardBorrowTime"] = "";
+    ViewData["AddCardReturnDate"] = "";
+    ViewData["AddCardReturnTime"] = "";
 }
 
 <div class="user-wrapper">
@@ -25,72 +35,147 @@
             <i class="bi bi-bell notification-bell"></i>
         </div>
 
-        <section class="saved-payment-section">
+        <section class="payment-method-section">
 
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <h3>Payment Methods</h3>
+            <!-- Page Header -->
+            <div class="section-header">
+                <div>
+                    <h2>Payment Methods</h2>
+                    <p class="section-subtitle">
+                        View and manage your saved demo payment methods.
+                    </p>
+                </div>
 
-                <a asp-page="/User/Home" class="btn btn-primary">
-                    <i class="bi bi-plus"></i> Add Payment Method
-                </a>
+                <!-- Opens reusable Add Payment Method modal -->
+                <button type="button"
+                        class="btn btn-primary add-payment-btn"
+                        data-bs-toggle="modal"
+                        data-bs-target="#addPaymentModal">
+                    <i class="bi bi-plus-lg"></i> Add Payment Method
+                </button>
             </div>
 
-            <div class="summary-line mb-3"></div>
+            <div class="summary-line mb-4"></div>
+
+            <!-- Page Messages -->
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success">
+                    @TempData["Success"]
+                </div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger">
+                    @TempData["Error"]
+                </div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+            {
+                <div class="alert alert-danger">
+                    @Model.ErrorMessage
+                </div>
+            }
 
             @if (Model.PaymentMethods.Any())
             {
-                <div class="saved-payment-grid">
+                <div class="saved-cards-grid">
 
                     @foreach (var method in Model.PaymentMethods)
                     {
-                        <div class="saved-payment-card">
+                        /*
+                        Card logo selection based on saved card brand.
+                        */
+                        var logoPath = "";
+                        var displayBrand = method.CardBrand;
 
-                            <div class="payment-card-logo">
-                                @if (method.CardBrand == "mastercard")
-                                {
-                                    <div class="mastercard-logo">
-                                        <span></span>
-                                        <span></span>
+                        if (method.CardBrand.Equals("MasterCard", StringComparison.OrdinalIgnoreCase))
+                        {
+                            logoPath = "/images/CardType/MasterCardLogo.png";
+                            displayBrand = "MasterCard";
+                        }
+                        else if (method.CardBrand.Equals("Visa", StringComparison.OrdinalIgnoreCase))
+                        {
+                            logoPath = "/images/CardType/VisaLogo.svg";
+                            displayBrand = "Visa";
+                        }
+                        else if (method.CardBrand.Equals("JCB", StringComparison.OrdinalIgnoreCase))
+                        {
+                            logoPath = "/images/CardType/JCBlogo.png";
+                            displayBrand = "JCB";
+                        }
+
+                        /*
+                        Deactivated cards remain visible here because this page is for management.
+                        They appear gray but are still clickable so users can activate/delete them.
+                        */
+                        var isInactive = method.Status == "inactive";
+                        var cardBoxClass = isInactive
+                        ? "payment-card-box inactive-payment-card"
+                        : "payment-card-box";
+
+                        <button type="button"
+                                class="payment-card-option card-action-button"
+                                data-bs-toggle="modal"
+                                data-bs-target="#cardActionModal-@method.UserPaymentMethodId">
+
+                            <div class="@cardBoxClass">
+
+                                <div class="card-brand-row">
+                                    @if (!string.IsNullOrWhiteSpace(logoPath))
+                                    {
+                                        <img src="@logoPath"
+                                             alt="@displayBrand Logo"
+                                             class="card-brand-logo" />
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-credit-card-2-front fs-2 text-primary"></i>
+                                    }
+
+                                    <span class="card-brand-name">@displayBrand</span>
+                                </div>
+
+                                <div class="card-info">
+                                    <div class="card-number">
+                                        @method.MaskedCardNumber
                                     </div>
-                                    <small>mastercard</small>
-                                }
-                                else if (method.CardBrand == "visa")
-                                {
-                                    <div class="visa-logo">VISA</div>
-                                }
-                                else if (method.CardBrand == "jcb")
-                                {
-                                    <div class="jcb-logo">JCB</div>
-                                }
-                                else if (method.CardBrand == "amex")
-                                {
-                                    <div class="amex-logo">AMEX</div>
-                                }
-                                else
-                                {
-                                    <div class="gcash-logo">G</div>
-                                    <small>GCash</small>
-                                }
-                            </div>
 
-                            <div class="saved-payment-info">
-                                <small class="text-capitalize">@method.CardBrand</small>
-                                <strong>@method.MaskedCardNumber</strong>
-                                <p>@method.CardHolderName</p>
-                                <small>Expires: @method.ExpiryDate</small>
-                            </div>
+                                    <div class="card-holder">
+                                        @method.CardHolderName
+                                    </div>
 
-                        </div>
+                                    <div class="card-expiry">
+                                        Expires: @method.ExpiryDate
+                                    </div>
+
+                                    @if (isInactive)
+                                    {
+                                        <div class="card-status inactive-status">Inactive</div>
+                                    }
+                                    else
+                                    {
+                                        <div class="card-status active-status">Active</div>
+                                    }
+                                </div>
+
+                            </div>
+                        </button>
+
+                        <!-- Reusable modal for activate/deactivate/delete card actions -->
+                        @await Html.PartialAsync("/Pages/User/Payments/_CardActionModal.cshtml", method)
                     }
 
                 </div>
             }
             else
             {
-                <div class="empty-result-box">
-                    <i class="bi bi-credit-card"></i>
-                    <h5>No saved payment methods yet</h5>
-                    <p>Your payment method will appear here after your first payment.</p>
+                <div class="empty-payment-state">
+                    <i class="bi bi-credit-card-2-front"></i>
+                    <h4>No saved payment methods yet</h4>
+                    <p>Your saved card will appear here after you add a demo card.</p>
                 </div>
             }
 
@@ -98,3 +183,6 @@
 
     </main>
 </div>
+
+<!-- Reusable Add Payment Method Modal -->
+@await Html.PartialAsync("/Pages/User/Payments/_AddPaymentModal.cshtml")

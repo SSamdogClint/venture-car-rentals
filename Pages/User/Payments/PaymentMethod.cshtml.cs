@@ -36,6 +36,9 @@ namespace VentureCarRentals.Pages.User.Payments
         public string? ReturnTime { get; set; }
 
         [BindProperty]
+        public bool AgreementAccepted { get; set; }
+
+        [BindProperty]
         public string SelectedPaymentType { get; set; } = "Cash";
 
         [BindProperty]
@@ -93,8 +96,8 @@ namespace VentureCarRentals.Pages.User.Payments
             }
 
             /*
-                Error handling and security validation are handled by PaymentSecurityHelper.
-                This keeps the Razor Page model cleaner and easier to explain.
+                PaymentSecurityHelper handles validation and masking.
+                The full 16-digit card number is not stored in the database.
             */
             var validation = PaymentSecurityHelper.ValidateDemoCard(
                 CardAccountNumber,
@@ -109,9 +112,8 @@ namespace VentureCarRentals.Pages.User.Payments
             }
 
             /*
-                Security:
-                Do not save the full 16-digit card number.
-                Save only the masked card number and last 4 digits.
+                If the card already exists, update/reactivate it.
+                Otherwise, save it as a new active payment method.
             */
             var existingCard = await _context.UserPaymentMethods
                 .FirstOrDefaultAsync(p =>
@@ -131,13 +133,22 @@ namespace VentureCarRentals.Pages.User.Payments
                     MaskedCardNumber = validation.MaskedCardNumber,
                     Last4 = validation.Last4,
                     ExpiryDate = validation.ExpiryDate,
+                    Status = "active",
                     IsDefault = false,
                     CreatedAt = DateTime.Now
                 };
 
                 _context.UserPaymentMethods.Add(newCard);
-                await _context.SaveChangesAsync();
             }
+            else
+            {
+                existingCard.CardHolderName = validation.CardHolderName;
+                existingCard.ExpiryDate = validation.ExpiryDate;
+                existingCard.MaskedCardNumber = validation.MaskedCardNumber;
+                existingCard.Status = "active";
+            }
+
+            await _context.SaveChangesAsync();
 
             return RedirectToPage("/User/Payments/PaymentMethod", new
             {
@@ -153,45 +164,56 @@ namespace VentureCarRentals.Pages.User.Payments
         {
             var userId = HttpContext.Session.GetInt32("UserId");
 
+            // Redirect user to login if there is no active session.
             if (userId == null)
             {
                 return RedirectToPage("/Login");
             }
 
+            // Reload car, schedule, total price, and saved payment methods.
+            // If the schedule data is invalid or missing, send the user back home.
             if (!await LoadPageDataAsync(userId.Value))
             {
                 return RedirectToPage("/User/Home");
             }
 
+            // Make sure the selected car still exists.
             if (Car == null)
             {
                 return RedirectToPage("/User/Cars/BrowseCars");
             }
 
+            // The booking cannot continue unless the user accepts the online rental agreement.
+            if (!AgreementAccepted)
+            {
+                ErrorMessage = "You must read and agree to the rental agreement before completing the booking.";
+                return Page();
+            }
+
             UserPaymentMethod? selectedCard = null;
 
+            // If the user selected a saved card, the system checks if the card exists,
+            // belongs to the logged-in user, and is still active.
             if (SelectedSavedCardId != null)
             {
                 selectedCard = await _context.UserPaymentMethods
                     .FirstOrDefaultAsync(p =>
                         p.UserPaymentMethodId == SelectedSavedCardId.Value &&
                         p.UserId == userId.Value &&
-                        p.PaymentType == "card");
+                        p.PaymentType == "card" &&
+                        p.Status == "active");
 
                 if (selectedCard == null)
                 {
-                    ErrorMessage = "Selected card was not found.";
+                    ErrorMessage = "Selected card was not found or is inactive.";
                     return Page();
                 }
 
                 SelectedPaymentType = "SavedCard";
             }
 
-            /*
-                Final availability check before saving the booking.
-                This prevents double-booking if another user books the same car
-                while this user is on the payment page.
-            */
+            // Final availability check before saving.
+            // This prevents two users from booking the same car on overlapping dates.
             var hasOverlap = await _context.Bookings.AnyAsync(b =>
                 b.CarId == CarId &&
                 b.Status != "cancelled" &&
@@ -205,14 +227,14 @@ namespace VentureCarRentals.Pages.User.Payments
                 return RedirectToPage("/User/Cars/BrowseCars");
             }
 
+            // A transaction is used so Booking, Payment, and Rental Agreement are saved together.
+            // If one save fails, all changes are rolled back.
             using var transaction = await _context.Database.BeginTransactionAsync();
 
             try
             {
-                /*
-                    Booking is created only after payment method confirmation.
-                    This means the booking is not completed before payment selection.
-                */
+                // Create the booking only after payment method and agreement confirmation.
+                // Status is pending because admin still needs to review it.
                 var booking = new Booking
                 {
                     UserId = userId.Value,
@@ -227,10 +249,8 @@ namespace VentureCarRentals.Pages.User.Payments
                 _context.Bookings.Add(booking);
                 await _context.SaveChangesAsync();
 
-                /*
-                    Payment record is connected to the newly created booking.
-                    Cash is unpaid, while saved demo card is marked as paid.
-                */
+                // Create the payment record connected to the booking.
+                // Cash is marked unpaid, while saved demo card is marked paid.
                 var payment = new Payment
                 {
                     BookingId = booking.BookingId,
@@ -242,15 +262,36 @@ namespace VentureCarRentals.Pages.User.Payments
 
                 _context.Payments.Add(payment);
 
+                // This text is saved as the user's online agreement confirmation.
+                // The admin can later upload the signed face-to-face agreement.
+                var agreementText =
+                    "The renter confirms that all provided information is true and correct. " +
+                    "The renter agrees to return the vehicle on the selected return date and time. " +
+                    "The renter accepts responsibility for damages, late returns, penalties, and other rental charges. " +
+                    "The renter understands that this booking is still subject to admin approval.";
+
+                // Create the rental agreement record after the user checks the agreement checkbox.
+                var rentalAgreement = new RentalAgreement
+                {
+                    BookingId = booking.BookingId,
+                    AgreementText = agreementText,
+                    Status = "online_accepted",
+                    OnlineAcceptedAt = DateTime.Now
+                };
+
+                _context.RentalAgreements.Add(rentalAgreement);
+
+                // Save payment and agreement, then commit the whole transaction.
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
-                TempData["Success"] = "Booking completed successfully. Your booking is now pending admin confirmation.";
+                TempData["Success"] = "Booking completed successfully. Your online rental agreement has been accepted and your booking is now pending admin approval.";
 
                 return RedirectToPage("/User/Home");
             }
             catch
             {
+                // If there is an error, undo all database changes from this transaction.
                 await transaction.RollbackAsync();
 
                 ErrorMessage = "Something went wrong while completing your booking. Please try again.";
@@ -274,9 +315,16 @@ namespace VentureCarRentals.Pages.User.Payments
 
             TotalPrice = TotalDays * Car.PricePerDay;
 
+            /*
+                Load both active and inactive cards.
+                The UI will show inactive cards as gray and disabled.
+            */
             SavedCards = await _context.UserPaymentMethods
-                .Where(p => p.UserId == userId && p.PaymentType == "card")
-                .OrderByDescending(p => p.CreatedAt)
+                .Where(p =>
+                    p.UserId == userId &&
+                    p.PaymentType == "card")
+                .OrderByDescending(p => p.Status == "active")
+                .ThenByDescending(p => p.CreatedAt)
                 .Select(p => new SavedCardViewModel
                 {
                     PaymentMethodId = p.UserPaymentMethodId,
@@ -284,7 +332,8 @@ namespace VentureCarRentals.Pages.User.Payments
                     CardHolderName = p.CardHolderName,
                     Last4 = p.Last4,
                     ExpiryDate = p.ExpiryDate,
-                    MaskedCardNumber = p.MaskedCardNumber
+                    MaskedCardNumber = p.MaskedCardNumber,
+                    Status = p.Status
                 })
                 .ToListAsync();
 
@@ -334,5 +383,7 @@ namespace VentureCarRentals.Pages.User.Payments
         public string ExpiryDate { get; set; } = "";
 
         public string MaskedCardNumber { get; set; } = "";
+
+        public string Status { get; set; } = "";
     }
 }

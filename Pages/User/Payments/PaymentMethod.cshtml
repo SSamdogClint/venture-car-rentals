@@ -3,6 +3,16 @@
 @{
     ViewData["Title"] = "Payment Method";
     Layout = "_Layout";
+
+    /*
+        These ViewData values are used by the reusable _AddPaymentModal partial.
+        In the booking payment page, the modal must preserve the selected booking schedule.
+    */
+    ViewData["AddCardCarId"] = Model.CarId;
+    ViewData["AddCardBorrowDate"] = Model.BorrowDate;
+    ViewData["AddCardBorrowTime"] = Model.BorrowTime;
+    ViewData["AddCardReturnDate"] = Model.ReturnDate;
+    ViewData["AddCardReturnTime"] = Model.ReturnTime;
 }
 
 <div class="user-wrapper">
@@ -27,6 +37,7 @@
 
         <section class="payment-method-section">
 
+            <!-- Page Header -->
             <div class="section-header">
                 <div>
                     <h2>Payment Methods</h2>
@@ -35,10 +46,11 @@
                     </p>
                 </div>
 
+                <!-- Opens reusable Add Payment Method modal -->
                 <button type="button"
                         class="btn btn-primary add-payment-btn"
                         data-bs-toggle="modal"
-                        data-bs-target="#addCardModal">
+                        data-bs-target="#addPaymentModal">
                     <i class="bi bi-plus-lg"></i> Add Payment Method
                 </button>
             </div>
@@ -52,6 +64,7 @@
 
             @if (Model.Car != null)
             {
+                <!-- Booking summary shown before final payment confirmation -->
                 <div class="booking-summary-card">
                     <div class="summary-left">
                         <h3>@Model.Car.Make @Model.Car.Model</h3>
@@ -85,8 +98,8 @@
                     <input type="hidden" asp-for="ReturnDate" />
                     <input type="hidden" asp-for="ReturnTime" />
 
+                    <!-- Cash payment option -->
                     <div class="payment-methods-inline">
-
                         <label class="payment-inline-option">
                             <input type="radio"
                                    asp-for="SelectedPaymentType"
@@ -103,55 +116,113 @@
                                 </div>
                             </div>
                         </label>
-
                     </div>
 
                     <div class="saved-card-header">
                         <h5>Saved Cards</h5>
-                        <small>Select a saved card if you want to pay using card demo.</small>
+                        <small>
+                            Active cards can be selected. Inactive cards are shown but cannot be used for payment.
+                        </small>
                     </div>
 
                     @if (Model.SavedCards.Any())
                     {
                         <div class="saved-cards-grid">
+
                             @foreach (var card in Model.SavedCards)
                             {
                                 var logoPath = "";
+                                var displayBrand = card.CardType;
 
-                                if (card.CardType == "MasterCard")
+                                if (card.CardType.Equals("MasterCard", StringComparison.OrdinalIgnoreCase))
                                 {
                                     logoPath = "/images/CardType/MasterCardLogo.png";
+                                    displayBrand = "MasterCard";
                                 }
-                                else if (card.CardType == "Visa")
+                                else if (card.CardType.Equals("Visa", StringComparison.OrdinalIgnoreCase))
                                 {
                                     logoPath = "/images/CardType/VisaLogo.svg";
+                                    displayBrand = "Visa";
                                 }
-                                else if (card.CardType == "JCB")
+                                else if (card.CardType.Equals("JCB", StringComparison.OrdinalIgnoreCase))
                                 {
                                     logoPath = "/images/CardType/JCBlogo.png";
+                                    displayBrand = "JCB";
                                 }
 
-                                <label class="payment-card-option">
-                                    <input type="radio"
-                                           name="SelectedSavedCardId"
-                                           value="@card.PaymentMethodId"
-                                           class="payment-card-radio"
-                                           onclick="selectSavedCard()" />
+                                /*
+                                Inactive cards are visible but not clickable/selectable here.
+                                This prevents users from using deactivated payment methods for booking.
+                                */
+                                var isInactive = card.Status == "inactive";
+                                var cardBoxClass = isInactive
+                                ? "payment-card-box inactive-payment-card"
+                                : "payment-card-box";
 
-                                    <div class="payment-card-box">
-                                        <div class="card-brand-row">
-                                            <img src="@logoPath" alt="@card.CardType" class="card-brand-logo" />
-                                            <span class="card-brand-name">@card.CardType</span>
-                                        </div>
+                                if (isInactive)
+                                {
+                                    <div class="payment-card-option disabled-card-option">
+                                        <div class="@cardBoxClass">
+                                            <div class="card-brand-row">
+                                                @if (!string.IsNullOrWhiteSpace(logoPath))
+                                                {
+                                                    <img src="@logoPath"
+                                                         alt="@displayBrand Logo"
+                                                         class="card-brand-logo" />
+                                                }
+                                                else
+                                                {
+                                                    <i class="bi bi-credit-card-2-front fs-2 text-primary"></i>
+                                                }
 
-                                        <div class="card-info">
-                                            <div class="card-number">@card.MaskedCardNumber</div>
-                                            <div class="card-holder">@card.CardHolderName</div>
-                                            <div class="card-expiry">Expires: @card.ExpiryDate</div>
+                                                <span class="card-brand-name">@displayBrand</span>
+                                            </div>
+
+                                            <div class="card-info">
+                                                <div class="card-number">@card.MaskedCardNumber</div>
+                                                <div class="card-holder">@card.CardHolderName</div>
+                                                <div class="card-expiry">Expires: @card.ExpiryDate</div>
+                                                <div class="card-status inactive-status">Inactive</div>
+                                            </div>
                                         </div>
                                     </div>
-                                </label>
+                                }
+                                else
+                                {
+                                    <label class="payment-card-option">
+                                        <input type="radio"
+                                               name="SelectedSavedCardId"
+                                               value="@card.PaymentMethodId"
+                                               class="payment-card-radio"
+                                               onclick="selectSavedCard()" />
+
+                                        <div class="@cardBoxClass">
+                                            <div class="card-brand-row">
+                                                @if (!string.IsNullOrWhiteSpace(logoPath))
+                                                {
+                                                    <img src="@logoPath"
+                                                         alt="@displayBrand Logo"
+                                                         class="card-brand-logo" />
+                                                }
+                                                else
+                                                {
+                                                    <i class="bi bi-credit-card-2-front fs-2 text-primary"></i>
+                                                }
+
+                                                <span class="card-brand-name">@displayBrand</span>
+                                            </div>
+
+                                            <div class="card-info">
+                                                <div class="card-number">@card.MaskedCardNumber</div>
+                                                <div class="card-holder">@card.CardHolderName</div>
+                                                <div class="card-expiry">Expires: @card.ExpiryDate</div>
+                                                <div class="card-status active-status">Active</div>
+                                            </div>
+                                        </div>
+                                    </label>
+                                }
                             }
+
                         </div>
                     }
                     else
@@ -162,6 +233,22 @@
                             <p>Add a card first, or choose cash payment.</p>
                         </div>
                     }
+
+                    <!-- Online Rental Agreement Confirmation -->
+                    <div class="online-agreement-box mt-4">
+                        <h5>Online Rental Agreement</h5>
+
+                        <p>
+                            By completing this booking, I confirm that the information I provided is true and correct.
+                            I agree to return the vehicle on the selected return date and time, accept responsibility for
+                            damages, late returns, penalties, and understand that this booking is still subject to admin approval.
+                        </p>
+
+                        <label class="agreement-check">
+                            <input asp-for="AgreementAccepted" type="checkbox" />
+                            <span>I have read and agree to the rental agreement.</span>
+                        </label>
+                    </div>
 
                     <button type="submit" class="btn btn-primary complete-booking-btn">
                         Complete Booking
@@ -175,194 +262,15 @@
     </main>
 </div>
 
-<div class="modal fade" id="addCardModal" tabindex="-1" aria-labelledby="addCardModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content payment-modal">
-
-            <div class="modal-header">
-                <h5 class="modal-title" id="addCardModalLabel">Add Card</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-
-            <form method="post" asp-page-handler="SaveCard">
-
-                <div class="modal-body">
-
-                    <div class="card-preview-box">
-                        <div class="card-preview-top">
-                            <div id="cardLogoWrapper" class="card-logo-wrapper d-none">
-                                <img id="cardLogoPreview" src="" alt="Card Logo" class="card-preview-logo" />
-                            </div>
-
-                            <span id="cardTypePreview" class="card-preview-type">CARD TYPE WILL APPEAR HERE</span>
-                        </div>
-
-                        <div class="card-preview-number" id="cardNumberPreview">
-                            •••• •••• •••• ••••
-                        </div>
-
-                        <div class="card-preview-bottom">
-                            <div>
-                                <small>Card Holder</small>
-                                <div id="cardHolderPreview">FULL NAME</div>
-                            </div>
-
-                            <div>
-                                <small>Expires</small>
-                                <div id="expiryPreview">MM/YY</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-group-custom">
-                        <label asp-for="CardAccountNumber"> Card Number</label>
-                        <input asp-for="CardAccountNumber"
-                               id="CardAccountNumber"
-                               class="form-control"
-                               maxlength="19"
-                               placeholder="1234 0000 0000 9999"
-                               required />
-                    </div>
-
-                    <div class="form-group-custom">
-                        <label asp-for="CardHolderName">Card Holder Name</label>
-                        <input asp-for="CardHolderName"
-                               id="CardHolderName"
-                               class="form-control"
-                               placeholder="Juan Dela Cruz"
-                               required />
-                    </div>
-
-                    <div class="form-group-custom">
-                        <label asp-for="ExpiryDate">Expiry Date</label>
-                        <input asp-for="ExpiryDate"
-                               id="ExpiryDate"
-                               class="form-control"
-                               maxlength="5"
-                               placeholder="MM/YY"
-                               required />
-                    </div>
-
-                    <input type="hidden" asp-for="DetectedCardType" id="DetectedCardType" />
-
-                    <input type="hidden" asp-for="CarId" />
-                    <input type="hidden" asp-for="BorrowDate" />
-                    <input type="hidden" asp-for="BorrowTime" />
-                    <input type="hidden" asp-for="ReturnDate" />
-                    <input type="hidden" asp-for="ReturnTime" />
-
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">
-                        Cancel
-                    </button>
-
-                    <button type="submit" class="btn btn-primary">
-                        Save Payment Method
-                    </button>
-                </div>
-
-            </form>
-
-        </div>
-    </div>
-</div>
+<!-- Reusable Add Payment Method Modal -->
+@await Html.PartialAsync("/Pages/User/Payments/_AddPaymentModal.cshtml")
 
 @section Scripts {
     <script>
-        const cardNumberInput = document.getElementById("CardAccountNumber");
-        const cardHolderInput = document.getElementById("CardHolderName");
-        const expiryInput = document.getElementById("ExpiryDate");
-
-        const cardLogoWrapper = document.getElementById("cardLogoWrapper");
-        const cardLogoPreview = document.getElementById("cardLogoPreview");
-        const cardTypePreview = document.getElementById("cardTypePreview");
-        const cardNumberPreview = document.getElementById("cardNumberPreview");
-        const cardHolderPreview = document.getElementById("cardHolderPreview");
-        const expiryPreview = document.getElementById("expiryPreview");
-        const detectedCardType = document.getElementById("DetectedCardType");
-
-        function detectCardType(firstFourDigits) {
-            if (firstFourDigits === "1234") {
-                return {
-                    type: "MasterCard",
-                    logo: "/images/CardType/MasterCardLogo.png"
-                };
-            }
-            D
-            if (firstFourDigits === "5678") {
-                return {
-                    type: "Visa",
-                    logo: "/images/CardType/VisaLogo.svg"
-                };
-            }
-
-            if (firstFourDigits === "4321") {
-                return {
-                    type: "JCB",
-                    logo: "/images/CardType/JCBlogo.png"
-                };
-            }
-
-            return {
-                type: "Unknown",
-                logo: ""
-            };
-        }
-
-        function formatCardNumber(value) {
-            const digitsOnly = value.replace(/\D/g, "").slice(0, 16);
-            return digitsOnly.replace(/(.{4})/g, "$1 ").trim();
-        }
-
-        if (cardNumberInput) {
-            cardNumberInput.addEventListener("input", function () {
-                const formattedValue = formatCardNumber(this.value);
-                this.value = formattedValue;
-
-                const digitsOnly = formattedValue.replace(/\D/g, "");
-                const firstFourDigits = digitsOnly.substring(0, 4);
-                const result = detectCardType(firstFourDigits);
-
-                cardNumberPreview.textContent = digitsOnly.length > 0
-                    ? formattedValue.padEnd(19, "•")
-                    : "•••• •••• •••• ••••";
-
-                if (result.type === "Unknown") {
-                    cardLogoWrapper.classList.add("d-none");
-                    cardLogoPreview.src = "";
-                    cardTypePreview.textContent = "CARD TYPE WILL APPEAR HERE";
-                    detectedCardType.value = "";
-                    return;
-                }
-
-                cardLogoWrapper.classList.remove("d-none");
-                cardLogoPreview.src = result.logo;
-                cardTypePreview.textContent = result.type;
-                detectedCardType.value = result.type;
-            });
-        }
-
-        if (cardHolderInput) {
-            cardHolderInput.addEventListener("input", function () {
-                cardHolderPreview.textContent = this.value.trim().toUpperCase() || "FULL NAME";
-            });
-        }
-
-        if (expiryInput) {
-            expiryInput.addEventListener("input", function () {
-                let value = this.value.replace(/\D/g, "").slice(0, 4);
-
-                if (value.length >= 3) {
-                    value = value.slice(0, 2) + "/" + value.slice(2);
-                }
-
-                this.value = value;
-                expiryPreview.textContent = value || "MM/YY";
-            });
-        }
-
+        /*
+            When a saved card is selected, the Cash option is unchecked.
+            This lets the backend know that the user selected a card payment.
+        */
         function selectSavedCard() {
             const cashRadio = document.querySelector('input[name="SelectedPaymentType"][value="Cash"]');
 
@@ -371,6 +279,9 @@
             }
         }
 
+        /*
+            When Cash is selected, any selected saved card is cleared.
+        */
         function clearSelectedCard() {
             const selectedCards = document.querySelectorAll('input[name="SelectedSavedCardId"]');
 

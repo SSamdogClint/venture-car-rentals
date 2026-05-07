@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VentureCarRentals.Data;
 
@@ -10,9 +11,11 @@ using VentureCarRentals.Data;
 namespace VentureCarRentals.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260507075055_AddPaymentMethodStatus")]
+    partial class AddPaymentMethodStatus
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.11");
@@ -175,30 +178,25 @@ namespace VentureCarRentals.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("AgreementText")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
                     b.Property<int>("BookingId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTime?>("OnlineAcceptedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("SignedAgreementFileUrl")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime?>("SignedUploadedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Status")
+                    b.Property<string>("FileUrl")
                         .IsRequired()
                         .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("SignedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("SignedByUserId")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("RentalAgreementId");
 
                     b.HasIndex("BookingId")
                         .IsUnique();
+
+                    b.HasIndex("SignedByUserId");
 
                     b.ToTable("RentalAgreements");
                 });
@@ -451,7 +449,15 @@ namespace VentureCarRentals.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("VentureCarRentals.Models.User", "SignedByUser")
+                        .WithMany()
+                        .HasForeignKey("SignedByUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Booking");
+
+                    b.Navigation("SignedByUser");
                 });
 
             modelBuilder.Entity("VentureCarRentals.Models.Review", b =>

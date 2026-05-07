@@ -1,0 +1,126 @@
+﻿@model VentureCarRentals.Models.UserPaymentMethod
+
+@{
+    /*
+        This modal is used in Payments/Index.cshtml.
+        It lets the user manage a saved payment method.
+    */
+    var logoPath = "";
+    var displayBrand = Model.CardBrand;
+    var isInactive = Model.Status == "inactive";
+
+    if (Model.CardBrand.Equals("MasterCard", StringComparison.OrdinalIgnoreCase))
+    {
+        logoPath = "/images/CardType/MasterCardLogo.png";
+        displayBrand = "MasterCard";
+    }
+    else if (Model.CardBrand.Equals("Visa", StringComparison.OrdinalIgnoreCase))
+    {
+        logoPath = "/images/CardType/VisaLogo.svg";
+        displayBrand = "Visa";
+    }
+    else if (Model.CardBrand.Equals("JCB", StringComparison.OrdinalIgnoreCase))
+    {
+        logoPath = "/images/CardType/JCBlogo.png";
+        displayBrand = "JCB";
+    }
+
+    var cardBoxClass = isInactive
+        ? "payment-card-box inactive-payment-card"
+        : "payment-card-box";
+}
+
+<div class="modal fade" id="cardActionModal-@Model.UserPaymentMethodId" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content payment-modal">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Payment Method Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <!-- Card Details Preview -->
+                <div class="@cardBoxClass mb-3">
+                    <div class="card-brand-row">
+                        @if (!string.IsNullOrWhiteSpace(logoPath))
+                        {
+                            <img src="@logoPath" alt="@displayBrand Logo" class="card-brand-logo" />
+                        }
+                        else
+                        {
+                            <i class="bi bi-credit-card-2-front fs-2 text-primary"></i>
+                        }
+
+                        <span class="card-brand-name">@displayBrand</span>
+                    </div>
+
+                    <div class="card-info">
+                        <div class="card-number">@Model.MaskedCardNumber</div>
+                        <div class="card-holder">@Model.CardHolderName</div>
+                        <div class="card-expiry">Expires: @Model.ExpiryDate</div>
+
+                        @if (isInactive)
+                        {
+                            <div class="card-status inactive-status">Inactive</div>
+                        }
+                        else
+                        {
+                            <div class="card-status active-status">Active</div>
+                        }
+                    </div>
+                </div>
+
+                <div class="alert alert-warning small mb-0">
+                    <strong>Deactivate</strong> will make this card unavailable for booking payment selection.
+                    <br />
+                    <strong>Activate</strong> will allow this card to be used again.
+                    <br />
+                    <strong>Delete</strong> will permanently remove this saved payment method.
+                </div>
+
+            </div>
+
+            <div class="modal-footer d-flex justify-content-between">
+
+                @if (isInactive)
+                {
+                    <form method="post"
+                          asp-page-handler="ActivateCard"
+                          onsubmit="return confirm('Would you like to activate this payment method again?');">
+                        <input type="hidden" name="PaymentMethodId" value="@Model.UserPaymentMethodId" />
+
+                        <button type="submit" class="btn btn-success">
+                            Activate
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <form method="post"
+                          asp-page-handler="DeactivateCard"
+                          onsubmit="return confirm('Would you like to deactivate this payment method? It will no longer be available for booking payment selection.');">
+                        <input type="hidden" name="PaymentMethodId" value="@Model.UserPaymentMethodId" />
+
+                        <button type="submit" class="btn btn-warning">
+                            Deactivate
+                        </button>
+                    </form>
+                }
+
+                <form method="post"
+                      asp-page-handler="DeleteCard"
+                      onsubmit="return confirm('Are you sure you want to delete this payment method? This action cannot be undone.');">
+                    <input type="hidden" name="PaymentMethodId" value="@Model.UserPaymentMethodId" />
+
+                    <button type="submit" class="btn btn-danger">
+                        Delete
+                    </button>
+                </form>
+
+            </div>
+
+        </div>
+    </div>
+</div>

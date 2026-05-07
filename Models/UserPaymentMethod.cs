@@ -24,6 +24,10 @@ namespace VentureCarRentals.Models
         public string ExpiryDate { get; set; } = "";
         // example: 12/31
 
+        // active = card can be used
+        // inactive = card is hidden/deactivated but still kept in database
+        public string Status { get; set; } = "active";
+
         public bool IsDefault { get; set; }
 
         public DateTime CreatedAt { get; set; }

@@ -2232,3 +2232,63 @@ body {
 .card-logo-wrapper.d-none {
     display: none !important;
 }
+
+.card-action-button {
+    border: none;
+    background: transparent;
+    padding: 0;
+    text-align: left;
+    width: 100%;
+}
+
+    .card-action-button:hover .payment-card-box {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+    }
+
+.inactive-payment-card {
+    background: #f3f4f6 !important;
+    border-color: #d1d5db !important;
+    opacity: 0.6;
+    filter: grayscale(1);
+}
+
+.disabled-card-option {
+    cursor: not-allowed;
+}
+
+    .disabled-card-option .payment-card-box {
+        pointer-events: none;
+    }
+
+.card-action-button {
+    border: none;
+    background: transparent;
+    padding: 0;
+    text-align: left;
+    width: 100%;
+}
+
+    .card-action-button:hover .payment-card-box {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+    }
+
+.card-status {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.active-status {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.inactive-status {
+    background: #e5e7eb;
+    color: #4b5563;
+}
