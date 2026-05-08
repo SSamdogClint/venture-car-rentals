@@ -17,12 +17,17 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="QuestPDF" Version="2026.2.4" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Pages\User\Bookings\" />
     <Folder Include="wwwroot\images\cars\" />
     <Folder Include="wwwroot\uploads\documents\" />
   </ItemGroup>
+
+	<ItemGroup>
+		<!-- Prevent generated runtime upload files from being fingerprinted during build. -->
+		<Content Remove="wwwroot\uploads\**" />
+	</ItemGroup>
 
 </Project>

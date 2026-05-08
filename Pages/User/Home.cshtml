@@ -33,7 +33,6 @@
                                        name="BorrowDate"
                                        value="@DateTime.Today.ToString("yyyy-MM-dd")"
                                        required />
-                                <i class="bi bi-calendar-event"></i>
                             </div>
                         </div>
 
@@ -44,7 +43,6 @@
                                        name="BorrowTime"
                                        value="08:00"
                                        required />
-                                <i class="bi bi-clock"></i>
                             </div>
                         </div>
 
@@ -55,7 +53,6 @@
                                        name="ReturnDate"
                                        value="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")"
                                        required />
-                                <i class="bi bi-calendar-event"></i>
                             </div>
                         </div>
 
@@ -66,7 +63,6 @@
                                        name="ReturnTime"
                                        value="17:00"
                                        required />
-                                <i class="bi bi-clock"></i>
                             </div>
                         </div>
 
@@ -86,97 +82,66 @@
 
             <div class="row g-4 mt-2">
 
-                <div class="col-lg-3 col-md-6">
-                    <div class="review-card">
-                        <div class="stars">
-                            <i class="bi bi-star"></i>
-                            <i class="bi bi-star"></i>
-                            <i class="bi bi-star"></i>
-                            <i class="bi bi-star"></i>
-                            <i class="bi bi-star"></i>
-                        </div>
+                @if (Model.LatestReviews.Any())
+                {
+                    foreach (var review in Model.LatestReviews)
+                    {
+                        <div class="col-lg-3 col-md-6">
+                            <div class="review-card">
 
-                        <h5>Review title</h5>
-                        <p>Review body</p>
+                                <div class="stars">
+                                    @for (var i = 1; i <= 5; i++)
+                                    {
+                                        if (i <= review.Rating)
+                                        {
+                                            <i class="bi bi-star-fill"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-star"></i>
+                                        }
+                                    }
+                                </div>
 
-                        <div class="reviewer">
-                            <img src="https://i.pravatar.cc/60?img=1" alt="Reviewer" />
-                            <div>
-                                <strong>Reviewer name</strong>
-                                <small>Date</small>
+                                <h5>@review.CarName</h5>
+
+                                <p>@review.Comment</p>
+
+                                <div class="reviewer">
+                                    <div class="review-avatar">
+                                        @review.Initials
+                                    </div>
+
+                                    <div>
+                                        <strong>@review.ReviewerName</strong>
+                                        <small>@review.CreatedAt.ToString("MMM dd, yyyy")</small>
+                                    </div>
+                                </div>
+
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <div class="col-lg-3 col-md-6">
-                    <div class="review-card">
-                        <div class="stars">
-                            <i class="bi bi-star"></i>
-                            <i class="bi bi-star"></i>
-                            <i class="bi bi-star"></i>
-                            <i class="bi bi-star"></i>
-                            <i class="bi bi-star"></i>
-                        </div>
-
-                        <h5>Review title</h5>
-                        <p>Review body</p>
-
-                        <div class="reviewer">
-                            <img src="https://i.pravatar.cc/60?img=2" alt="Reviewer" />
-                            <div>
-                                <strong>Reviewer name</strong>
-                                <small>Date</small>
+                    }
+                }
+                else
+                {
+                    <div class="col-12">
+                        <div class="review-card text-center">
+                            <div class="stars">
+                                <i class="bi bi-star"></i>
+                                <i class="bi bi-star"></i>
+                                <i class="bi bi-star"></i>
+                                <i class="bi bi-star"></i>
+                                <i class="bi bi-star"></i>
                             </div>
+
+                            <h5>No reviews yet</h5>
+
+                            <p>
+                                Customer reviews will appear here after completed bookings are rated.
+                            </p>
                         </div>
                     </div>
-                </div>
-
-                <div class="col-lg-3 col-md-6">
-                    <div class="review-card">
-                        <div class="stars">
-                            <i class="bi bi-star"></i>
-                            <i class="bi bi-star"></i>
-                            <i class="bi bi-star"></i>
-                            <i class="bi bi-star"></i>
-                            <i class="bi bi-star"></i>
-                        </div>
-
-                        <h5>Review title</h5>
-                        <p>Review body</p>
-
-                        <div class="reviewer">
-                            <img src="https://i.pravatar.cc/60?img=3" alt="Reviewer" />
-                            <div>
-                                <strong>Reviewer name</strong>
-                                <small>Date</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-lg-3 col-md-6">
-                    <div class="review-card">
-                        <div class="stars">
-                            <i class="bi bi-star"></i>
-                            <i class="bi bi-star"></i>
-                            <i class="bi bi-star"></i>
-                            <i class="bi bi-star"></i>
-                            <i class="bi bi-star"></i>
-                        </div>
-
-                        <h5>Review title</h5>
-                        <p>Review body</p>
-
-                        <div class="reviewer">
-                            <img src="https://i.pravatar.cc/60?img=4" alt="Reviewer" />
-                            <div>
-                                <strong>Reviewer name</strong>
-                                <small>Date</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                }
 
             </div>
         </section>

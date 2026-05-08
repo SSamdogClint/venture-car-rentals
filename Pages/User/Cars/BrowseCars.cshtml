@@ -3,32 +3,194 @@
 @{
     ViewData["Title"] = "Browse Cars";
     Layout = "_Layout";
+
+    /*
+        IMPORTANT FEATURE:
+        Browse Cars works as a public landing/catalog page.
+
+        Guest:
+        - No sidebar
+        - Can view cars
+        - Top bar shows logo + Car Rentals
+        - Join Us button redirects to /Index
+        - Book button redirects to /Index
+
+        Logged-in user:
+        - Sidebar is shown
+        - Book button follows the normal booking/verification flow
+
+        Reviews:
+        - Average rating and review count are loaded from the Reviews table.
+        - Details modal shows recent review comments.
+    */
 }
 
-<div class="user-wrapper">
+<div class="@(Model.IsLoggedIn ? "user-wrapper" : "public-cars-wrapper")">
 
-    @await Html.PartialAsync("/Pages/User/_UserSidebar.cshtml")
+    @if (Model.IsLoggedIn)
+    {
+        @await Html.PartialAsync("/Pages/User/_UserSidebar.cshtml")
+    }
 
-    <main class="user-main">
+    <main class="@(Model.IsLoggedIn ? "user-main" : "public-cars-main")">
 
-        <div class="user-topbar">
-            <div class="d-flex align-items-center gap-3">
-                <button type="button" class="user-menu-btn" onclick="toggleUserSidebar()">
-                    <i class="bi bi-list"></i>
-                </button>
+        @if (Model.IsLoggedIn)
+        {
+            <div class="user-topbar">
+                <div class="d-flex align-items-center gap-3">
+                    <button type="button" class="user-menu-btn" onclick="toggleUserSidebar()">
+                        <i class="bi bi-list"></i>
+                    </button>
 
-                <a asp-page="/User/Home" class="back-link">
-                    <i class="bi bi-arrow-left"></i> Back
+                    <a asp-page="/User/Home" class="back-link">
+                        <i class="bi bi-arrow-left"></i> Back
+                    </a>
+                </div>
+
+                <i class="bi bi-bell notification-bell"></i>
+            </div>
+        }
+        else
+        {
+            <div class="public-cars-topbar">
+                <div class="public-brand">
+                    <img src="~/images/logo.png" class="public-brand-logo" alt="V Car Rentals Logo" />
+                    <span>Car Rentals</span>
+                </div>
+
+                <a href="/Index" class="btn btn-primary px-4">
+                    Join Us
                 </a>
             </div>
-
-            <i class="bi bi-bell notification-bell"></i>
-        </div>
+        }
 
         <section class="available-cars-section">
 
-            <h3>@Model.PageHeading</h3>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h3 class="mb-0">@Model.PageHeading</h3>
+
+                <button class="btn btn-outline-dark"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#carFilterPanel"
+                        aria-expanded="@(Model.HasActiveFilters ? "true" : "false")"
+                        aria-controls="carFilterPanel">
+                    <i class="bi bi-funnel"></i> Filter
+                </button>
+            </div>
+
             <hr />
+
+            <!-- FILTER PANEL -->
+            <div class="collapse @(Model.HasActiveFilters ? "show" : "")" id="carFilterPanel">
+                <div class="content-card mb-4">
+                    <form method="get" class="row g-3 align-items-end">
+
+                        @if (!string.IsNullOrWhiteSpace(Model.BorrowDate))
+                        {
+                            <input type="hidden" name="BorrowDate" value="@Model.BorrowDate" />
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(Model.BorrowTime))
+                        {
+                            <input type="hidden" name="BorrowTime" value="@Model.BorrowTime" />
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(Model.ReturnDate))
+                        {
+                            <input type="hidden" name="ReturnDate" value="@Model.ReturnDate" />
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(Model.ReturnTime))
+                        {
+                            <input type="hidden" name="ReturnTime" value="@Model.ReturnTime" />
+                        }
+
+                        <div class="col-md-3">
+                            <label class="form-label">Search</label>
+                            <input type="text"
+                                   name="SearchTerm"
+                                   value="@Model.SearchTerm"
+                                   class="form-control"
+                                   placeholder="Search car, category..." />
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label">Category</label>
+                            <select name="CategoryFilter" class="form-control">
+                                <option value="">All categories</option>
+
+                                @foreach (var category in Model.FilterCategories)
+                                {
+                                    <option value="@category" selected="@(Model.CategoryFilter == category ? "selected" : null)">
+                                        @category
+                                    </option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label">Transmission</label>
+                            <select name="TransmissionFilter" class="form-control">
+                                <option value="">All</option>
+
+                                @foreach (var transmission in Model.FilterTransmissions)
+                                {
+                                    <option value="@transmission" selected="@(Model.TransmissionFilter == transmission ? "selected" : null)">
+                                        @transmission
+                                    </option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-md-1">
+                            <label class="form-label">Seats</label>
+                            <input type="number"
+                                   name="MinSeats"
+                                   value="@Model.MinSeats"
+                                   class="form-control"
+                                   min="1"
+                                   placeholder="Min" />
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label">Max Price</label>
+                            <input type="number"
+                                   name="MaxPrice"
+                                   value="@Model.MaxPrice"
+                                   class="form-control"
+                                   min="0"
+                                   step="100"
+                                   placeholder="₱" />
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label">Sort</label>
+                            <select name="SortBy" class="form-control">
+                                <option value="popular" selected="@(Model.SortBy == "popular" ? "selected" : null)">Popular</option>
+                                <option value="lowest_price" selected="@(Model.SortBy == "lowest_price" ? "selected" : null)">Lowest Price</option>
+                                <option value="highest_price" selected="@(Model.SortBy == "highest_price" ? "selected" : null)">Highest Price</option>
+                                <option value="newest" selected="@(Model.SortBy == "newest" ? "selected" : null)">Newest</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-12 d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-funnel"></i> Apply Filter
+                            </button>
+
+                            <a asp-page="/User/Cars/BrowseCars"
+                               asp-route-BorrowDate="@Model.BorrowDate"
+                               asp-route-BorrowTime="@Model.BorrowTime"
+                               asp-route-ReturnDate="@Model.ReturnDate"
+                               asp-route-ReturnTime="@Model.ReturnTime"
+                               class="btn btn-light">
+                                Clear Filters
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
 
             @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
             {
@@ -49,7 +211,14 @@
                 else
                 {
                     <div class="selected-date-box mb-3">
-                        Showing popular cars. Select a borrow and return schedule from the home page to check exact availability.
+                        Browse available cars. Click Book to start the booking process.
+                    </div>
+                }
+
+                @if (Model.HasActiveFilters)
+                {
+                    <div class="alert alert-info">
+                        Showing @Model.Cars.Count result(s) based on your selected filters.
                     </div>
                 }
 
@@ -76,13 +245,28 @@
                                     </div>
                                 }
 
+                                <!-- REAL REVIEW RATING DISPLAY -->
                                 <div class="rating-box">
-                                    <i class="bi bi-star"></i>
-                                    <i class="bi bi-star"></i>
-                                    <i class="bi bi-star"></i>
-                                    <i class="bi bi-star"></i>
-                                    <i class="bi bi-star"></i>
-                                    <small>0 Ratings</small>
+                                    @for (var i = 1; i <= 5; i++)
+                                    {
+                                        if (i <= Math.Round(car.AverageRating))
+                                        {
+                                            <i class="bi bi-star-fill text-warning"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-star text-warning"></i>
+                                        }
+                                    }
+
+                                    @if (car.ReviewCount > 0)
+                                    {
+                                        <small>@car.AverageRating.ToString("0.0") / 5 • @car.ReviewCount review(s)</small>
+                                    }
+                                    else
+                                    {
+                                        <small>No reviews yet</small>
+                                    }
                                 </div>
                             </div>
 
@@ -94,9 +278,17 @@
                                     <p><i class="bi bi-people"></i> @car.Seats Seats</p>
                                     <p><i class="bi bi-gear"></i> @car.Transmission</p>
                                     <p><i class="bi bi-check-circle"></i> @car.Status</p>
+                                    <p><i class="bi bi-palette"></i> @car.Color</p>
                                     <p><i class="bi bi-snow"></i> Airconditioning</p>
                                     <p><i class="bi bi-steering-wheel"></i> Power Steering</p>
                                 </div>
+
+                                @if (!string.IsNullOrWhiteSpace(car.Description))
+                                {
+                                    <p class="text-muted mt-2">
+                                        @car.Description
+                                    </p>
+                                }
                             </div>
 
                             <div class="vehicle-price">
@@ -110,10 +302,26 @@
                                     </p>
 
                                     <small>Excl. taxes & insurance(s)</small>
+                                }
+                                else
+                                {
+                                    <p>Start booking by signing in or creating an account.</p>
+                                    <small>Price may vary depending on duration.</small>
+                                }
 
+                                <!-- VIEW DETAILS BUTTON -->
+                                <button type="button"
+                                        class="btn btn-outline-dark w-100 mt-3"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#carDetailsModal-@car.CarId">
+                                    <i class="bi bi-eye"></i> View Details
+                                </button>
+
+                                @if (Model.IsSearchMode)
+                                {
                                     @if (Model.VerificationStatus == "verified")
                                     {
-                                        <a class="book-btn"
+                                        <a class="book-btn mt-2"
                                            asp-page="/User/Cars/Create"
                                            asp-route-carId="@car.CarId"
                                            asp-route-borrowDate="@Model.BorrowDate"
@@ -126,37 +334,69 @@
                                     else if (Model.VerificationStatus == "needs_requirements")
                                     {
                                         <button type="button"
-                                                class="book-btn border-0"
+                                                class="book-btn border-0 mt-2"
                                                 data-bs-toggle="modal"
                                                 data-bs-target="#verifyAccountModal-@car.CarId">
-                                            Book
+                                            Complete Verification
                                         </button>
                                     }
                                     else if (Model.VerificationStatus == "pending")
                                     {
-                                        <button type="button" class="book-btn not-verified-btn border-0" disabled>
-                                            Not verified yet
+                                        <button type="button" class="book-btn not-verified-btn border-0 mt-2" disabled>
+                                            Verification Pending
                                         </button>
+                                    }
+                                    else if (Model.VerificationStatus == "rejected")
+                                    {
+                                        <a class="book-btn mt-2"
+                                           asp-page="/User/Documents/CompleteRequirements"
+                                           asp-route-carId="@car.CarId"
+                                           asp-route-borrowDate="@Model.BorrowDate"
+                                           asp-route-borrowTime="@Model.BorrowTime"
+                                           asp-route-returnDate="@Model.ReturnDate"
+                                           asp-route-returnTime="@Model.ReturnTime">
+                                            Update Documents
+                                        </a>
+                                    }
+                                    else if (Model.VerificationStatus == "expired")
+                                    {
+                                        <a class="book-btn mt-2"
+                                           asp-page="/User/Documents/CompleteRequirements"
+                                           asp-route-carId="@car.CarId"
+                                           asp-route-borrowDate="@Model.BorrowDate"
+                                           asp-route-borrowTime="@Model.BorrowTime"
+                                           asp-route-returnDate="@Model.ReturnDate"
+                                           asp-route-returnTime="@Model.ReturnTime">
+                                            Renew Documents
+                                        </a>
                                     }
                                     else
                                     {
-                                        <a class="book-btn" asp-page="/Login">
-                                            Login to Book
+                                        <a class="book-btn mt-2" href="/Index">
+                                            Book
                                         </a>
                                     }
                                 }
                                 else
                                 {
-                                    <p>Check schedule first to book this car.</p>
-                                    <small>Price may vary depending on duration.</small>
-
-                                    <a class="book-btn" asp-page="/User/Home">
-                                        Check Availability
-                                    </a>
+                                    @if (Model.IsLoggedIn)
+                                    {
+                                        <a class="book-btn mt-2" asp-page="/User/Home">
+                                            Book
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <a class="book-btn mt-2" href="/Index">
+                                            Book
+                                        </a>
+                                    }
                                 }
                             </div>
 
                         </div>
+
+                        @await Html.PartialAsync("_CarDetailsModal", car)
 
                         @if (Model.IsSearchMode && Model.VerificationStatus == "needs_requirements")
                         {
@@ -207,12 +447,12 @@
                         @if (Model.IsSearchMode)
                         {
                             <h5>No available cars found</h5>
-                            <p>All available cars may already be booked for your selected date and time.</p>
+                            <p>No cars matched your selected schedule and filters.</p>
                         }
                         else
                         {
-                            <h5>No popular cars found</h5>
-                            <p>No available cars have been added yet.</p>
+                            <h5>No cars found</h5>
+                            <p>No cars matched your selected filters.</p>
                         }
                     </div>
                 }

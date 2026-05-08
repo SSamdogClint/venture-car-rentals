@@ -1,0 +1,373 @@
+﻿@page
+@model VentureCarRentals.Pages.Admin.Bookings.BookingListModel
+@{
+    ViewData["Title"] = "Booking List";
+    Layout = "_Layout";
+
+    var currentTab = string.IsNullOrWhiteSpace(Model.Tab) ? "live" : Model.Tab.ToLower();
+}
+
+<div class="admin-booking-layout">
+
+    <aside class="booking-stats-panel">
+        <div class="booking-stat-title">
+            <h5>Todays Statistics</h5>
+            <small>@DateTime.Now.ToString("ddd, dd MMM, yyyy, hh:mm tt")</small>
+        </div>
+
+        <div class="booking-stat-card">
+            <div class="d-flex justify-content-between">
+                <span>Income</span>
+                <small>Today</small>
+            </div>
+            <h3>₱@Model.TotalIncome.ToString("N2")</h3>
+            <p>Total paid booking income</p>
+        </div>
+
+        <div class="booking-stat-card">
+            <div class="d-flex justify-content-between">
+                <span>Pending</span>
+                <small>Today</small>
+            </div>
+            <h3>@Model.PendingCount</h3>
+            <p>Bookings waiting for approval</p>
+        </div>
+
+        <div class="booking-stat-card">
+            <div class="d-flex justify-content-between">
+                <span>Rented vs Cancel</span>
+                <small>Today</small>
+            </div>
+
+            <div class="booking-mini-list">
+                <div><span class="dot dot-green"></span> Live Bookings <strong>@Model.LiveCount</strong></div>
+                <div><span class="dot dot-black"></span> Completed <strong>@Model.CompletedCount</strong></div>
+                <div><span class="dot dot-red"></span> Cancelled <strong>@Model.CancelledCount</strong></div>
+            </div>
+        </div>
+    </aside>
+
+    <section class="booking-list-panel">
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success">
+                @TempData["Success"]
+            </div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger">
+                @TempData["Error"]
+            </div>
+        }
+
+        <div class="booking-topbar">
+            <form method="get" class="booking-search-form">
+                <input type="hidden" name="tab" value="@currentTab" />
+
+                <input type="text"
+                       name="searchTerm"
+                       value="@Model.SearchTerm"
+                       class="form-control"
+                       placeholder="Search Booking" />
+
+                <button type="submit" class="btn btn-light">
+                    <i class="bi bi-search"></i>
+                </button>
+            </form>
+        </div>
+
+        <div class="booking-tabs">
+            <a asp-page="/Admin/Bookings/BookingList"
+               asp-route-tab="live"
+               class="booking-tab @(currentTab == "live" ? "active" : "")">
+                Live Bookings
+            </a>
+
+            <a asp-page="/Admin/Bookings/BookingList"
+               asp-route-tab="pending"
+               class="booking-tab @(currentTab == "pending" ? "active" : "")">
+                Pending Bookings
+            </a>
+
+            <a asp-page="/Admin/Bookings/BookingList"
+               asp-route-tab="history"
+               class="booking-tab @(currentTab == "history" ? "active" : "")">
+                Booking History
+            </a>
+        </div>
+
+        <div class="booking-table-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                @if (currentTab == "pending")
+                {
+                    <h5>Pending Bookings</h5>
+                }
+                else if (currentTab == "history")
+                {
+                    <h5>Booking History</h5>
+                }
+                else
+                {
+                    <h5>Live Bookings</h5>
+                }
+
+                <small class="text-muted">Showing @Model.Bookings.Count booking(s)</small>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table align-middle booking-admin-table">
+                    <thead>
+                        <tr>
+                            <th>No.</th>
+                            <th>Car no.</th>
+                            <th>Car Model</th>
+                            <th>Customer</th>
+                            <th>Earning</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @if (Model.Bookings.Any())
+                        {
+                            var rowNo = 1;
+
+                            foreach (var booking in Model.Bookings)
+                            {
+                                <tr>
+                                    <td>@rowNo.ToString("D2")</td>
+
+                                    <td>
+                                        <span class="car-no-pill">@booking.CarNo</span>
+                                    </td>
+
+                                    <td>@booking.CarModel</td>
+
+                                    <td>@booking.CustomerName</td>
+
+                                    <td>₱@booking.TotalPrice.ToString("N2")</td>
+
+                                    <td>
+                                        @if (booking.BookingStatus == "approved")
+                                        {
+                                            <span class="badge bg-success">Live</span>
+                                        }
+                                        else if (booking.BookingStatus == "pending")
+                                        {
+                                            <span class="badge bg-warning text-dark">Pending</span>
+                                        }
+                                        else if (booking.BookingStatus == "completed")
+                                        {
+                                            <span class="badge bg-primary">Completed</span>
+                                        }
+                                        else if (booking.BookingStatus == "cancelled")
+                                        {
+                                            <span class="badge bg-danger">Cancelled</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">@booking.BookingStatus</span>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        <button type="button"
+                                                class="btn btn-sm btn-dark"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#bookingDetailsModal-@booking.BookingId">
+                                            Details
+                                        </button>
+                                    </td>
+                                </tr>
+
+                                rowNo++;
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-5">
+                                    No bookings found.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </section>
+</div>
+
+@if (Model.Bookings.Any())
+{
+    foreach (var booking in Model.Bookings)
+    {
+        <div class="modal fade" id="bookingDetailsModal-@booking.BookingId" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content">
+
+                    <div class="modal-header">
+                        <h5 class="modal-title">Booking #@booking.BookingId Details</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <strong>Customer</strong>
+                                <p>@booking.CustomerName</p>
+                            </div>
+
+                            <div class="col-md-6">
+                                <strong>Car</strong>
+                                <p>@booking.CarModel</p>
+                            </div>
+
+                            <div class="col-md-6">
+                                <strong>Borrow Date</strong>
+                                <p>@booking.StartDate.ToString("MMM dd, yyyy hh:mm tt")</p>
+                            </div>
+
+                            <div class="col-md-6">
+                                <strong>Return Date</strong>
+                                <p>@booking.EndDate.ToString("MMM dd, yyyy hh:mm tt")</p>
+                            </div>
+
+                            <div class="col-md-6">
+                                <strong>Payment</strong>
+                                <p>@booking.PaymentMethod - @booking.PaymentStatus</p>
+                            </div>
+
+                            <div class="col-md-6">
+                                <strong>Agreement Status</strong>
+
+                                @if (booking.AgreementStatus == "approved")
+                                {
+                                    <p><span class="badge bg-success">Approved</span></p>
+                                }
+                                else if (booking.AgreementStatus == "signed_uploaded")
+                                {
+                                    <p><span class="badge bg-primary">Signed Uploaded</span></p>
+                                }
+                                else if (booking.AgreementStatus == "online_accepted")
+                                {
+                                    <p><span class="badge bg-info text-dark">Online Accepted</span></p>
+                                }
+                                else if (booking.AgreementStatus == "cancelled")
+                                {
+                                    <p><span class="badge bg-danger">Cancelled</span></p>
+                                }
+                                else
+                                {
+                                    <p><span class="badge bg-secondary">@booking.AgreementStatus</span></p>
+                                }
+                            </div>
+
+                            <div class="col-md-12">
+                                <strong>Total Price</strong>
+                                <p>₱@booking.TotalPrice.ToString("N2")</p>
+                            </div>
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(booking.SignedAgreementFileUrl))
+                        {
+                            <a href="@booking.SignedAgreementFileUrl"
+                               target="_blank"
+                               class="btn btn-outline-dark mt-2">
+                                Open Signed Agreement
+                            </a>
+                        }
+
+                        @if (currentTab == "pending")
+                        {
+                            <hr />
+
+                            @if (!string.IsNullOrWhiteSpace(booking.GeneratedAgreementFileUrl))
+                            {
+                                <a href="@booking.GeneratedAgreementFileUrl"
+                                   target="_blank"
+                                   download
+                                   class="btn btn-outline-dark mb-3">
+                                    Download Blank Agreement
+                                </a>
+                            }
+                            else
+                            {
+                                <div class="alert alert-warning">
+                                    Blank agreement has not been generated yet.
+                                </div>
+                            }
+
+                            <form method="post"
+                                  enctype="multipart/form-data"
+                                  asp-page-handler="UploadAgreement"
+                                  class="mb-3">
+
+                                <input type="hidden" name="BookingId" value="@booking.BookingId" />
+
+                                <label class="form-label">Upload Signed Agreement</label>
+
+                                <input type="file"
+                                       name="SignedAgreementFile"
+                                       class="form-control mb-2"
+                                       accept=".pdf,.jpg,.jpeg,.png" />
+
+                                <button type="submit" class="btn btn-primary">
+                                    Upload Agreement
+                                </button>
+                            </form>
+
+                            <div class="d-flex gap-2">
+                                <form method="post"
+                                      asp-page-handler="ApproveBooking"
+                                      onsubmit="return confirm('Approve this booking after verifying the signed agreement?');">
+
+                                    <input type="hidden" name="BookingId" value="@booking.BookingId" />
+
+                                    <button type="submit" class="btn btn-success">
+                                        Approve Booking
+                                    </button>
+                                </form>
+
+                                <form method="post"
+                                      asp-page-handler="CancelBooking"
+                                      onsubmit="return confirm('Cancel this booking?');">
+
+                                    <input type="hidden" name="BookingId" value="@booking.BookingId" />
+
+                                    <button type="submit" class="btn btn-danger">
+                                        Cancel Booking
+                                    </button>
+                                </form>
+                            </div>
+                        }
+
+                        @if (currentTab == "live")
+                        {
+                            <hr />
+
+                            <form method="post"
+                                  asp-page-handler="ReturnBooking"
+                                  onsubmit="return confirm('Mark this vehicle as returned and complete the booking?');">
+
+                                <input type="hidden" name="BookingId" value="@booking.BookingId" />
+
+                                <button type="submit" class="btn btn-primary">
+                                    Mark as Returned / Complete
+                                </button>
+                            </form>
+                        }
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    }
+}

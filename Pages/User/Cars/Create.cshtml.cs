@@ -113,7 +113,7 @@ namespace VentureCarRentals.Pages.User.Cars
                 return RedirectToPage("/User/Cars/BrowseCars");
             }
 
-            TotalPrice = TotalDays * Car.PricePerDay;
+            TotalPrice = TotalDays * (double)Car.PricePerDay;
 
             return Page();
         }

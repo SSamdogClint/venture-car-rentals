@@ -3,262 +3,377 @@
 @{
     ViewData["Title"] = "Document Verification";
     Layout = "_Layout";
+
+    /*
+        IMPORTANT FEATURE:
+        The statistics card View links show USERS, not individual documents.
+
+        Example:
+        If a user has 1 approved document but still lacks another required document,
+        the user remains Pending, not Verified.
+    */
 }
 
 <div class="row g-4">
 
+    <!-- LEFT STATISTICS -->
     <div class="col-lg-3">
         <div class="dashboard-header mb-3">
-            <h5>Document Statistics</h5>
+            <h5>Verification Statistics</h5>
             <p>@DateTime.Now.ToString("ddd, dd MMMM, yyyy, hh:mm tt")</p>
         </div>
 
-        @if (TempData["Success"] != null)
-        {
-            <div id="pageAlert" class="alert alert-success small">
-                @TempData["Success"]
-            </div>
-        }
-
-        @if (TempData["Error"] != null)
-        {
-            <div id="pageAlert" class="alert alert-danger small">
-                @TempData["Error"]
-            </div>
-        }
-
-        <div class="stat-card">
+        <div class="stat-card @(Model.UserStatusFilter == "all" ? "active-doc-filter" : "")">
             <div class="d-flex justify-content-between">
-                <span>Total Documents</span>
+                <span>Total Users</span>
                 <small>All</small>
             </div>
-            <h3>@Model.TotalDocuments</h3>
-            <p>Total submitted user documents</p>
-            <strong>Documents <span>@Model.TotalDocuments</span></strong>
+
+            <h3>@Model.TotalUsers</h3>
+            <p>Total registered users for verification</p>
+
+            <div class="stat-card-footer">
+                <strong>Users <span>@Model.TotalUsers</span></strong>
+
+                <a asp-page="/Admin/Documents/Verification"
+                   asp-route-UserStatusFilter="all"
+                   class="stat-card-view">
+                    View <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
         </div>
 
-        <div class="stat-card">
+        <div class="stat-card @(Model.UserStatusFilter == "pending" ? "active-doc-filter" : "")">
             <div class="d-flex justify-content-between">
                 <span>Pending</span>
                 <small>Review</small>
             </div>
-            <h3>@Model.PendingDocuments</h3>
-            <p>Documents waiting for approval</p>
-            <strong>Pending <span>@Model.PendingDocuments</span></strong>
-        </div>
 
-        <div class="stat-card">
-            <div class="d-flex justify-content-between">
-                <span>Approved</span>
-                <small>Verified</small>
+            <h3>@Model.PendingUsers</h3>
+            <p>Users not fully verified yet</p>
+
+            <div class="stat-card-footer">
+                <strong>Pending <span>@Model.PendingUsers</span></strong>
+
+                <a asp-page="/Admin/Documents/Verification"
+                   asp-route-UserStatusFilter="pending"
+                   class="stat-card-view">
+                    View <i class="bi bi-arrow-right"></i>
+                </a>
             </div>
-            <h3>@Model.ApprovedDocuments</h3>
-            <p>Documents already approved</p>
-            <strong>Approved <span>@Model.ApprovedDocuments</span></strong>
         </div>
 
-        <div class="stat-card">
+        <div class="stat-card @(Model.UserStatusFilter == "verified" ? "active-doc-filter" : "")">
+            <div class="d-flex justify-content-between">
+                <span>Verified</span>
+                <small>Approved</small>
+            </div>
+
+            <h3>@Model.VerifiedUsers</h3>
+            <p>Users with all required documents approved</p>
+
+            <div class="stat-card-footer">
+                <strong>Verified <span>@Model.VerifiedUsers</span></strong>
+
+                <a asp-page="/Admin/Documents/Verification"
+                   asp-route-UserStatusFilter="verified"
+                   class="stat-card-view">
+                    View <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="stat-card @(Model.UserStatusFilter == "rejected" ? "active-doc-filter" : "")">
             <div class="d-flex justify-content-between">
                 <span>Rejected</span>
                 <small>Denied</small>
             </div>
-            <h3>@Model.RejectedDocuments</h3>
-            <p>Documents rejected by admin</p>
-            <strong>Rejected <span>@Model.RejectedDocuments</span></strong>
+
+            <h3>@Model.RejectedUsers</h3>
+            <p>Users with rejected required documents</p>
+
+            <div class="stat-card-footer">
+                <strong>Rejected <span>@Model.RejectedUsers</span></strong>
+
+                <a asp-page="/Admin/Documents/Verification"
+                   asp-route-UserStatusFilter="rejected"
+                   class="stat-card-view">
+                    View <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
         </div>
 
-        <div class="stat-card">
+        <div class="stat-card @(Model.UserStatusFilter == "expired" ? "active-doc-filter" : "")">
             <div class="d-flex justify-content-between">
                 <span>Expired</span>
                 <small>Date</small>
             </div>
-            <h3>@Model.ExpiredDocuments</h3>
-            <p>Documents with expired date</p>
-            <strong>Expired <span>@Model.ExpiredDocuments</span></strong>
+
+            <h3>@Model.ExpiredUsers</h3>
+            <p>Users with expired required documents</p>
+
+            <div class="stat-card-footer">
+                <strong>Expired <span>@Model.ExpiredUsers</span></strong>
+
+                <a asp-page="/Admin/Documents/Verification"
+                   asp-route-UserStatusFilter="expired"
+                   class="stat-card-view">
+                    View <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
         </div>
     </div>
 
+    <!-- RIGHT CONTENT -->
     <div class="col-lg-9">
 
         <div class="topbar mb-4">
             <div></div>
+
             <div class="d-flex align-items-center gap-3">
                 <i class="bi bi-bell-fill notification-icon"></i>
-                <div class="search-box">
-                    <input type="text" placeholder="Search documents">
-                    <i class="bi bi-search"></i>
-                </div>
+
+                <form method="get" class="search-box">
+                    @if (Model.UserId != null)
+                    {
+                        <input type="hidden" name="UserId" value="@Model.UserId" />
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(Model.UserStatusFilter))
+                    {
+                        <input type="hidden" name="UserStatusFilter" value="@Model.UserStatusFilter" />
+                    }
+
+                    <input type="text"
+                           name="SearchTerm"
+                           value="@Model.SearchTerm"
+                           placeholder="@Model.SearchPlaceholder">
+
+                    <button type="submit" class="border-0 bg-transparent">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </form>
             </div>
         </div>
 
         <div class="content-card">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <div>
-                    <h6 class="mb-0">Document Verification</h6>
-                    <span class="text-muted small">Showing @Model.Documents.Count document(s)</span>
+
+            @if (!Model.IsSelectedUserMode)
+            {
+                <!-- USER VERIFICATION LIST -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h6 class="mb-0">@Model.UserListTitle</h6>
+                        <span class="text-muted small">
+                            @Model.UserListSubtitle • Showing @Model.Users.Count user(s)
+                        </span>
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(Model.UserStatusFilter))
+                    {
+                        <a asp-page="/Admin/Documents/Verification" class="btn btn-light">
+                            Show All Queue
+                        </a>
+                    }
                 </div>
 
-                @if (Model.UserId != null)
-                {
-                    <a asp-page="/Admin/Documents/Verification" class="btn btn-light">
-                        Show All Documents
-                    </a>
-                }
-            </div>
+                <div class="table-responsive">
+                    <table class="table align-middle admin-table">
+                        <thead>
+                            <tr>
+                                <th>No.</th>
+                                <th>User</th>
+                                <th>Required Documents</th>
+                                <th>Submitted</th>
+                                <th>Approved</th>
+                                <th>Status</th>
+                                <th>Registered</th>
+                                <th></th>
+                            </tr>
+                        </thead>
 
-            <div class="table-responsive">
-                <table class="table align-middle admin-table">
-                    <thead>
-                        <tr>
-                            <th>No.</th>
-                            <th>User</th>
-                            <th>Document</th>
-                            <th>Number</th>
-                            <th>Expiry</th>
-                            <th>Status</th>
-                            <th>File</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
+                        <tbody>
+                            @if (Model.Users.Any())
+                            {
+                                var count = 1;
 
-                    <tbody>
-                        @if (Model.Documents.Any())
-                        {
-                            var count = 1;
+                                foreach (var user in Model.Users)
+                                {
+                                    <tr>
+                                        <td>@count.ToString("00")</td>
 
-                            foreach (var document in Model.Documents)
+                                        <td>
+                                            <strong>@user.FullName</strong>
+                                            <br />
+                                            <small class="text-muted">@user.Email</small>
+                                            <br />
+                                            <small class="text-muted">@user.Country</small>
+                                        </td>
+
+                                        <td>
+                                            <span>@user.RequiredDocuments</span>
+                                        </td>
+
+                                        <td>
+                                            @user.RequiredSubmittedCount / @user.RequiredDocumentTotal required
+                                            <br />
+                                            <small class="text-muted">
+                                                @user.DocumentCount total upload(s)
+                                            </small>
+                                        </td>
+
+                                        <td>
+                                            @user.RequiredApprovedCount / @user.RequiredDocumentTotal approved
+                                        </td>
+
+                                        <td>
+                                            @if (user.VerificationStatus == "Verified")
+                                            {
+                                                <span class="badge bg-success">Verified</span>
+                                            }
+                                            else if (user.VerificationStatus == "Pending")
+                                            {
+                                                <span class="badge bg-warning text-dark">Pending</span>
+                                            }
+                                            else if (user.VerificationStatus == "Rejected")
+                                            {
+                                                <span class="badge bg-danger">Rejected</span>
+                                            }
+                                            else if (user.VerificationStatus == "Expired")
+                                            {
+                                                <span class="badge bg-danger">Expired</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">Incomplete</span>
+                                            }
+                                        </td>
+
+                                        <td>@user.CreatedAt.ToString("MMM dd, yyyy")</td>
+
+                                        <td>
+                                            <a asp-page="/Admin/Documents/Verification"
+                                               asp-route-UserId="@user.UserId"
+                                               class="details-btn">
+                                                View Documents
+                                            </a>
+                                        </td>
+                                    </tr>
+
+                                    count++;
+                                }
+                            }
+                            else
                             {
                                 <tr>
-                                    <td>@count.ToString("00")</td>
-
-                                    <td>
-                                        <strong>@document.UserFullName</strong>
-                                        <br />
-                                        <small class="text-muted">@document.UserEmail</small>
-                                    </td>
-
-                                    <td>
-                                        <span class="text-capitalize">
-                                            @document.DocType.Replace("_", " ")
-                                        </span>
-                                        <br />
-                                        <small class="text-muted">@document.IssuingCountry</small>
-                                    </td>
-
-                                    <td>@document.DocNumber</td>
-
-                                    <td>
-                                        @if (document.ExpiryDate != null)
-                                        {
-                                            @document.ExpiryDate.Value.ToString("MMM dd, yyyy")
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">No expiry</span>
-                                        }
-                                    </td>
-
-                                    <td>
-                                        @if (document.Status == "approved")
-                                        {
-                                            <span class="badge bg-success">Approved</span>
-                                        }
-                                        else if (document.Status == "rejected")
-                                        {
-                                            <span class="badge bg-danger">Rejected</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-warning text-dark">Pending</span>
-                                        }
-                                    </td>
-
-                                    <td>
-                                        @if (!string.IsNullOrWhiteSpace(document.FileUrl))
-                                        {
-                                            <a href="@document.FileUrl" target="_blank" class="btn btn-sm btn-outline-dark">
-                                                Open
-                                            </a>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">No file</span>
-                                        }
-                                    </td>
-
-                                    <td>
-                                        <form method="post" asp-page-handler="UpdateStatus" class="d-flex gap-2">
-                                            <input type="hidden" name="UserDocumentId" value="@document.UserDocumentId" />
-                                            <input type="hidden" name="UserId" value="@Model.UserId" />
-
-                                            <select name="Status" class="form-control form-control-sm">
-                                                @if (document.Status == "pending")
-                                                {
-                                                    <option value="pending" selected>pending</option>
-                                                }
-                                                else
-                                                {
-                                                    <option value="pending">pending</option>
-                                                }
-
-                                                @if (document.Status == "approved")
-                                                {
-                                                    <option value="approved" selected>approved</option>
-                                                }
-                                                else
-                                                {
-                                                    <option value="approved">approved</option>
-                                                }
-
-                                                @if (document.Status == "rejected")
-                                                {
-                                                    <option value="rejected" selected>rejected</option>
-                                                }
-                                                else
-                                                {
-                                                    <option value="rejected">rejected</option>
-                                                }
-                                            </select>
-
-                                            <button type="submit" class="btn btn-sm btn-dark">
-                                                Save
-                                            </button>
-                                        </form>
+                                    <td colspan="8" class="text-center text-muted py-5">
+                                        No users found for this filter.
                                     </td>
                                 </tr>
-
-                                count++;
                             }
-                        }
-                        else
-                        {
-                            <tr>
-                                <td colspan="8" class="text-center text-muted py-5">
-                                    No documents found.
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <!-- SELECTED USER DOCUMENT VIEW -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h6 class="mb-0">Documents of @Model.SelectedUserFullName</h6>
+                        <span class="text-muted small">
+                            @Model.SelectedUserEmail • Showing @Model.Documents.Count document(s)
+                        </span>
+                    </div>
+
+                    <a asp-page="/Admin/Documents/Verification" class="btn btn-light">
+                        Go Back
+                    </a>
+                </div>
+
+                <div class="mb-3">
+                    @if (Model.SelectedUserVerificationStatus == "Verified")
+                    {
+                        <span class="badge bg-success">User Verified</span>
+                    }
+                    else if (Model.SelectedUserVerificationStatus == "Pending")
+                    {
+                        <span class="badge bg-warning text-dark">Pending Verification</span>
+                    }
+                    else if (Model.SelectedUserVerificationStatus == "Rejected")
+                    {
+                        <span class="badge bg-danger">Rejected</span>
+                    }
+                    else if (Model.SelectedUserVerificationStatus == "Expired")
+                    {
+                        <span class="badge bg-danger">Expired Document</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Incomplete Requirements</span>
+                    }
+                </div>
+
+                @await Html.PartialAsync("_DocumentTable", Model)
+            }
+
         </div>
 
     </div>
 </div>
 
+@await Html.PartialAsync("_DocumentConfirmModal")
+@await Html.PartialAsync("_DocumentToastMessages")
+
 @section Scripts {
     <script>
-        setTimeout(function () {
-            const alertBox = document.getElementById("pageAlert");
+        document.addEventListener("DOMContentLoaded", function () {
+            let selectedForm = null;
 
-            if (alertBox) {
-                alertBox.style.transition = "opacity 0.5s ease";
-                alertBox.style.opacity = "0";
+            const confirmModalElement = document.getElementById("documentConfirmModal");
+            const confirmTitle = document.getElementById("documentConfirmTitle");
+            const confirmMessage = document.getElementById("documentConfirmMessage");
+            const confirmButton = document.getElementById("documentConfirmButton");
 
-                setTimeout(function () {
-                    alertBox.remove();
-                }, 500);
+            if (confirmModalElement) {
+                const confirmModal = new bootstrap.Modal(confirmModalElement);
+
+                document.querySelectorAll(".needs-document-confirmation").forEach(function (form) {
+                    form.addEventListener("submit", function (event) {
+                        event.preventDefault();
+
+                        if (!form.checkValidity()) {
+                            form.reportValidity();
+                            return;
+                        }
+
+                        selectedForm = form;
+
+                        const statusSelect = form.querySelector("select[name='Status']");
+                        const selectedStatus = statusSelect ? statusSelect.value : "";
+
+                        confirmTitle.textContent = "Update Document Status";
+                        confirmMessage.textContent = "Are you sure you want to update this document status to '" + selectedStatus + "'?";
+
+                        confirmModal.show();
+                    });
+                });
+
+                confirmButton.addEventListener("click", function () {
+                    if (selectedForm) {
+                        selectedForm.classList.remove("needs-document-confirmation");
+                        selectedForm.submit();
+                    }
+                });
             }
-        }, 2000);
+
+            document.querySelectorAll(".app-toast").forEach(function (toastElement) {
+                const toast = new bootstrap.Toast(toastElement, {
+                    delay: 3500
+                });
+
+                toast.show();
+            });
+        });
     </script>
 }

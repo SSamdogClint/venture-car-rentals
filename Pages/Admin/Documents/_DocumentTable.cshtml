@@ -1,0 +1,123 @@
+﻿@model VentureCarRentals.Pages.Admin.Documents.VerificationModel
+
+<div class="table-responsive">
+    <table class="table align-middle admin-table">
+        <thead>
+            <tr>
+                <th>No.</th>
+                <th>Document</th>
+                <th>Number</th>
+                <th>Expiry</th>
+                <th>Status</th>
+                <th>File</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @if (Model.Documents.Any())
+            {
+                var count = 1;
+
+                foreach (var document in Model.Documents)
+                {
+                    <tr>
+                        <td>@count.ToString("00")</td>
+
+                        <td>
+                            <span class="text-capitalize">
+                                @document.DocType.Replace("_", " ")
+                            </span>
+                            <br />
+                            <small class="text-muted">@document.IssuingCountry</small>
+                        </td>
+
+                        <td>@document.DocNumber</td>
+
+                        <td>
+                            @if (document.ExpiryDate != null)
+                            {
+                                @document.ExpiryDate.Value.ToString("MMM dd, yyyy")
+
+                                @if (document.IsExpired)
+                                {
+                                    <br />
+                                    <small class="text-danger">Expired</small>
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-muted">No expiry</span>
+                            }
+                        </td>
+
+                        <td>
+                            @if (document.IsExpired)
+                            {
+                                <span class="badge bg-danger">Expired</span>
+                            }
+                            else if (document.Status == "approved")
+                            {
+                                <span class="badge bg-success">Approved</span>
+                            }
+                            else if (document.Status == "rejected")
+                            {
+                                <span class="badge bg-danger">Rejected</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning text-dark">Pending</span>
+                            }
+                        </td>
+
+                        <td>
+                            @if (!string.IsNullOrWhiteSpace(document.FileUrl))
+                            {
+                                <a href="@document.FileUrl"
+                                   target="_blank"
+                                   class="btn btn-sm btn-outline-dark">
+                                    Open
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="text-muted">No file</span>
+                            }
+                        </td>
+
+                        <td>
+                            <form method="post"
+                                  asp-page-handler="UpdateStatus"
+                                  class="d-flex gap-2 needs-document-confirmation">
+
+                                <input type="hidden" name="UserDocumentId" value="@document.UserDocumentId" />
+                                <input type="hidden" name="UserId" value="@Model.UserId" />
+                                <input type="hidden" name="SearchTerm" value="@Model.SearchTerm" />
+
+                                <select name="Status" class="form-control form-control-sm">
+                                    <option value="pending" selected="@(document.Status == "pending" ? "selected" : null)">pending</option>
+                                    <option value="approved" selected="@(document.Status == "approved" ? "selected" : null)">approved</option>
+                                    <option value="rejected" selected="@(document.Status == "rejected" ? "selected" : null)">rejected</option>
+                                </select>
+
+                                <button type="submit" class="btn btn-sm btn-primary">
+                                    Save
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+
+                    count++;
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-5">
+                        No documents found for this user.
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

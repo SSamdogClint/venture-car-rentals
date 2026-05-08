@@ -1,0 +1,116 @@
+﻿@model VentureCarRentals.Pages.User.Bookings.BookingCardViewModel
+
+<div class="modal fade" id="bookingDetailsModal-@Model.BookingId" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content booking-modal">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Booking Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
+                        {
+                            <img src="@Model.ImageUrl" class="booking-detail-img" alt="@Model.CarName" />
+                        }
+                        else
+                        {
+                            <div class="booking-no-image w-100">
+                                <i class="bi bi-car-front"></i>
+                                <span>No Image</span>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="col-md-8">
+                        <h4>@Model.CarName</h4>
+
+                        <span class="booking-status-badge status-@Model.BookingStatus @(Model.IsUpcoming ? "status-upcoming" : "") @(Model.IsHistory ? "status-history" : "")">
+                            @Model.DisplayStatus
+                        </span>
+
+                        <div class="booking-detail-grid mt-3">
+                            <p><strong>Booking ID:</strong> #@Model.BookingId</p>
+                            <p><strong>Category:</strong> @Model.Category</p>
+                            <p><strong>Borrow:</strong> @Model.StartDate.ToString("MMM dd, yyyy hh:mm tt")</p>
+                            <p><strong>Return:</strong> @Model.EndDate.ToString("MMM dd, yyyy hh:mm tt")</p>
+                            <p><strong>Seats:</strong> @Model.Seats</p>
+                            <p><strong>Transmission:</strong> @Model.Transmission</p>
+                            <p><strong>Color:</strong> @Model.Color</p>
+                            <p><strong>Price Per Day:</strong> ₱@Model.PricePerDay.ToString("N2")</p>
+                            <p><strong>Total Price:</strong> ₱@Model.TotalPrice.ToString("N2")</p>
+                            <p><strong>Agreement Status:</strong> @Model.RentalAgreementStatus</p>
+                        </div>
+                    </div>
+                </div>
+
+                @if (Model.IsHistory)
+                {
+                    <hr />
+
+                    <h6>Rental Agreement</h6>
+
+                    @if (Model.HasSignedAgreement)
+                    {
+                        <p class="text-muted">
+                            Your signed rental agreement contract is available for viewing or download.
+                        </p>
+
+                        <a href="@Model.SignedAgreementFileUrl"
+                           target="_blank"
+                           download
+                           class="btn btn-outline-primary">
+                            <i class="bi bi-download"></i> Download Signed Agreement
+                        </a>
+                    }
+                    else
+                    {
+                        <div class="alert alert-warning mb-0">
+                            Signed rental agreement is not uploaded yet.
+                        </div>
+                    }
+                }
+
+                @if (Model.IsHistory && Model.HasReview)
+                {
+                    <hr />
+
+                    <h6>Your Review</h6>
+
+                    <div class="history-stars">
+                        @for (var i = 1; i <= 5; i++)
+                        {
+                            if (Model.ExistingRating != null && i <= Model.ExistingRating)
+                            {
+                                <i class="bi bi-star-fill text-warning"></i>
+                            }
+                            else
+                            {
+                                <i class="bi bi-star text-warning"></i>
+                            }
+                        }
+
+                        <span class="ms-2">@Model.ExistingRating / 5</span>
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(Model.ExistingComment))
+                    {
+                        <p class="mt-2 mb-0">@Model.ExistingComment</p>
+                    }
+                }
+
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                    Close
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>

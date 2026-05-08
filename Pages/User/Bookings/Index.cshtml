@@ -1,0 +1,194 @@
+﻿@page
+@model VentureCarRentals.Pages.User.Bookings.IndexModel
+@{
+    ViewData["Title"] = "My Bookings";
+    Layout = "_Layout";
+
+    /*
+        IMPORTANT FEATURE:
+        My Bookings separates booking records by real booking state.
+
+        Pending:
+        - waiting for admin approval
+        - user can cancel
+
+        Upcoming:
+        - approved booking but start date/time has not arrived yet
+
+        Live Booking:
+        - approved booking currently within start and end date/time
+        - countdown shows time remaining until end date/time
+
+        History:
+        - completed booking
+        - or approved booking where end date/time already passed
+        - customer can review
+        - customer can view/download signed rental agreement if uploaded by admin
+    */
+}
+
+<div class="user-wrapper">
+
+    @await Html.PartialAsync("/Pages/User/_UserSidebar.cshtml")
+
+    <main class="user-main">
+
+        <div class="user-topbar">
+            <div class="d-flex align-items-center gap-3">
+                <button type="button" class="user-menu-btn" onclick="toggleUserSidebar()">
+                    <i class="bi bi-list"></i>
+                </button>
+
+                <a asp-page="/User/Home" class="back-link">
+                    <i class="bi bi-arrow-left"></i> Back
+                </a>
+            </div>
+
+            <i class="bi bi-bell notification-bell"></i>
+        </div>
+
+        <section class="my-bookings-section">
+
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <div>
+                    <h3 class="mb-0">My Bookings</h3>
+                    <p class="text-muted mb-0">View and manage your car rental bookings.</p>
+                </div>
+
+                <a asp-page="/User/Cars/BrowseCars" class="btn btn-primary">
+                    <i class="bi bi-car-front"></i> Browse Cars
+                </a>
+            </div>
+
+            <hr />
+
+            @await Html.PartialAsync("_LiveBookingSection", Model)
+
+            @await Html.PartialAsync("_BookingTabs", Model)
+
+            <div class="booking-list-wrapper">
+                @if (Model.DisplayedBookings.Any())
+                {
+                    foreach (var booking in Model.DisplayedBookings)
+                    {
+                        @await Html.PartialAsync("_BookingCard", booking)
+                        @await Html.PartialAsync("_BookingDetailsModal", booking)
+
+                        @if (booking.CanCancel)
+                        {
+                            @await Html.PartialAsync("_CancelBookingModal", booking)
+                        }
+
+                        @if (booking.CanReview)
+                        {
+                            @await Html.PartialAsync("_ReviewBookingModal", booking)
+                        }
+                    }
+                }
+                else
+                {
+                    <div class="empty-result-box">
+                        <i class="bi bi-calendar-x"></i>
+                        <h5>No bookings found</h5>
+                        <p>No booking records are available for this selected category.</p>
+                    </div>
+                }
+            </div>
+
+        </section>
+
+    </main>
+</div>
+
+@await Html.PartialAsync("_BookingConfirmModal")
+@await Html.PartialAsync("_BookingToastMessages")
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            function updateCountdowns() {
+                document.querySelectorAll("[data-booking-countdown]").forEach(function (element) {
+                    const endDateText = element.getAttribute("data-end-date");
+                    const endDate = new Date(endDateText);
+                    const now = new Date();
+
+                    let diff = endDate - now;
+
+                    if (diff <= 0) {
+                        element.textContent = "Booking ended";
+                        return;
+                    }
+
+                    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                    diff -= days * 1000 * 60 * 60 * 24;
+
+                    const hours = Math.floor(diff / (1000 * 60 * 60));
+                    diff -= hours * 1000 * 60 * 60;
+
+                    const minutes = Math.floor(diff / (1000 * 60));
+                    diff -= minutes * 1000 * 60;
+
+                    const seconds = Math.floor(diff / 1000);
+
+                    if (days > 0) {
+                        element.textContent = days + "d " + hours + "h " + minutes + "m " + seconds + "s remaining";
+                    }
+                    else {
+                        element.textContent = hours + "h " + minutes + "m " + seconds + "s remaining";
+                    }
+                });
+            }
+
+            updateCountdowns();
+            setInterval(updateCountdowns, 1000);
+
+            let selectedForm = null;
+
+            const confirmModalElement = document.getElementById("bookingConfirmModal");
+            const confirmTitle = document.getElementById("bookingConfirmTitle");
+            const confirmMessage = document.getElementById("bookingConfirmMessage");
+            const confirmButton = document.getElementById("bookingConfirmButton");
+
+            if (confirmModalElement) {
+                const confirmModal = new bootstrap.Modal(confirmModalElement);
+
+                document.querySelectorAll(".needs-booking-confirmation").forEach(function (form) {
+                    form.addEventListener("submit", function (event) {
+                        event.preventDefault();
+
+                        selectedForm = form;
+
+                        confirmTitle.textContent = form.dataset.confirmTitle || "Confirm Action";
+                        confirmMessage.textContent = form.dataset.confirmMessage || "Are you sure you want to continue?";
+
+                        confirmButton.className = "btn action-confirm-button";
+
+                        if (form.dataset.confirmVariant === "danger") {
+                            confirmButton.classList.add("btn-danger");
+                        }
+                        else {
+                            confirmButton.classList.add("btn-primary");
+                        }
+
+                        confirmModal.show();
+                    });
+                });
+
+                confirmButton.addEventListener("click", function () {
+                    if (selectedForm) {
+                        selectedForm.classList.remove("needs-booking-confirmation");
+                        selectedForm.submit();
+                    }
+                });
+            }
+
+            document.querySelectorAll(".app-toast").forEach(function (toastElement) {
+                const toast = new bootstrap.Toast(toastElement, {
+                    delay: 3500
+                });
+
+                toast.show();
+            });
+        });
+    </script>
+}

@@ -1,0 +1,146 @@
+﻿@model VentureCarRentals.Pages.User.Bookings.BookingCardViewModel
+
+<div class="user-booking-card">
+
+    <div class="booking-car-image">
+        @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
+        {
+            <img src="@Model.ImageUrl" alt="@Model.CarName" />
+        }
+        else
+        {
+            <div class="booking-no-image">
+                <i class="bi bi-car-front"></i>
+                <span>No Image</span>
+            </div>
+        }
+
+        @if (Model.IsHistory)
+        {
+            <div class="booking-rating-display">
+                @if (Model.HasReview && Model.ExistingRating != null)
+                {
+                    for (var i = 1; i <= 5; i++)
+                    {
+                        if (i <= Model.ExistingRating)
+                        {
+                            <i class="bi bi-star-fill text-warning"></i>
+                        }
+                        else
+                        {
+                            <i class="bi bi-star text-warning"></i>
+                        }
+                    }
+
+                    <small>@Model.ExistingRating / 5 Rating</small>
+                }
+                else
+                {
+                    <i class="bi bi-star text-warning"></i>
+                    <i class="bi bi-star text-warning"></i>
+                    <i class="bi bi-star text-warning"></i>
+                    <i class="bi bi-star text-warning"></i>
+                    <i class="bi bi-star text-warning"></i>
+
+                    <small>No review yet</small>
+                }
+            </div>
+        }
+    </div>
+
+    <div class="booking-car-info">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <h5>@Model.CarName - @Model.Category</h5>
+
+                <span class="booking-status-badge status-@Model.BookingStatus @(Model.IsUpcoming ? "status-upcoming" : "") @(Model.IsHistory ? "status-history" : "")">
+                    @Model.DisplayStatus
+                </span>
+            </div>
+
+            <small class="text-muted">Booking #@Model.BookingId</small>
+        </div>
+
+        <div class="booking-features mt-3">
+            <p><i class="bi bi-calendar-event"></i> Borrow: @Model.StartDate.ToString("MMM dd, yyyy hh:mm tt")</p>
+            <p><i class="bi bi-calendar-check"></i> Return: @Model.EndDate.ToString("MMM dd, yyyy hh:mm tt")</p>
+            <p><i class="bi bi-people"></i> @Model.Seats seats</p>
+            <p><i class="bi bi-gear"></i> @Model.Transmission</p>
+            <p><i class="bi bi-palette"></i> @Model.Color</p>
+            <p><i class="bi bi-snow"></i> Airconditioning</p>
+        </div>
+
+        @if (Model.IsUpcoming)
+        {
+            <div class="upcoming-note mt-3">
+                <i class="bi bi-clock-history"></i>
+                This booking is approved and will start on
+                <strong>@Model.StartDate.ToString("MMM dd, yyyy hh:mm tt")</strong>.
+            </div>
+        }
+
+        @if (Model.IsHistory && Model.HasSignedAgreement)
+        {
+            <div class="agreement-download-box mt-3">
+                <i class="bi bi-file-earmark-check"></i>
+                Signed rental agreement is available.
+
+                <a href="@Model.SignedAgreementFileUrl"
+                   target="_blank"
+                   download
+                   class="btn btn-sm btn-outline-primary ms-2">
+                    Download Contract
+                </a>
+            </div>
+        }
+
+        @if (Model.IsHistory && Model.HasReview)
+        {
+            <div class="existing-review-box mt-3">
+                <strong>Your Review:</strong>
+                <span>@Model.ExistingRating / 5</span>
+
+                @if (!string.IsNullOrWhiteSpace(Model.ExistingComment))
+                {
+                    <p class="mb-0">@Model.ExistingComment</p>
+                }
+            </div>
+        }
+    </div>
+
+    <div class="booking-price-actions">
+        <h4>₱@Model.PricePerDay.ToString("N2") <span>/ day</span></h4>
+
+        <p>
+            ₱@Model.TotalPrice.ToString("N2") total
+        </p>
+
+        <button type="button"
+                class="btn btn-outline-dark w-100"
+                data-bs-toggle="modal"
+                data-bs-target="#bookingDetailsModal-@Model.BookingId">
+            <i class="bi bi-eye"></i> Details
+        </button>
+
+        @if (Model.CanCancel)
+        {
+            <button type="button"
+                    class="btn btn-danger-soft w-100 mt-2"
+                    data-bs-toggle="modal"
+                    data-bs-target="#cancelBookingModal-@Model.BookingId">
+                <i class="bi bi-trash"></i> Cancel Booking
+            </button>
+        }
+
+        @if (Model.CanReview)
+        {
+            <button type="button"
+                    class="btn btn-primary w-100 mt-2"
+                    data-bs-toggle="modal"
+                    data-bs-target="#reviewBookingModal-@Model.BookingId">
+                <i class="bi bi-star"></i> Give Review
+            </button>
+        }
+    </div>
+
+</div>

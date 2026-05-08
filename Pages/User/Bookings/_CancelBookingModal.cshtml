@@ -1,0 +1,48 @@
+﻿@model VentureCarRentals.Pages.User.Bookings.BookingCardViewModel
+
+<div class="modal fade" id="cancelBookingModal-@Model.BookingId" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content booking-modal">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Cancel Booking</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <p class="mb-1">
+                    Are you sure you want to cancel this booking?
+                </p>
+
+                <strong>@Model.CarName</strong>
+
+                <div class="small text-muted mt-2">
+                    @Model.StartDate.ToString("MMM dd, yyyy hh:mm tt")
+                    -
+                    @Model.EndDate.ToString("MMM dd, yyyy hh:mm tt")
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                    Close
+                </button>
+
+                <form method="post"
+                      asp-page-handler="CancelBooking"
+                      class="needs-booking-confirmation"
+                      data-confirm-title="Cancel Booking"
+                      data-confirm-message="Are you sure you want to cancel this booking?"
+                      data-confirm-variant="danger">
+
+                    <input type="hidden" name="BookingId" value="@Model.BookingId" />
+
+                    <button type="submit" class="btn btn-danger">
+                        Continue Cancel
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>

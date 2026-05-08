@@ -1,0 +1,38 @@
+﻿@model VentureCarRentals.Pages.User.Bookings.IndexModel
+
+<div class="booking-tabs mb-4">
+    <a asp-page="/User/Bookings/Index"
+       asp-route-Tab="all"
+       class="booking-tab @(Model.Tab == "all" ? "active" : "")">
+        All
+        <span>@Model.AllCount</span>
+    </a>
+
+    <a asp-page="/User/Bookings/Index"
+       asp-route-Tab="pending"
+       class="booking-tab @(Model.Tab == "pending" ? "active" : "")">
+        Pending
+        <span>@Model.PendingCount</span>
+    </a>
+
+    <a asp-page="/User/Bookings/Index"
+       asp-route-Tab="upcoming"
+       class="booking-tab @(Model.Tab == "upcoming" ? "active" : "")">
+        Upcoming
+        <span>@Model.UpcomingCount</span>
+    </a>
+
+    <a asp-page="/User/Bookings/Index"
+       asp-route-Tab="cancelled"
+       class="booking-tab @(Model.Tab == "cancelled" ? "active" : "")">
+        Cancelled
+        <span>@Model.CancelledCount</span>
+    </a>
+
+    <a asp-page="/User/Bookings/Index"
+       asp-route-Tab="history"
+       class="booking-tab @(Model.Tab == "history" ? "active" : "")">
+        History
+        <span>@Model.HistoryCount</span>
+    </a>
+</div>

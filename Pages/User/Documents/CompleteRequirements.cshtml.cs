@@ -186,7 +186,7 @@ namespace VentureCarRentals.Pages.User.Documents
                     string.IsNullOrWhiteSpace(SecondaryDocNumber) ||
                     SecondaryDocFile == null)
                 {
-                    TempData["Error"] = "Local renters must upload a driver’s license and one secondary ID.";
+                    TempData["Error"] = "Local renters must upload a driver's license and one secondary ID.";
                     return Page();
                 }
             }

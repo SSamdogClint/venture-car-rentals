@@ -11,8 +11,8 @@ using VentureCarRentals.Data;
 namespace VentureCarRentals.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260506112607_AddUserPaymentMethods")]
-    partial class AddUserPaymentMethods
+    [Migration("20260508072910_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -67,6 +67,10 @@ namespace VentureCarRentals.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Color")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
@@ -75,6 +79,10 @@ namespace VentureCarRentals.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("LicensePlate")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -97,6 +105,10 @@ namespace VentureCarRentals.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Transmission")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("VIN")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -178,25 +190,39 @@ namespace VentureCarRentals.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("BookingId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("FileUrl")
+                    b.Property<string>("AgreementText")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("SignedAt")
+                    b.Property<DateTime?>("ApprovedAt")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("SignedByUserId")
+                    b.Property<int>("BookingId")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("GeneratedAgreementFileUrl")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("GeneratedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("OnlineAcceptedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SignedAgreementFileUrl")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("SignedUploadedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.HasKey("RentalAgreementId");
 
                     b.HasIndex("BookingId")
                         .IsUnique();
-
-                    b.HasIndex("SignedByUserId");
 
                     b.ToTable("RentalAgreements");
                 });
@@ -350,10 +376,60 @@ namespace VentureCarRentals.Migrations
                     b.ToTable("UserDocuments");
                 });
 
+            modelBuilder.Entity("VentureCarRentals.Models.UserPaymentMethod", b =>
+                {
+                    b.Property<int>("UserPaymentMethodId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("CardBrand")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CardHolderName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ExpiryDate")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Last4")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("MaskedCardNumber")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PaymentType")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("UserPaymentMethodId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserPaymentMethods");
+                });
+
             modelBuilder.Entity("VentureCarRentals.Models.Booking", b =>
                 {
                     b.HasOne("VentureCarRentals.Models.Car", "Car")
-                        .WithMany("Bookings")
+                        .WithMany()
                         .HasForeignKey("CarId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -372,7 +448,7 @@ namespace VentureCarRentals.Migrations
             modelBuilder.Entity("VentureCarRentals.Models.MaintenanceLog", b =>
                 {
                     b.HasOne("VentureCarRentals.Models.Car", "Car")
-                        .WithMany("MaintenanceLogs")
+                        .WithMany()
                         .HasForeignKey("CarId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -399,15 +475,7 @@ namespace VentureCarRentals.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("VentureCarRentals.Models.User", "SignedByUser")
-                        .WithMany()
-                        .HasForeignKey("SignedByUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Booking");
-
-                    b.Navigation("SignedByUser");
                 });
 
             modelBuilder.Entity("VentureCarRentals.Models.Review", b =>
@@ -448,6 +516,17 @@ namespace VentureCarRentals.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("VentureCarRentals.Models.UserPaymentMethod", b =>
+                {
+                    b.HasOne("VentureCarRentals.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("VentureCarRentals.Models.Booking", b =>
                 {
                     b.Navigation("Payment");
@@ -455,13 +534,6 @@ namespace VentureCarRentals.Migrations
                     b.Navigation("RentalAgreement");
 
                     b.Navigation("Review");
-                });
-
-            modelBuilder.Entity("VentureCarRentals.Models.Car", b =>
-                {
-                    b.Navigation("Bookings");
-
-                    b.Navigation("MaintenanceLogs");
                 });
 
             modelBuilder.Entity("VentureCarRentals.Models.User", b =>

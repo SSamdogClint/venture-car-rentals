@@ -21,8 +21,17 @@ body {
     background-color: #f5f5f5;
     margin-bottom: 0;
     padding-bottom: 0;
-    font-family: 'Segoe UI', sans-serif;
+    font-family: 'Inter', Arial, sans-serif;
     overflow-x: hidden;
+}
+
+html,
+body,
+button,
+input,
+select,
+textarea {
+    font-family: 'Inter', Arial, sans-serif;
 }
 
 /* ─── CARD ───────────────────────────────────── */
@@ -317,6 +326,77 @@ body {
 .min-vh-100 {
     min-height: 100vh;
 }
+
+
+/* Public layout used when guest users access Browse Cars */
+.public-cars-wrapper {
+    min-height: 100vh;
+    background: #f8fafc;
+}
+
+.public-cars-main {
+    width: 100%;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+.public-cars-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 18px 22px;
+    margin-bottom: 24px;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+}
+
+.public-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 22px;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.public-brand-logo {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 /* ─── ADMIN STYLES ──────────────────────── */
@@ -841,6 +921,385 @@ body {
 
 .admin-table tbody tr:hover {
     background: #f9fafb;
+}
+
+.admin-booking-layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 30px;
+    width: 100%;
+}
+
+.booking-stats-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.booking-stat-title h5 {
+    font-weight: 800;
+    margin-bottom: 2px;
+}
+
+.booking-stat-title small {
+    color: #6b7280;
+}
+
+.booking-stat-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.06);
+}
+
+    .booking-stat-card span {
+        color: #6b7280;
+    }
+
+    .booking-stat-card h3 {
+        font-weight: 900;
+        margin: 14px 0 4px;
+    }
+
+    .booking-stat-card p {
+        color: #6b7280;
+        margin: 0;
+        font-size: 13px;
+    }
+
+.booking-mini-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+    .booking-mini-list div {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+.dot {
+    width: 10px;
+    height: 10px;
+    display: inline-block;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.dot-green {
+    background: #22c55e;
+}
+
+.dot-black {
+    background: #111;
+}
+
+.dot-red {
+    background: #ef4444;
+}
+
+.booking-list-panel {
+    background: #fff;
+    padding: 28px;
+    border-radius: 2px;
+}
+
+.booking-topbar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 18px;
+}
+
+.booking-search-form {
+    display: flex;
+    width: 360px;
+    background: #fff;
+    border-radius: 999px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.07);
+    overflow: hidden;
+}
+
+    .booking-search-form input {
+        border: none;
+        padding: 12px 18px;
+    }
+
+        .booking-search-form input:focus {
+            box-shadow: none;
+        }
+
+.booking-tabs {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 22px;
+    border-bottom: 1px solid #ddd;
+}
+
+.booking-tab {
+    padding: 12px 14px;
+    color: #555;
+    text-decoration: none;
+    font-weight: 700;
+}
+
+    .booking-tab.active {
+        color: #111;
+        border-bottom: 3px solid #111;
+    }
+
+.booking-table-card h5 {
+    font-weight: 800;
+}
+
+.booking-admin-table th {
+    color: #6b7280;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.booking-admin-table td {
+    font-size: 14px;
+    vertical-align: middle;
+}
+
+.car-no-pill {
+    background: #f3f4f6;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+@media (max-width: 992px) {
+    .admin-booking-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .booking-search-form {
+        width: 100%;
+    }
+}
+
+/* =========================================================
+   ADMIN CAR CONFIRMATION MODAL
+   Purpose:
+   Makes the confirmation modal dark instead of plain white.
+   The confirm button becomes blue for save/update and red for delete.
+   ========================================================= */
+
+.action-confirm-modal {
+    background: #111827;
+    color: #ffffff;
+    border: none;
+    border-radius: 18px;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+    overflow: hidden;
+}
+
+.action-confirm-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 20px 24px;
+}
+
+    .action-confirm-header .modal-title {
+        color: #ffffff;
+        font-weight: 800;
+    }
+
+.action-confirm-body {
+    padding: 22px 24px;
+    color: #e5e7eb;
+}
+
+.action-confirm-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 18px 24px;
+    background: #0f172a;
+}
+
+    .action-confirm-footer .btn-secondary {
+        background: #374151;
+        border-color: #374151;
+        color: #ffffff;
+    }
+
+        .action-confirm-footer .btn-secondary:hover {
+            background: #4b5563;
+            border-color: #4b5563;
+        }
+
+.action-confirm-button.btn-primary {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #ffffff;
+}
+
+    .action-confirm-button.btn-primary:hover {
+        background: #1d4ed8;
+        border-color: #1d4ed8;
+    }
+
+.action-confirm-button.btn-danger {
+    background: #dc2626;
+    border-color: #dc2626;
+    color: #ffffff;
+}
+
+    .action-confirm-button.btn-danger:hover {
+        background: #b91c1c;
+        border-color: #b91c1c;
+    }
+
+/* =========================================================
+   ADMIN CAR MODAL BUTTON COLORS
+   Purpose:
+   Ensures save buttons are blue and delete buttons stay red.
+   ========================================================= */
+
+.admin-modal .btn-primary {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #ffffff;
+}
+
+    .admin-modal .btn-primary:hover {
+        background: #1d4ed8;
+        border-color: #1d4ed8;
+    }
+
+.admin-modal .btn-danger {
+    background: #dc2626;
+    border-color: #dc2626;
+    color: #ffffff;
+}
+
+    .admin-modal .btn-danger:hover {
+        background: #b91c1c;
+        border-color: #b91c1c;
+    }
+
+/* =========================================================
+   DOCUMENT VERIFICATION STAT CARD VIEW LINKS
+   Purpose:
+   Adds a View arrow link inside each statistics card.
+   ========================================================= */
+
+.stat-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.stat-card-view {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: #2563eb;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+    .stat-card-view:hover {
+        color: #1d4ed8;
+        text-decoration: underline;
+    }
+
+.active-doc-filter {
+    border: 1px solid rgba(37, 99, 235, 0.35);
+    box-shadow: 0 12px 30px rgba(37, 99, 235, 0.14);
+}
+
+/* =========================================================
+   DOCUMENT CONFIRMATION MODAL
+   Reuses the same dark confirmation style used by admin car actions.
+   ========================================================= */
+
+.action-confirm-modal {
+    background: #111827;
+    color: #ffffff;
+    border: none;
+    border-radius: 18px;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+    overflow: hidden;
+}
+
+.action-confirm-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 20px 24px;
+}
+
+    .action-confirm-header .modal-title {
+        color: #ffffff;
+        font-weight: 800;
+    }
+
+.action-confirm-body {
+    padding: 22px 24px;
+    color: #e5e7eb;
+}
+
+.action-confirm-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 18px 24px;
+    background: #0f172a;
+}
+
+    .action-confirm-footer .btn-secondary {
+        background: #374151;
+        border-color: #374151;
+        color: #ffffff;
+    }
+
+        .action-confirm-footer .btn-secondary:hover {
+            background: #4b5563;
+            border-color: #4b5563;
+        }
+
+.action-confirm-button.btn-primary {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #ffffff;
+}
+
+    .action-confirm-button.btn-primary:hover {
+        background: #1d4ed8;
+        border-color: #1d4ed8;
+    }
+
+/* =========================================================
+   STAT CARD VIEW LINKS
+   Used by User Control and Document Verification cards.
+   ========================================================= */
+
+.stat-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.stat-card-view {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: #2563eb;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+    .stat-card-view:hover {
+        color: #1d4ed8;
+        text-decoration: underline;
+    }
+
+.active-doc-filter {
+    border: 1px solid rgba(37, 99, 235, 0.35);
+    box-shadow: 0 12px 30px rgba(37, 99, 235, 0.14);
 }
 
 
@@ -2291,4 +2750,1297 @@ body {
 .inactive-status {
     background: #e5e7eb;
     color: #4b5563;
+}
+
+.online-agreement-box {
+    background: #fff;
+    border: 1px solid #d7d7d7;
+    padding: 20px 22px;
+    border-radius: 14px;
+    margin-bottom: 20px;
+}
+
+    .online-agreement-box h5 {
+        font-size: 18px;
+        font-weight: 800;
+        margin-bottom: 8px;
+    }
+
+    .online-agreement-box p {
+        font-size: 14px;
+        color: #555;
+        margin-bottom: 12px;
+        line-height: 1.5;
+    }
+
+.agreement-check {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    font-weight: 700;
+    color: #111;
+}
+
+    .agreement-check input {
+        margin-top: 5px;
+    }
+
+/* Public layout used when guest users access Browse Cars or Home */
+.public-cars-wrapper {
+    min-height: 100vh;
+    background: #f8fafc;
+}
+
+.public-cars-main {
+    width: 100%;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+.public-cars-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 18px 22px;
+    margin-bottom: 24px;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+}
+
+/* =========================================================
+   USER MY BOOKINGS PAGE
+   ========================================================= */
+
+.my-bookings-section {
+    padding: 10px 0 40px;
+}
+
+.booking-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.booking-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #ffffff;
+    color: #111827;
+    text-decoration: none;
+    padding: 10px 16px;
+    border-radius: 999px;
+    border: 1px solid #e5e7eb;
+    font-weight: 700;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
+}
+
+    .booking-tab span {
+        background: #f3f4f6;
+        color: #374151;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 12px;
+    }
+
+    .booking-tab.active {
+        background: #2563eb;
+        color: #ffffff;
+        border-color: #2563eb;
+    }
+
+        .booking-tab.active span {
+            background: rgba(255, 255, 255, 0.25);
+            color: #ffffff;
+        }
+
+.live-booking-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    background: linear-gradient(135deg, #111827, #1d4ed8);
+    color: #ffffff;
+    border-radius: 22px;
+    padding: 20px;
+    box-shadow: 0 18px 45px rgba(37, 99, 235, 0.25);
+}
+
+.live-booking-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+    .live-booking-left img,
+    .live-no-image {
+        width: 110px;
+        height: 75px;
+        border-radius: 16px;
+        object-fit: cover;
+        background: rgba(255, 255, 255, 0.15);
+    }
+
+.live-no-image {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+}
+
+.live-booking-right {
+    text-align: right;
+}
+
+.live-badge {
+    display: inline-block;
+    background: #22c55e;
+    color: #ffffff;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+    margin-bottom: 8px;
+}
+
+.live-booking-right strong {
+    display: block;
+    font-size: 22px;
+}
+
+.live-booking-right small {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.user-booking-card {
+    display: grid;
+    grid-template-columns: 190px 1fr 210px;
+    gap: 24px;
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    padding: 18px;
+    margin-bottom: 18px;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.05);
+}
+
+.booking-car-image {
+    text-align: center;
+}
+
+    .booking-car-image img,
+    .booking-no-image {
+        width: 150px;
+        height: 95px;
+        object-fit: cover;
+        border-radius: 14px;
+        background: #f3f4f6;
+    }
+
+.booking-no-image {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #6b7280;
+}
+
+.booking-rating-display {
+    margin-top: 10px;
+    color: #111827;
+    font-size: 13px;
+}
+
+    .booking-rating-display small {
+        display: block;
+        color: #6b7280;
+    }
+
+.booking-car-info h5 {
+    font-weight: 800;
+    margin-bottom: 6px;
+}
+
+.booking-features {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 18px;
+}
+
+    .booking-features p {
+        margin: 0;
+        font-size: 14px;
+        color: #374151;
+    }
+
+    .booking-features i {
+        color: #2563eb;
+        margin-right: 6px;
+    }
+
+.booking-price-actions {
+    text-align: center;
+}
+
+    .booking-price-actions h4 {
+        font-weight: 900;
+        color: #0f172a;
+    }
+
+        .booking-price-actions h4 span {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+    .booking-price-actions p {
+        color: #4b5563;
+        margin-bottom: 12px;
+    }
+
+.booking-status-badge {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: capitalize;
+}
+
+.status-pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-approved {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-cancelled {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.status-completed {
+    background: #e0e7ff;
+    color: #3730a3;
+}
+
+.btn-danger-soft {
+    background: #fecaca;
+    color: #dc2626;
+    border: none;
+    font-weight: 700;
+}
+
+    .btn-danger-soft:hover {
+        background: #fca5a5;
+        color: #b91c1c;
+    }
+
+.existing-review-box {
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    padding: 12px;
+    border-radius: 14px;
+}
+
+.booking-modal {
+    border-radius: 18px;
+    border: none;
+    overflow: hidden;
+}
+
+@media (max-width: 992px) {
+    .user-booking-card {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+
+    .booking-features {
+        grid-template-columns: 1fr;
+        text-align: left;
+    }
+
+    .live-booking-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .live-booking-right {
+        text-align: left;
+    }
+}
+
+.status-upcoming {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.status-history {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.upcoming-note {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #1e40af;
+    border-radius: 14px;
+    padding: 10px 12px;
+    font-size: 14px;
+}
+
+    .upcoming-note i {
+        margin-right: 6px;
+    }
+
+.status-upcoming {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.status-history {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.upcoming-note {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #1e40af;
+    border-radius: 14px;
+    padding: 10px 12px;
+    font-size: 14px;
+}
+
+    .upcoming-note i {
+        margin-right: 6px;
+    }
+
+.agreement-download-box {
+    background: #f8fafc;
+    border: 1px solid #dbeafe;
+    color: #1e3a8a;
+    border-radius: 14px;
+    padding: 12px;
+    font-size: 14px;
+}
+
+.booking-detail-img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 16px;
+    background: #f3f4f6;
+}
+
+.booking-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 18px;
+}
+
+    .booking-detail-grid p {
+        margin: 0;
+        color: #374151;
+    }
+
+.history-stars {
+    font-size: 18px;
+}
+
+/* =========================================================
+   PAYMENT METHOD PICKUP-ONLY NOTICE
+   ========================================================= */
+
+.pickup-payment-notice {
+    display: flex;
+    gap: 14px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #1e3a8a;
+    border-radius: 18px;
+    padding: 16px 18px;
+    margin: 18px 0;
+}
+
+    .pickup-payment-notice h5 {
+        margin-bottom: 4px;
+        font-weight: 800;
+    }
+
+    .pickup-payment-notice p {
+        margin-bottom: 0;
+        color: #1e40af;
+    }
+
+.pickup-notice-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 999px;
+    background: #2563eb;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+/* =========================================================
+   PAYMENT CONFIRMATION MODAL
+   Reuses dark confirmation style.
+   ========================================================= */
+
+.action-confirm-modal {
+    background: #111827;
+    color: #ffffff;
+    border: none;
+    border-radius: 18px;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+    overflow: hidden;
+}
+
+.action-confirm-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 20px 24px;
+}
+
+    .action-confirm-header .modal-title {
+        color: #ffffff;
+        font-weight: 800;
+    }
+
+.action-confirm-body {
+    padding: 22px 24px;
+    color: #e5e7eb;
+}
+
+.action-confirm-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 18px 24px;
+    background: #0f172a;
+}
+
+    .action-confirm-footer .btn-secondary {
+        background: #374151;
+        border-color: #374151;
+        color: #ffffff;
+    }
+
+        .action-confirm-footer .btn-secondary:hover {
+            background: #4b5563;
+            border-color: #4b5563;
+        }
+
+.action-confirm-button.btn-primary {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #ffffff;
+}
+
+    .action-confirm-button.btn-primary:hover {
+        background: #1d4ed8;
+        border-color: #1d4ed8;
+    }
+
+/* =========================================================
+   PROFESSIONAL CAR DETAILS MODAL
+   ========================================================= */
+
+.car-details-modal-pro {
+    border: none;
+    border-radius: 28px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 24px 80px rgba(15, 23, 42, 0.18);
+}
+
+.car-modal-header {
+    padding: 26px 30px 12px;
+}
+
+.car-modal-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #eff6ff;
+    color: #2563eb;
+    border: 1px solid #dbeafe;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 999px;
+    letter-spacing: 0.3px;
+}
+
+.custom-close-btn {
+    font-size: 18px;
+    opacity: 0.7;
+}
+
+    .custom-close-btn:hover {
+        opacity: 1;
+    }
+
+.car-hero-card {
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid #edf2f7;
+    border-radius: 24px;
+    padding: 18px;
+}
+
+.car-image-panel {
+    position: relative;
+    height: 100%;
+}
+
+.car-details-image-pro {
+    width: 100%;
+    height: 340px;
+    object-fit: cover;
+    border-radius: 22px;
+    display: block;
+    background: #f1f5f9;
+    box-shadow: 0 12px 40px rgba(15, 23, 42, 0.12);
+}
+
+.car-details-no-image-pro {
+    width: 100%;
+    height: 340px;
+    border-radius: 22px;
+    background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+    color: #64748b;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: inset 0 0 0 1px #e2e8f0;
+}
+
+    .car-details-no-image-pro i {
+        font-size: 46px;
+        margin-bottom: 10px;
+    }
+
+.floating-rating-card {
+    margin-top: 14px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    padding: 14px 16px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+.rating-stars {
+    display: flex;
+    gap: 4px;
+    color: #f4b400;
+    font-size: 20px;
+    margin-bottom: 6px;
+}
+
+.rating-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: baseline;
+    color: #475569;
+    font-size: 14px;
+}
+
+    .rating-meta strong {
+        color: #111827;
+        font-size: 18px;
+    }
+
+.car-main-info {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.car-title {
+    font-size: 34px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.5px;
+}
+
+.car-subtitle {
+    color: #64748b;
+    font-size: 17px;
+}
+
+.price-badge-card {
+    background: linear-gradient(135deg, #111827, #1f2937);
+    color: #ffffff;
+    border-radius: 18px;
+    padding: 14px 18px;
+    min-width: 180px;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.16);
+}
+
+.price-main {
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+.price-sub {
+    font-size: 13px;
+    opacity: 0.85;
+    margin-top: 4px;
+}
+
+.spec-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.spec-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    padding: 14px 15px;
+    min-height: 76px;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.04);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+    .spec-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 22px rgba(15, 23, 42, 0.08);
+    }
+
+.spec-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    background: #eff6ff;
+    color: #2563eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.spec-card small {
+    display: block;
+    color: #64748b;
+    font-size: 12px;
+    margin-bottom: 3px;
+}
+
+.spec-card strong {
+    color: #111827;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.description-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    padding: 18px;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.04);
+}
+
+    .description-card h6 {
+        font-size: 16px;
+        font-weight: 800;
+        color: #0f172a;
+        margin-bottom: 10px;
+    }
+
+    .description-card p {
+        color: #475569;
+        font-size: 15px;
+        line-height: 1.8;
+    }
+
+.reviews-panel {
+    background: #ffffff;
+    border: 1px solid #edf2f7;
+    border-radius: 24px;
+    padding: 20px;
+}
+
+.reviews-header {
+    margin-bottom: 16px;
+}
+
+    .reviews-header h5 {
+        font-weight: 800;
+        color: #0f172a;
+    }
+
+.review-list {
+    display: grid;
+    gap: 14px;
+}
+
+.review-card-pro {
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    padding: 16px 18px;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.04);
+}
+
+.review-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.review-stars {
+    display: flex;
+    gap: 4px;
+    color: #f4b400;
+    font-size: 16px;
+}
+
+.review-date {
+    font-size: 13px;
+    color: #6b7280;
+    font-weight: 600;
+}
+
+.review-comment {
+    color: #334155;
+    font-size: 15px;
+    line-height: 1.7;
+}
+
+.empty-review-box-pro {
+    text-align: center;
+    padding: 28px 20px;
+    border: 1px dashed #cbd5e1;
+    border-radius: 18px;
+    background: #f8fafc;
+    color: #64748b;
+}
+
+    .empty-review-box-pro i {
+        font-size: 32px;
+        display: block;
+        margin-bottom: 10px;
+        color: #94a3b8;
+    }
+
+    .empty-review-box-pro h6 {
+        font-weight: 700;
+        color: #334155;
+        margin-bottom: 6px;
+    }
+
+.car-close-btn {
+    border-radius: 12px;
+    font-weight: 600;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+/* Responsive */
+@media (max-width: 991.98px) {
+    .car-title {
+        font-size: 28px;
+    }
+
+    .price-badge-card {
+        min-width: auto;
+        width: 100%;
+        text-align: left !important;
+    }
+
+    .car-details-image-pro,
+    .car-details-no-image-pro {
+        height: 280px;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .car-modal-header {
+        padding: 22px 20px 10px;
+    }
+
+    .car-hero-card,
+    .reviews-panel {
+        padding: 16px;
+    }
+
+    .spec-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .car-title {
+        font-size: 24px;
+    }
+
+    .price-main {
+        font-size: 24px;
+    }
+
+    .car-details-image-pro,
+    .car-details-no-image-pro {
+        height: 230px;
+    }
+}
+
+/* =========================================================
+   FINAL FIX: PROFESSIONAL CAR DETAILS MODAL
+   Use unique vcr-* classes to avoid conflict with old CSS.
+   Paste this at the VERY BOTTOM of site.css.
+   ========================================================= */
+
+.vcr-car-modal {
+    border: none !important;
+    border-radius: 28px !important;
+    overflow: hidden !important;
+    background: #ffffff !important;
+    box-shadow: 0 28px 90px rgba(15, 23, 42, 0.25) !important;
+}
+
+.vcr-car-modal-header {
+    padding: 24px 28px 16px !important;
+    border-bottom: 1px solid #eef2f7 !important;
+    background: #ffffff !important;
+}
+
+.vcr-car-kicker {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 7px !important;
+    background: #eff6ff !important;
+    color: #2563eb !important;
+    border: 1px solid #dbeafe !important;
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    padding: 6px 12px !important;
+    border-radius: 999px !important;
+    margin-bottom: 8px !important;
+}
+
+.vcr-car-modal-title {
+    font-size: 22px !important;
+    font-weight: 900 !important;
+    color: #0f172a !important;
+    margin: 0 !important;
+}
+
+.vcr-car-close {
+    opacity: 0.7 !important;
+}
+
+    .vcr-car-close:hover {
+        opacity: 1 !important;
+    }
+
+.vcr-car-modal-body {
+    padding: 22px 28px !important;
+    background: #ffffff !important;
+}
+
+.vcr-car-hero {
+    display: grid !important;
+    grid-template-columns: 42% 1fr !important;
+    gap: 24px !important;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 24px !important;
+    padding: 18px !important;
+}
+
+/* LEFT IMAGE */
+.vcr-car-image-area {
+    width: 100% !important;
+    min-width: 0 !important;
+}
+
+.vcr-car-image {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 330px !important;
+    display: block !important;
+    object-fit: cover !important;
+    border-radius: 22px !important;
+    background: #f1f5f9 !important;
+    box-shadow: 0 14px 35px rgba(15, 23, 42, 0.12) !important;
+    position: static !important;
+}
+
+.vcr-car-no-image {
+    width: 100% !important;
+    height: 330px !important;
+    border-radius: 22px !important;
+    background: linear-gradient(135deg, #f8fafc, #e2e8f0) !important;
+    color: #64748b !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+    .vcr-car-no-image i {
+        font-size: 46px !important;
+        margin-bottom: 10px !important;
+    }
+
+/* RATING CARD */
+.vcr-rating-card {
+    margin-top: 14px !important;
+    background: #ffffff !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 18px !important;
+    padding: 14px 16px !important;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08) !important;
+}
+
+.vcr-rating-stars {
+    display: flex !important;
+    gap: 4px !important;
+    color: #f5b301 !important;
+    font-size: 20px !important;
+    margin-bottom: 6px !important;
+}
+
+.vcr-rating-card p {
+    margin: 0 !important;
+    color: #475569 !important;
+    font-size: 14px !important;
+}
+
+.vcr-rating-card strong {
+    color: #111827 !important;
+    font-size: 18px !important;
+}
+
+/* RIGHT INFO */
+.vcr-car-info-area {
+    min-width: 0 !important;
+    width: 100% !important;
+}
+
+.vcr-car-title-row {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: flex-start !important;
+    gap: 18px !important;
+    margin-bottom: 18px !important;
+}
+
+    .vcr-car-title-row h2 {
+        font-size: 32px !important;
+        line-height: 1.1 !important;
+        font-weight: 900 !important;
+        color: #0f172a !important;
+        margin: 0 0 6px !important;
+    }
+
+    .vcr-car-title-row p {
+        color: #64748b !important;
+        font-size: 16px !important;
+        margin: 0 !important;
+    }
+
+.vcr-price-card {
+    background: linear-gradient(135deg, #111827, #1f2937) !important;
+    color: #ffffff !important;
+    border-radius: 18px !important;
+    padding: 14px 18px !important;
+    min-width: 175px !important;
+    text-align: right !important;
+    box-shadow: 0 14px 28px rgba(15, 23, 42, 0.18) !important;
+}
+
+    .vcr-price-card strong {
+        display: block !important;
+        font-size: 26px !important;
+        line-height: 1.1 !important;
+        font-weight: 900 !important;
+    }
+
+    .vcr-price-card span {
+        display: block !important;
+        font-size: 13px !important;
+        opacity: 0.85 !important;
+        margin-top: 4px !important;
+    }
+
+/* SPECS */
+.vcr-spec-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+}
+
+.vcr-spec-card {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    background: #ffffff !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 18px !important;
+    padding: 14px !important;
+    min-height: 76px !important;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.04) !important;
+}
+
+.vcr-spec-icon {
+    width: 42px !important;
+    height: 42px !important;
+    border-radius: 14px !important;
+    background: #eff6ff !important;
+    color: #2563eb !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 18px !important;
+    flex-shrink: 0 !important;
+}
+
+.vcr-spec-card small {
+    display: block !important;
+    color: #64748b !important;
+    font-size: 12px !important;
+    margin-bottom: 3px !important;
+}
+
+.vcr-spec-card strong {
+    display: block !important;
+    color: #111827 !important;
+    font-size: 15px !important;
+    font-weight: 800 !important;
+}
+
+/* DESCRIPTION */
+.vcr-description-box {
+    background: #ffffff !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 18px !important;
+    padding: 18px !important;
+    margin-top: 18px !important;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.04) !important;
+}
+
+    .vcr-description-box h6 {
+        font-size: 16px !important;
+        font-weight: 900 !important;
+        color: #0f172a !important;
+        margin-bottom: 10px !important;
+    }
+
+    .vcr-description-box p {
+        color: #475569 !important;
+        font-size: 15px !important;
+        line-height: 1.7 !important;
+        margin: 0 !important;
+    }
+
+/* REVIEWS */
+.vcr-review-panel {
+    margin-top: 22px !important;
+    background: #ffffff !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 24px !important;
+    padding: 20px !important;
+}
+
+.vcr-review-header h5 {
+    font-size: 18px !important;
+    font-weight: 900 !important;
+    color: #0f172a !important;
+    margin-bottom: 4px !important;
+}
+
+.vcr-review-header p {
+    color: #64748b !important;
+    font-size: 14px !important;
+    margin-bottom: 16px !important;
+}
+
+.vcr-review-list {
+    display: grid !important;
+    gap: 14px !important;
+}
+
+.vcr-review-card {
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 18px !important;
+    padding: 16px 18px !important;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.04) !important;
+}
+
+.vcr-review-top {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 12px !important;
+    flex-wrap: wrap !important;
+    margin-bottom: 10px !important;
+}
+
+.vcr-review-stars {
+    display: flex !important;
+    gap: 4px !important;
+    color: #f5b301 !important;
+    font-size: 16px !important;
+}
+
+.vcr-review-top span {
+    font-size: 13px !important;
+    color: #6b7280 !important;
+    font-weight: 700 !important;
+}
+
+.vcr-review-card p {
+    color: #334155 !important;
+    font-size: 15px !important;
+    line-height: 1.7 !important;
+    margin: 0 !important;
+}
+
+.vcr-empty-review {
+    text-align: center !important;
+    padding: 30px 20px !important;
+    border: 1px dashed #cbd5e1 !important;
+    border-radius: 18px !important;
+    background: #f8fafc !important;
+    color: #64748b !important;
+}
+
+    .vcr-empty-review i {
+        font-size: 32px !important;
+        display: block !important;
+        margin-bottom: 10px !important;
+        color: #94a3b8 !important;
+    }
+
+    .vcr-empty-review h6 {
+        font-size: 16px !important;
+        font-weight: 800 !important;
+        color: #334155 !important;
+        margin-bottom: 6px !important;
+    }
+
+    .vcr-empty-review p {
+        margin: 0 !important;
+    }
+
+.vcr-car-modal-footer {
+    border-top: 1px solid #eef2f7 !important;
+    padding: 16px 28px 22px !important;
+    background: #ffffff !important;
+}
+
+.vcr-modal-close-btn {
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    padding: 10px 22px !important;
+}
+
+/* RESPONSIVE */
+@media (max-width: 991.98px) {
+    .vcr-car-hero {
+        grid-template-columns: 1fr !important;
+    }
+
+    .vcr-car-title-row {
+        flex-direction: column !important;
+    }
+
+    .vcr-price-card {
+        width: 100% !important;
+        text-align: left !important;
+    }
+
+    .vcr-car-image,
+    .vcr-car-no-image {
+        height: 280px !important;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .vcr-car-modal-header {
+        padding: 20px 20px 14px !important;
+    }
+
+    .vcr-car-modal-body {
+        padding: 18px 20px !important;
+    }
+
+    .vcr-car-hero {
+        padding: 14px !important;
+    }
+
+    .vcr-car-title-row h2 {
+        font-size: 24px !important;
+    }
+
+    .vcr-spec-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .vcr-car-image,
+    .vcr-car-no-image {
+        height: 230px !important;
+    }
+}
+
+/* Make Browse Cars action buttons equal width */
+.vehicle-price .book-btn {
+    width: 100%;
+    display: block;
+    text-align: center;
+    padding: 11px 16px;
+    border-radius: 8px;
+    font-weight: 700;
+}
+
+/* Make View Details and Book button spacing cleaner */
+.vehicle-price .btn,
+.vehicle-price .book-btn {
+    max-width: 190px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Optional: make both buttons look balanced */
+.vehicle-price .btn-outline-dark {
+    border-radius: 8px;
+    font-weight: 700;
+    padding: 10px 16px;
+}
+
+/* Home latest review avatars */
+.review-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #2563eb;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
+/* Makes filled stars look clearer */
+.review-card .stars {
+    color: #f5b301;
 }

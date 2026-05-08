@@ -3,6 +3,12 @@
 @{
     ViewData["Title"] = "Admin Dashboard";
     Layout = "_Layout";
+
+    /*
+        IMPORTANT FEATURE:
+        Dashboard income only counts approved/completed bookings.
+        Pending bookings are not treated as real income yet.
+    */
 }
 
 <div class="row g-4">
@@ -16,12 +22,20 @@
         <div class="stat-card">
             <div class="d-flex justify-content-between">
                 <span>Income</span>
-                <small>Today</small>
+                <small>Approved Today</small>
             </div>
 
-            <h3>₱ @Model.TodayIncome.ToString("N2") <span class="up">↑ @Model.IncomePercent.ToString("N1")%</span></h3>
-            <p>Compared to last week income</p>
-            <strong>Last week Income <span>₱@Model.LastWeekIncome.ToString("N2")</span></strong>
+            <h3>
+                ₱ @Model.TodayIncome.ToString("N2")
+                <span class="up">↑ @Model.IncomePercent.ToString("N1")%</span>
+            </h3>
+
+            <p>Approved/completed bookings only</p>
+
+            <strong>
+                Last week Income
+                <span>₱@Model.LastWeekIncome.ToString("N2")</span>
+            </strong>
         </div>
 
         <div class="stat-card">
@@ -30,9 +44,17 @@
                 <small>Today</small>
             </div>
 
-            <h3>₱ @Model.TodayMaintenance.ToString("N2") <span class="up">↑ @Model.MaintenancePercent.ToString("N1")%</span></h3>
+            <h3>
+                ₱ @Model.TodayMaintenance.ToString("N2")
+                <span class="up">↑ @Model.MaintenancePercent.ToString("N1")%</span>
+            </h3>
+
             <p>Compared to last week expenses</p>
-            <strong>Last week expenses <span>₱@Model.LastWeekMaintenance.ToString("N2")</span></strong>
+
+            <strong>
+                Last week expenses
+                <span>₱@Model.LastWeekMaintenance.ToString("N2")</span>
+            </strong>
         </div>
 
         <div class="stat-card">
@@ -44,9 +66,20 @@
             <div class="donut-chart mx-auto my-3"></div>
 
             <div class="chart-label">
-                <p><span><span class="dot dark"></span>Total Rent</span> <b>@Model.RentPercent% ↑</b></p>
-                <p><span><span class="dot green"></span>Total Cancel</span> <b>@Model.CancelPercent% ↑</b></p>
-                <p><span><span class="dot red"></span>Total Pending</span> <b>@Model.PendingPercent% ↓</b></p>
+                <p>
+                    <span><span class="dot dark"></span>Total Rent</span>
+                    <b>@Model.RentPercent% ↑</b>
+                </p>
+
+                <p>
+                    <span><span class="dot green"></span>Total Cancel</span>
+                    <b>@Model.CancelPercent% ↑</b>
+                </p>
+
+                <p>
+                    <span><span class="dot red"></span>Total Pending</span>
+                    <b>@Model.PendingPercent% ↓</b>
+                </p>
             </div>
         </div>
     </div>
@@ -59,10 +92,20 @@
             <div class="d-flex align-items-center gap-3">
                 <i class="bi bi-bell-fill notification-icon"></i>
 
-                <div class="search-box">
-                    <input type="text" placeholder="Search here">
-                    <i class="bi bi-search"></i>
-                </div>
+                <form method="get" class="search-box">
+                    <input type="hidden" name="SelectedCarId" value="@Model.SelectedCarId" />
+                    <input type="hidden" name="SelectedDate" value="@Model.SelectedDate.ToString("yyyy-MM-dd")" />
+                    <input type="hidden" name="SelectedTime" value="@Model.SelectedTime" />
+
+                    <input type="text"
+                           name="SearchTerm"
+                           value="@Model.SearchTerm"
+                           placeholder="Search here">
+
+                    <button type="submit" class="border-0 bg-transparent">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </form>
             </div>
         </div>
 
@@ -70,15 +113,20 @@
             <h6>Car Availability</h6>
 
             <form method="get" class="row g-3 align-items-center mt-2">
+                <input type="hidden" name="SearchTerm" value="@Model.SearchTerm" />
+
                 <div class="col-md-3">
                     <div class="input-card">
                         <i class="bi bi-car-front"></i>
+
                         <select name="SelectedCarId">
                             <option value="">Car number</option>
 
                             @foreach (var car in Model.CarOptions)
                             {
-                                <option value="@car.CarId">@car.CarNumber - @car.CarName</option>
+                                <option value="@car.CarId" selected="@(Model.SelectedCarId == car.CarId)">
+                                    @car.CarNumber - @car.CarName
+                                </option>
                             }
                         </select>
                     </div>
@@ -99,16 +147,23 @@
                 </div>
 
                 <div class="col-md-3">
-                    <button type="submit" class="btn check-btn w-100">Check</button>
+                    <button type="submit" class="btn check-btn w-100">
+                        Check
+                    </button>
                 </div>
             </form>
         </div>
 
         <div class="content-card mb-4">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6>Live Car Status</h6>
+                <div>
+                    <h6 class="mb-0">Live Car Status</h6>
+                    <small class="text-muted">
+                        Income is shown only for approved/completed bookings.
+                    </small>
+                </div>
 
-                <button class="filter-btn">
+                <button class="filter-btn" type="button">
                     <i class="bi bi-sliders"></i> Filter
                 </button>
             </div>
@@ -135,15 +190,36 @@
                             {
                                 <tr>
                                     <td>@count.ToString("00")</td>
-                                    <td><span class="car-code">@car.CarNumber</span></td>
-                                    <td>@car.CarName</td>
+
                                     <td>
-                                        <span class="status @(car.Status.ToLower() == "available" ? "available" : "unavailable")"></span>
+                                        <span class="car-code">@car.CarNumber</span>
+                                    </td>
+
+                                    <td>@car.CarName</td>
+
+                                    <td>
+                                        <span class="status @(car.Status.ToLower().Contains("available") ? "available" : "unavailable")"></span>
                                         @car.Status
                                     </td>
-                                    <td>₱@car.Earning.ToString("N2")</td>
+
                                     <td>
-                                        <a asp-page="/Admin/Cars/Details" asp-route-id="@car.CarId" class="details-btn">Details</a>
+                                        @if (car.ShowIncome)
+                                        {
+                                            <span>₱@car.Earning.ToString("N2")</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">@car.IncomeNote</span>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        <button type="button"
+                                                class="details-btn"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#carDetailsModal-@car.CarId">
+                                            Details
+                                        </button>
                                     </td>
                                 </tr>
 
@@ -184,3 +260,73 @@
 
     </div>
 </div>
+
+@foreach (var car in Model.CarDetails)
+{
+    @await Html.PartialAsync("/Pages/Admin/Cars/_CarDetailsModal.cshtml", car)
+    @await Html.PartialAsync("/Pages/Admin/Cars/_EditCarModal.cshtml", car)
+}
+
+@await Html.PartialAsync("/Pages/Admin/Cars/_ConfirmActionModal.cshtml")
+@await Html.PartialAsync("/Pages/Admin/Cars/_CarToastMessages.cshtml")
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            let selectedForm = null;
+
+            const confirmModalElement = document.getElementById("confirmActionModal");
+            const confirmTitle = document.getElementById("confirmActionTitle");
+            const confirmMessage = document.getElementById("confirmActionMessage");
+            const confirmButton = document.getElementById("confirmActionButton");
+
+            if (confirmModalElement) {
+                const confirmModal = new bootstrap.Modal(confirmModalElement);
+
+                document.querySelectorAll(".needs-confirmation").forEach(function (form) {
+                    form.addEventListener("submit", function (event) {
+                        event.preventDefault();
+
+                        if (!form.checkValidity()) {
+                            form.reportValidity();
+                            return;
+                        }
+
+                        selectedForm = form;
+
+                        const confirmVariant = form.dataset.confirmVariant || "primary";
+
+                        confirmTitle.textContent = form.dataset.confirmTitle || "Confirm Action";
+                        confirmMessage.textContent = form.dataset.confirmMessage || "Are you sure you want to continue?";
+
+                        confirmButton.className = "btn action-confirm-button";
+
+                        if (confirmVariant === "danger") {
+                            confirmButton.classList.add("btn-danger");
+                        }
+                        else {
+                            confirmButton.classList.add("btn-primary");
+                        }
+
+                        confirmModal.show();
+                    });
+                });
+
+                confirmButton.addEventListener("click", function () {
+                    if (selectedForm) {
+                        selectedForm.classList.remove("needs-confirmation");
+                        selectedForm.submit();
+                    }
+                });
+            }
+
+            document.querySelectorAll(".app-toast").forEach(function (toastElement) {
+                const toast = new bootstrap.Toast(toastElement, {
+                    delay: 3500
+                });
+
+                toast.show();
+            });
+        });
+    </script>
+}

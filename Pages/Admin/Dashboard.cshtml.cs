@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using VentureCarRentals.Data;
+using VentureCarRentals.Models;
 
 namespace VentureCarRentals.Pages.Admin
 {
@@ -14,129 +16,311 @@ namespace VentureCarRentals.Pages.Admin
         }
 
         public double TodayIncome { get; set; }
-        public double IncomePercent { get; set; }
         public double LastWeekIncome { get; set; }
+        public double IncomePercent { get; set; }
 
         public double TodayMaintenance { get; set; }
-        public double MaintenancePercent { get; set; }
         public double LastWeekMaintenance { get; set; }
+        public double MaintenancePercent { get; set; }
 
         public int RentPercent { get; set; }
         public int CancelPercent { get; set; }
         public int PendingPercent { get; set; }
 
         public List<CarOptionViewModel> CarOptions { get; set; } = new();
-        public List<LiveCarViewModel> LiveCars { get; set; } = new();
-
-        public DateTime SelectedDate { get; set; } = DateTime.Today;
-        public string SelectedTime { get; set; } = "10 AM";
-
-        public string BookingRangeLabel { get; set; } = "Last 6 months";
+        public List<LiveCarStatusViewModel> LiveCars { get; set; } = new();
         public List<BookingSummaryViewModel> BookingSummary { get; set; } = new();
+
+        // Full car records used by the reused car details modal.
+        public List<Car> CarDetails { get; set; } = new();
+
+        public string BookingRangeLabel { get; set; } = "";
+
+        [BindProperty(SupportsGet = true)]
+        public int? SelectedCarId { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public DateTime SelectedDate { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public string SelectedTime { get; set; } = "";
+
+        [BindProperty(SupportsGet = true)]
+        public string? SearchTerm { get; set; }
 
         public async Task OnGetAsync()
         {
-            var today = DateTime.Today;
-            var tomorrow = today.AddDays(1);
-
-            var lastWeekStart = today.AddDays(-7);
-            var lastWeekEnd = today;
-
-            TodayIncome = await _context.Payments
-                .Where(p => p.PaymentStatus == "paid"
-                    && p.PaidAt != null
-                    && p.PaidAt >= today
-                    && p.PaidAt < tomorrow)
-                .SumAsync(p => p.Amount);
-
-            LastWeekIncome = await _context.Payments
-                .Where(p => p.PaymentStatus == "paid"
-                    && p.PaidAt != null
-                    && p.PaidAt >= lastWeekStart
-                    && p.PaidAt < lastWeekEnd)
-                .SumAsync(p => p.Amount);
-
-            TodayMaintenance = await _context.MaintenanceLogs
-                .Where(m => m.StartDate >= today && m.StartDate < tomorrow)
-                .SumAsync(m => m.Cost);
-
-            LastWeekMaintenance = await _context.MaintenanceLogs
-                .Where(m => m.StartDate >= lastWeekStart && m.StartDate < lastWeekEnd)
-                .SumAsync(m => m.Cost);
-
-            IncomePercent = CalculatePercent(TodayIncome, LastWeekIncome);
-            MaintenancePercent = CalculatePercent(TodayMaintenance, LastWeekMaintenance);
-
-            var totalBookings = await _context.Bookings.CountAsync();
-
-            var completedBookings = await _context.Bookings
-                .CountAsync(b => b.Status == "completed" || b.Status == "confirmed");
-
-            var cancelledBookings = await _context.Bookings
-                .CountAsync(b => b.Status == "cancelled");
-
-            var pendingBookings = await _context.Bookings
-                .CountAsync(b => b.Status == "pending");
-
-            RentPercent = GetPercent(completedBookings, totalBookings);
-            CancelPercent = GetPercent(cancelledBookings, totalBookings);
-            PendingPercent = GetPercent(pendingBookings, totalBookings);
-
-            var cars = await _context.Cars
-                .OrderBy(c => c.Make)
-                .ToListAsync();
-
-            CarOptions = cars.Select(c => new CarOptionViewModel
+            if (SelectedDate == default)
             {
-                CarId = c.CarId,
-                CarNumber = c.CarId.ToString("0000"),
-                CarName = c.Make + " " + c.Model
-            }).ToList();
+                SelectedDate = DateTime.Today;
+            }
 
-            LiveCars = cars
-                .OrderByDescending(c => c.CreatedAt)
-                .Take(5)
-                .Select(c => new LiveCarViewModel
+            if (string.IsNullOrWhiteSpace(SelectedTime))
+            {
+                SelectedTime = DateTime.Now.ToString("HH:mm");
+            }
+
+            await LoadDashboardDataAsync();
+        }
+
+        private async Task LoadDashboardDataAsync()
+        {
+            var cars = await LoadCarsAsync();
+            var bookings = await _context.Bookings.ToListAsync();
+
+            CarOptions = cars
+                .Select(car => new CarOptionViewModel
                 {
-                    CarId = c.CarId,
-                    CarNumber = c.CarId.ToString("0000"),
-                    CarName = c.Make + " " + c.Model,
-                    Status = c.Status,
-                    Earning = _context.Bookings
-                        .Where(b => b.CarId == c.CarId && b.Status != "cancelled")
-                        .Sum(b => b.TotalPrice)
+                    CarId = car.CarId,
+                    CarNumber = car.CarId.ToString("0000"),
+                    CarName = $"{car.Make} {car.Model}"
                 })
                 .ToList();
 
-            BookingSummary = new List<BookingSummaryViewModel>
-            {
-                new BookingSummaryViewModel { Month = "Sep", BarHeight = 55 },
-                new BookingSummaryViewModel { Month = "Oct", BarHeight = 70 },
-                new BookingSummaryViewModel { Month = "Nov", BarHeight = 45 },
-                new BookingSummaryViewModel { Month = "Dec", BarHeight = 60 },
-                new BookingSummaryViewModel { Month = "Jan", BarHeight = 75 },
-                new BookingSummaryViewModel { Month = "Feb", BarHeight = 65 }
-            };
+            CarDetails = cars;
+
+            LoadIncomeStatistics(bookings);
+            LoadMaintenanceStatistics();
+            LoadRentCancelPendingPercentages(bookings);
+            LoadLiveCarStatus(cars, bookings);
+            LoadBookingSummary(bookings);
         }
 
-        private static double CalculatePercent(double current, double previous)
+        private async Task<List<Car>> LoadCarsAsync()
         {
-            if (previous <= 0)
+            var query = _context.Cars.AsQueryable();
+
+            if (SelectedCarId != null)
             {
-                return current > 0 ? 100 : 0;
+                query = query.Where(c => c.CarId == SelectedCarId.Value);
             }
 
-            return Math.Round(((current - previous) / previous) * 100, 1);
+            if (!string.IsNullOrWhiteSpace(SearchTerm))
+            {
+                query = query.Where(c =>
+                    c.Make.Contains(SearchTerm) ||
+                    c.Model.Contains(SearchTerm) ||
+                    c.Category.Contains(SearchTerm) ||
+                    c.Status.Contains(SearchTerm) ||
+                    c.Color.Contains(SearchTerm) ||
+                    c.LicensePlate.Contains(SearchTerm) ||
+                    c.VIN.Contains(SearchTerm));
+            }
+
+            return await query
+                .OrderByDescending(c => c.CreatedAt)
+                .ToListAsync();
         }
 
-        private static int GetPercent(int value, int total)
+        private void LoadIncomeStatistics(List<Booking> bookings)
         {
-            if (total == 0)
+            /*
+                IMPORTANT FEATURE:
+                Income counts approved/completed bookings only.
+                Pending bookings are not real income yet, so they are excluded.
+            */
+
+            var todayStart = DateTime.Today;
+            var tomorrowStart = todayStart.AddDays(1);
+
+            var lastWeekStart = todayStart.AddDays(-7);
+            var lastWeekEnd = todayStart;
+
+            TodayIncome = bookings
+                .Where(b =>
+                    IsIncomeBookingStatus(b.Status) &&
+                    b.CreatedAt >= todayStart &&
+                    b.CreatedAt < tomorrowStart)
+                .Sum(b => b.TotalPrice);
+
+            LastWeekIncome = bookings
+                .Where(b =>
+                    IsIncomeBookingStatus(b.Status) &&
+                    b.CreatedAt >= lastWeekStart &&
+                    b.CreatedAt < lastWeekEnd)
+                .Sum(b => b.TotalPrice);
+
+            IncomePercent = ComputePercentChange(TodayIncome, LastWeekIncome);
+        }
+
+        private void LoadMaintenanceStatistics()
+        {
+            /*
+                Maintenance is set to 0 here because maintenance expense calculation
+                depends on your MaintenanceLog model fields.
+                You can connect this later if your MaintenanceLog has Cost and CreatedAt.
+            */
+
+            TodayMaintenance = 0;
+            LastWeekMaintenance = 0;
+            MaintenancePercent = 0;
+        }
+
+        private void LoadRentCancelPendingPercentages(List<Booking> bookings)
+        {
+            var totalBookings = bookings.Count;
+
+            if (totalBookings == 0)
             {
-                return 0;
+                RentPercent = 0;
+                CancelPercent = 0;
+                PendingPercent = 0;
+                return;
             }
 
-            return (int)Math.Round((double)value / total * 100);
+            var rentCount = bookings.Count(b => IsIncomeBookingStatus(b.Status));
+            var cancelCount = bookings.Count(b => b.Status == "cancelled");
+            var pendingCount = bookings.Count(b => b.Status == "pending");
+
+            RentPercent = (int)Math.Round((double)rentCount / totalBookings * 100);
+            CancelPercent = (int)Math.Round((double)cancelCount / totalBookings * 100);
+            PendingPercent = (int)Math.Round((double)pendingCount / totalBookings * 100);
+        }
+
+        private void LoadLiveCarStatus(List<Car> cars, List<Booking> bookings)
+        {
+            var selectedDateTime = BuildSelectedDateTime();
+
+            LiveCars = cars.Select(car =>
+            {
+                var bookingAtSelectedTime = bookings
+                    .Where(b =>
+                        b.CarId == car.CarId &&
+                        b.Status != "cancelled" &&
+                        selectedDateTime >= b.StartDate &&
+                        selectedDateTime <= b.EndDate)
+                    .OrderByDescending(b => b.CreatedAt)
+                    .FirstOrDefault();
+
+                var approvedCarIncome = bookings
+                    .Where(b =>
+                        b.CarId == car.CarId &&
+                        IsIncomeBookingStatus(b.Status))
+                    .Sum(b => b.TotalPrice);
+
+                var statusText = GetDisplayStatus(car, bookingAtSelectedTime);
+
+                var showIncome = false;
+                var incomeValue = 0.0;
+                var incomeNote = "No approved income";
+
+                /*
+                    IMPORTANT FEATURE:
+                    If the selected/current booking is pending, the dashboard hides the money value.
+                    This prevents pending bookings from being displayed as real income.
+                */
+                if (bookingAtSelectedTime != null)
+                {
+                    if (IsIncomeBookingStatus(bookingAtSelectedTime.Status))
+                    {
+                        showIncome = true;
+                        incomeValue = bookingAtSelectedTime.TotalPrice;
+                    }
+                    else
+                    {
+                        showIncome = false;
+                        incomeNote = "Pending approval";
+                    }
+                }
+                else if (approvedCarIncome > 0)
+                {
+                    showIncome = true;
+                    incomeValue = approvedCarIncome;
+                }
+
+                return new LiveCarStatusViewModel
+                {
+                    CarId = car.CarId,
+                    CarNumber = car.CarId.ToString("0000"),
+                    CarName = $"{car.Make} {car.Model}",
+                    Status = statusText,
+                    Earning = incomeValue,
+                    ShowIncome = showIncome,
+                    IncomeNote = incomeNote
+                };
+            }).ToList();
+        }
+
+        private void LoadBookingSummary(List<Booking> bookings)
+        {
+            var currentYear = DateTime.Today.Year;
+            BookingRangeLabel = $"Monthly summary for {currentYear}";
+
+            var monthlyCounts = Enumerable.Range(1, 12)
+                .Select(month => new
+                {
+                    MonthNumber = month,
+                    Count = bookings.Count(b =>
+                        b.CreatedAt.Year == currentYear &&
+                        b.CreatedAt.Month == month)
+                })
+                .ToList();
+
+            var maxCount = monthlyCounts.Max(m => m.Count);
+
+            BookingSummary = monthlyCounts.Select(item =>
+            {
+                var barHeight = maxCount == 0
+                    ? 5
+                    : Math.Max(5, (int)Math.Round((double)item.Count / maxCount * 100));
+
+                return new BookingSummaryViewModel
+                {
+                    Month = new DateTime(currentYear, item.MonthNumber, 1).ToString("MMM"),
+                    Count = item.Count,
+                    BarHeight = barHeight
+                };
+            }).ToList();
+        }
+
+        private DateTime BuildSelectedDateTime()
+        {
+            if (TimeSpan.TryParse(SelectedTime, out var selectedTimeSpan))
+            {
+                return SelectedDate.Date.Add(selectedTimeSpan);
+            }
+
+            return SelectedDate.Date;
+        }
+
+        private string GetDisplayStatus(Car car, Booking? booking)
+        {
+            if (booking == null)
+            {
+                return car.Status;
+            }
+
+            if (booking.Status == "approved")
+            {
+                return "Approved Booking";
+            }
+
+            if (booking.Status == "completed")
+            {
+                return "Completed Booking";
+            }
+
+            if (booking.Status == "pending")
+            {
+                return "Pending Approval";
+            }
+
+            return booking.Status;
+        }
+
+        private bool IsIncomeBookingStatus(string status)
+        {
+            return status == "approved" || status == "completed";
+        }
+
+        private double ComputePercentChange(double currentValue, double previousValue)
+        {
+            if (previousValue <= 0)
+            {
+                return currentValue > 0 ? 100 : 0;
+            }
+
+            return (currentValue - previousValue) / previousValue * 100;
         }
     }
 
@@ -147,18 +331,21 @@ namespace VentureCarRentals.Pages.Admin
         public string CarName { get; set; } = "";
     }
 
-    public class LiveCarViewModel
+    public class LiveCarStatusViewModel
     {
         public int CarId { get; set; }
         public string CarNumber { get; set; } = "";
         public string CarName { get; set; } = "";
         public string Status { get; set; } = "";
         public double Earning { get; set; }
+        public bool ShowIncome { get; set; }
+        public string IncomeNote { get; set; } = "";
     }
 
     public class BookingSummaryViewModel
     {
         public string Month { get; set; } = "";
+        public int Count { get; set; }
         public int BarHeight { get; set; }
     }
 }

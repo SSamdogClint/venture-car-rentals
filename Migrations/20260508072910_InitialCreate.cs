@@ -27,6 +27,9 @@ namespace VentureCarRentals.Migrations
                     Transmission = table.Column<string>(type: "TEXT", nullable: false),
                     Description = table.Column<string>(type: "TEXT", nullable: false),
                     ImageUrl = table.Column<string>(type: "TEXT", nullable: false),
+                    Color = table.Column<string>(type: "TEXT", nullable: false),
+                    LicensePlate = table.Column<string>(type: "TEXT", nullable: false),
+                    VIN = table.Column<string>(type: "TEXT", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
@@ -41,11 +44,20 @@ namespace VentureCarRentals.Migrations
                     UserId = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     FirstName = table.Column<string>(type: "TEXT", nullable: false),
+                    MiddleName = table.Column<string>(type: "TEXT", nullable: false),
                     LastName = table.Column<string>(type: "TEXT", nullable: false),
                     Email = table.Column<string>(type: "TEXT", nullable: false),
                     PasswordHash = table.Column<string>(type: "TEXT", nullable: false),
                     IsAdmin = table.Column<bool>(type: "INTEGER", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    PhoneNumber = table.Column<string>(type: "TEXT", nullable: false),
+                    Street = table.Column<string>(type: "TEXT", nullable: false),
+                    Barangay = table.Column<string>(type: "TEXT", nullable: false),
+                    City = table.Column<string>(type: "TEXT", nullable: false),
+                    State = table.Column<string>(type: "TEXT", nullable: false),
+                    ZipCode = table.Column<string>(type: "TEXT", nullable: false),
+                    Country = table.Column<string>(type: "TEXT", nullable: false),
+                    Birthday = table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -134,6 +146,34 @@ namespace VentureCarRentals.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "UserPaymentMethods",
+                columns: table => new
+                {
+                    UserPaymentMethodId = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    UserId = table.Column<int>(type: "INTEGER", nullable: false),
+                    PaymentType = table.Column<string>(type: "TEXT", nullable: false),
+                    CardBrand = table.Column<string>(type: "TEXT", nullable: false),
+                    CardHolderName = table.Column<string>(type: "TEXT", nullable: false),
+                    MaskedCardNumber = table.Column<string>(type: "TEXT", nullable: false),
+                    Last4 = table.Column<string>(type: "TEXT", nullable: false),
+                    ExpiryDate = table.Column<string>(type: "TEXT", nullable: false),
+                    Status = table.Column<string>(type: "TEXT", nullable: false),
+                    IsDefault = table.Column<bool>(type: "INTEGER", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserPaymentMethods", x => x.UserPaymentMethodId);
+                    table.ForeignKey(
+                        name: "FK_UserPaymentMethods_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Payments",
                 columns: table => new
                 {
@@ -163,9 +203,14 @@ namespace VentureCarRentals.Migrations
                     RentalAgreementId = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     BookingId = table.Column<int>(type: "INTEGER", nullable: false),
-                    FileUrl = table.Column<string>(type: "TEXT", nullable: false),
-                    SignedByUserId = table.Column<int>(type: "INTEGER", nullable: false),
-                    SignedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    AgreementText = table.Column<string>(type: "TEXT", nullable: false),
+                    Status = table.Column<string>(type: "TEXT", nullable: false),
+                    OnlineAcceptedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    GeneratedAgreementFileUrl = table.Column<string>(type: "TEXT", nullable: true),
+                    GeneratedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    SignedAgreementFileUrl = table.Column<string>(type: "TEXT", nullable: true),
+                    SignedUploadedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    ApprovedAt = table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -175,12 +220,6 @@ namespace VentureCarRentals.Migrations
                         column: x => x.BookingId,
                         principalTable: "Bookings",
                         principalColumn: "BookingId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_RentalAgreements_Users_SignedByUserId",
-                        column: x => x.SignedByUserId,
-                        principalTable: "Users",
-                        principalColumn: "UserId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -248,11 +287,6 @@ namespace VentureCarRentals.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_RentalAgreements_SignedByUserId",
-                table: "RentalAgreements",
-                column: "SignedByUserId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Reviews_BookingId",
                 table: "Reviews",
                 column: "BookingId",
@@ -271,6 +305,11 @@ namespace VentureCarRentals.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_UserDocuments_UserId",
                 table: "UserDocuments",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserPaymentMethods_UserId",
+                table: "UserPaymentMethods",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
@@ -297,6 +336,9 @@ namespace VentureCarRentals.Migrations
 
             migrationBuilder.DropTable(
                 name: "UserDocuments");
+
+            migrationBuilder.DropTable(
+                name: "UserPaymentMethods");
 
             migrationBuilder.DropTable(
                 name: "Bookings");

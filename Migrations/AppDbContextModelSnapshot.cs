@@ -64,6 +64,10 @@ namespace VentureCarRentals.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Color")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
@@ -72,6 +76,10 @@ namespace VentureCarRentals.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("LicensePlate")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -94,6 +102,10 @@ namespace VentureCarRentals.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Transmission")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("VIN")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -179,8 +191,17 @@ namespace VentureCarRentals.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime?>("ApprovedAt")
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("BookingId")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("GeneratedAgreementFileUrl")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("GeneratedAt")
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("OnlineAcceptedAt")
                         .HasColumnType("TEXT");
@@ -405,7 +426,7 @@ namespace VentureCarRentals.Migrations
             modelBuilder.Entity("VentureCarRentals.Models.Booking", b =>
                 {
                     b.HasOne("VentureCarRentals.Models.Car", "Car")
-                        .WithMany("Bookings")
+                        .WithMany()
                         .HasForeignKey("CarId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -424,7 +445,7 @@ namespace VentureCarRentals.Migrations
             modelBuilder.Entity("VentureCarRentals.Models.MaintenanceLog", b =>
                 {
                     b.HasOne("VentureCarRentals.Models.Car", "Car")
-                        .WithMany("MaintenanceLogs")
+                        .WithMany()
                         .HasForeignKey("CarId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -510,13 +531,6 @@ namespace VentureCarRentals.Migrations
                     b.Navigation("RentalAgreement");
 
                     b.Navigation("Review");
-                });
-
-            modelBuilder.Entity("VentureCarRentals.Models.Car", b =>
-                {
-                    b.Navigation("Bookings");
-
-                    b.Navigation("MaintenanceLogs");
                 });
 
             modelBuilder.Entity("VentureCarRentals.Models.User", b =>

@@ -1,0 +1,247 @@
+﻿@model VentureCarRentals.Pages.User.Cars.CarBrowseViewModel
+
+<div class="modal fade" id="carDetailsModal-@Model.CarId" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content vcr-car-modal">
+
+            <!-- MODAL HEADER -->
+            <div class="modal-header vcr-car-modal-header">
+                <div>
+                    <span class="vcr-car-kicker">
+                        <i class="bi bi-car-front"></i>
+                        Vehicle Overview
+                    </span>
+
+                    <h5 class="modal-title vcr-car-modal-title">
+                        Car Details
+                    </h5>
+                </div>
+
+                <button type="button"
+                        class="btn-close vcr-car-close"
+                        data-bs-dismiss="modal">
+                </button>
+            </div>
+
+            <!-- MODAL BODY -->
+            <div class="modal-body vcr-car-modal-body">
+
+                <!-- MAIN CAR DETAILS -->
+                <div class="vcr-car-hero">
+
+                    <!-- LEFT IMAGE AREA -->
+                    <div class="vcr-car-image-area">
+                        @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
+                        {
+                            <img src="@Model.ImageUrl"
+                                 alt="@Model.Make @Model.Model"
+                                 class="vcr-car-image" />
+                        }
+                        else
+                        {
+                            <div class="vcr-car-no-image">
+                                <i class="bi bi-car-front-fill"></i>
+                                <span>No Image Available</span>
+                            </div>
+                        }
+
+                        <!-- RATING CARD -->
+                        <div class="vcr-rating-card">
+                            <div class="vcr-rating-stars">
+                                @for (var i = 1; i <= 5; i++)
+                                {
+                                    if (i <= Math.Round(Model.AverageRating))
+                                    {
+                                        <i class="bi bi-star-fill"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-star"></i>
+                                    }
+                                }
+                            </div>
+
+                            @if (Model.ReviewCount > 0)
+                            {
+                                <p>
+                                    <strong>@Model.AverageRating.ToString("0.0")</strong>
+                                    / 5 from @Model.ReviewCount review(s)
+                                </p>
+                            }
+                            else
+                            {
+                                <p>
+                                    <strong>0.0</strong>
+                                    / 5 • No reviews yet
+                                </p>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- RIGHT DETAILS AREA -->
+                    <div class="vcr-car-info-area">
+
+                        <div class="vcr-car-title-row">
+                            <div>
+                                <h2>@Model.Make @Model.Model</h2>
+                                <p>@Model.Category • @Model.Year Model</p>
+                            </div>
+
+                            <div class="vcr-price-card">
+                                <strong>₱@Model.PricePerDay.ToString("N2")</strong>
+                                <span>per day</span>
+                            </div>
+                        </div>
+
+                        <!-- SPECIFICATIONS -->
+                        <div class="vcr-spec-grid">
+
+                            <div class="vcr-spec-card">
+                                <div class="vcr-spec-icon">
+                                    <i class="bi bi-people"></i>
+                                </div>
+                                <div>
+                                    <small>Seats</small>
+                                    <strong>@Model.Seats</strong>
+                                </div>
+                            </div>
+
+                            <div class="vcr-spec-card">
+                                <div class="vcr-spec-icon">
+                                    <i class="bi bi-gear"></i>
+                                </div>
+                                <div>
+                                    <small>Transmission</small>
+                                    <strong>@Model.Transmission</strong>
+                                </div>
+                            </div>
+
+                            <div class="vcr-spec-card">
+                                <div class="vcr-spec-icon">
+                                    <i class="bi bi-palette"></i>
+                                </div>
+                                <div>
+                                    <small>Color</small>
+                                    <strong>@Model.Color</strong>
+                                </div>
+                            </div>
+
+                            <div class="vcr-spec-card">
+                                <div class="vcr-spec-icon">
+                                    <i class="bi bi-check-circle"></i>
+                                </div>
+                                <div>
+                                    <small>Status</small>
+                                    <strong class="text-capitalize">@Model.Status</strong>
+                                </div>
+                            </div>
+
+                            <div class="vcr-spec-card">
+                                <div class="vcr-spec-icon">
+                                    <i class="bi bi-snow"></i>
+                                </div>
+                                <div>
+                                    <small>Comfort</small>
+                                    <strong>Airconditioning</strong>
+                                </div>
+                            </div>
+
+                            <div class="vcr-spec-card">
+                                <div class="vcr-spec-icon">
+                                    <i class="bi bi-steering-wheel"></i>
+                                </div>
+                                <div>
+                                    <small>Handling</small>
+                                    <strong>Power Steering</strong>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- DESCRIPTION -->
+                        <div class="vcr-description-box">
+                            <h6>Description</h6>
+
+                            @if (!string.IsNullOrWhiteSpace(Model.Description))
+                            {
+                                <p>@Model.Description</p>
+                            }
+                            else
+                            {
+                                <p class="text-muted">No description available for this vehicle.</p>
+                            }
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- CUSTOMER REVIEWS -->
+                <div class="vcr-review-panel">
+                    <div class="vcr-review-header">
+                        <div>
+                            <h5>Customer Reviews</h5>
+                            <p>See what renters are saying about this vehicle.</p>
+                        </div>
+                    </div>
+
+                    @if (Model.RecentReviews.Any())
+                    {
+                        <div class="vcr-review-list">
+                            @foreach (var review in Model.RecentReviews)
+                            {
+                                <div class="vcr-review-card">
+                                    <div class="vcr-review-top">
+                                        <div class="vcr-review-stars">
+                                            @for (var i = 1; i <= 5; i++)
+                                            {
+                                                if (i <= review.Rating)
+                                                {
+                                                    <i class="bi bi-star-fill"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="bi bi-star"></i>
+                                                }
+                                            }
+                                        </div>
+
+                                        <span>@review.CreatedAt.ToString("MMM dd, yyyy")</span>
+                                    </div>
+
+                                    @if (!string.IsNullOrWhiteSpace(review.Comment))
+                                    {
+                                        <p>@review.Comment</p>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted">No comment provided.</p>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="vcr-empty-review">
+                            <i class="bi bi-chat-square-text"></i>
+                            <h6>No customer reviews yet</h6>
+                            <p>This car has no reviews at the moment.</p>
+                        </div>
+                    }
+                </div>
+
+            </div>
+
+            <!-- MODAL FOOTER -->
+            <div class="modal-footer vcr-car-modal-footer">
+                <button type="button"
+                        class="btn btn-light vcr-modal-close-btn"
+                        data-bs-dismiss="modal">
+                    Close
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>

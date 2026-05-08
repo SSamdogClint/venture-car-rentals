@@ -1,0 +1,61 @@
+﻿@model VentureCarRentals.Pages.User.Bookings.BookingCardViewModel
+
+<div class="modal fade" id="reviewBookingModal-@Model.BookingId" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content booking-modal">
+
+            <form method="post" asp-page-handler="SubmitReview">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Review Booking</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    <input type="hidden" name="BookingId" value="@Model.BookingId" />
+
+                    <div class="mb-3">
+                        <strong>@Model.CarName</strong>
+                        <p class="text-muted mb-0">
+                            Share your experience with this completed booking.
+                        </p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Rating</label>
+                        <select name="Rating" class="form-control" required>
+                            <option value="">Select rating</option>
+                            <option value="5">★★★★★ - Excellent</option>
+                            <option value="4">★★★★☆ - Very Good</option>
+                            <option value="3">★★★☆☆ - Good</option>
+                            <option value="2">★★☆☆☆ - Fair</option>
+                            <option value="1">★☆☆☆☆ - Poor</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Comment</label>
+                        <textarea name="Comment"
+                                  class="form-control"
+                                  rows="4"
+                                  placeholder="Write your review here..."></textarea>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+
+                    <button type="submit" class="btn btn-primary">
+                        Submit Review
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>

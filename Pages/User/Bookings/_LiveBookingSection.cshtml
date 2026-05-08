@@ -1,0 +1,71 @@
+﻿@model VentureCarRentals.Pages.User.Bookings.IndexModel
+
+@if (Model.LiveBookings.Any())
+{
+    <div class="live-booking-section mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h5 class="mb-0">
+                    <i class="bi bi-broadcast-pin"></i> Live Booking
+                </h5>
+                <small class="text-muted">
+                    Your currently active booking and remaining rental time.
+                </small>
+            </div>
+        </div>
+
+        @foreach (var booking in Model.LiveBookings)
+        {
+            <div class="live-booking-card">
+                <div class="live-booking-left">
+                    @if (!string.IsNullOrWhiteSpace(booking.ImageUrl))
+                    {
+                        <img src="@booking.ImageUrl" alt="@booking.CarName" />
+                    }
+                    else
+                    {
+                        <div class="live-no-image">
+                            <i class="bi bi-car-front"></i>
+                        </div>
+                    }
+
+                    <div>
+                        <h5>@booking.CarName</h5>
+                        <p class="mb-1">@booking.Category</p>
+
+                        <small>
+                            <strong>Borrow:</strong>
+                            @booking.StartDate.ToString("MMM dd, yyyy hh:mm tt")
+                        </small>
+
+                        <br />
+
+                        <small>
+                            <strong>Return:</strong>
+                            @booking.EndDate.ToString("MMM dd, yyyy hh:mm tt")
+                        </small>
+                    </div>
+                </div>
+
+                <div class="live-booking-right">
+                    <span class="live-badge">Live</span>
+
+                    <strong data-booking-countdown data-end-date="@booking.EndDateIso">
+                        Loading countdown...
+                    </strong>
+
+                    <small>Until booking ends</small>
+
+                    <button type="button"
+                            class="btn btn-light btn-sm mt-3"
+                            data-bs-toggle="modal"
+                            data-bs-target="#bookingDetailsModal-@booking.BookingId">
+                        View Details
+                    </button>
+                </div>
+            </div>
+
+            @await Html.PartialAsync("_BookingDetailsModal", booking)
+        }
+    </div>
+}

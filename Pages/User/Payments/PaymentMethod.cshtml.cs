@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -10,10 +11,12 @@ namespace VentureCarRentals.Pages.User.Payments
     public class PaymentMethodModel : PageModel
     {
         private readonly AppDbContext _context;
+        private readonly IWebHostEnvironment _environment;
 
-        public PaymentMethodModel(AppDbContext context)
+        public PaymentMethodModel(AppDbContext context, IWebHostEnvironment environment)
         {
             _context = context;
+            _environment = environment;
         }
 
         public Car? Car { get; set; }
@@ -36,9 +39,6 @@ namespace VentureCarRentals.Pages.User.Payments
         public string? ReturnTime { get; set; }
 
         [BindProperty]
-        public bool AgreementAccepted { get; set; }
-
-        [BindProperty]
         public string SelectedPaymentType { get; set; } = "Cash";
 
         [BindProperty]
@@ -56,6 +56,9 @@ namespace VentureCarRentals.Pages.User.Payments
         [BindProperty]
         public string DetectedCardType { get; set; } = "";
 
+        [BindProperty]
+        public bool AgreementAccepted { get; set; }
+
         public DateTime BorrowDateTime { get; set; }
         public DateTime ReturnDateTime { get; set; }
 
@@ -68,13 +71,16 @@ namespace VentureCarRentals.Pages.User.Payments
         {
             var userId = HttpContext.Session.GetInt32("UserId");
 
+            // User must be logged in before accessing the booking payment page.
             if (userId == null)
             {
                 return RedirectToPage("/Login");
             }
 
+            // Load selected car, schedule, total amount, and saved cards.
             if (!await LoadPageDataAsync(userId.Value))
             {
+                TempData["Error"] = "Payment details are missing or invalid. Please select your booking schedule again.";
                 return RedirectToPage("/User/Home");
             }
 
@@ -85,20 +91,20 @@ namespace VentureCarRentals.Pages.User.Payments
         {
             var userId = HttpContext.Session.GetInt32("UserId");
 
+            // User must be logged in before saving a payment method.
             if (userId == null)
             {
                 return RedirectToPage("/Login");
             }
 
+            // Reload page data so validation errors can return to this same page.
             if (!await LoadPageDataAsync(userId.Value))
             {
+                TempData["Error"] = "Payment details are missing or invalid. Please try again.";
                 return RedirectToPage("/User/Home");
             }
 
-            /*
-                PaymentSecurityHelper handles validation and masking.
-                The full 16-digit card number is not stored in the database.
-            */
+            // Validate demo card details using your security helper.
             var validation = PaymentSecurityHelper.ValidateDemoCard(
                 CardAccountNumber,
                 CardHolderName,
@@ -111,10 +117,7 @@ namespace VentureCarRentals.Pages.User.Payments
                 return Page();
             }
 
-            /*
-                If the card already exists, update/reactivate it.
-                Otherwise, save it as a new active payment method.
-            */
+            // Check if the same saved card already exists for this user.
             var existingCard = await _context.UserPaymentMethods
                 .FirstOrDefaultAsync(p =>
                     p.UserId == userId.Value &&
@@ -124,6 +127,9 @@ namespace VentureCarRentals.Pages.User.Payments
 
             if (existingCard == null)
             {
+                // IMPORTANT:
+                // Never save the full 16-digit card number.
+                // Only save masked card number and last 4 digits.
                 var newCard = new UserPaymentMethod
                 {
                     UserId = userId.Value,
@@ -142,6 +148,7 @@ namespace VentureCarRentals.Pages.User.Payments
             }
             else
             {
+                // If the same card exists, update and reactivate it.
                 existingCard.CardHolderName = validation.CardHolderName;
                 existingCard.ExpiryDate = validation.ExpiryDate;
                 existingCard.MaskedCardNumber = validation.MaskedCardNumber;
@@ -149,6 +156,8 @@ namespace VentureCarRentals.Pages.User.Payments
             }
 
             await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Payment method saved successfully.";
 
             return RedirectToPage("/User/Payments/PaymentMethod", new
             {
@@ -164,36 +173,48 @@ namespace VentureCarRentals.Pages.User.Payments
         {
             var userId = HttpContext.Session.GetInt32("UserId");
 
-            // Redirect user to login if there is no active session.
+            // Redirect to login if there is no active user session.
             if (userId == null)
             {
                 return RedirectToPage("/Login");
             }
 
-            // Reload car, schedule, total price, and saved payment methods.
-            // If the schedule data is invalid or missing, send the user back home.
+            // Reload car, schedule, total amount, and saved cards.
             if (!await LoadPageDataAsync(userId.Value))
             {
+                TempData["Error"] = "Booking details are missing or invalid. Please try again.";
                 return RedirectToPage("/User/Home");
             }
 
-            // Make sure the selected car still exists.
+            // Stop if selected car is missing.
             if (Car == null)
             {
+                TempData["Error"] = "Selected car was not found.";
                 return RedirectToPage("/User/Cars/BrowseCars");
             }
 
-            // The booking cannot continue unless the user accepts the online rental agreement.
+            // User must accept the online rental agreement before creating the booking request.
             if (!AgreementAccepted)
             {
-                ErrorMessage = "You must read and agree to the rental agreement before completing the booking.";
+                ErrorMessage = "You must read and agree to the rental agreement before submitting your booking request.";
                 return Page();
             }
 
+            var renter = await _context.Users
+                .FirstOrDefaultAsync(u => u.UserId == userId.Value);
+
+            // Stop if the user record is missing from the database.
+            if (renter == null)
+            {
+                ErrorMessage = "User account was not found. Please login again.";
+                return Page();
+            }
+
+            var driverLicenseNumber = await GetDriverLicenseNumberAsync(userId.Value);
+
             UserPaymentMethod? selectedCard = null;
 
-            // If the user selected a saved card, the system checks if the card exists,
-            // belongs to the logged-in user, and is still active.
+            // If user selected a saved card, only active cards owned by the user are allowed.
             if (SelectedSavedCardId != null)
             {
                 selectedCard = await _context.UserPaymentMethods
@@ -212,8 +233,7 @@ namespace VentureCarRentals.Pages.User.Payments
                 SelectedPaymentType = "SavedCard";
             }
 
-            // Final availability check before saving.
-            // This prevents two users from booking the same car on overlapping dates.
+            // Final availability check to prevent double-booking.
             var hasOverlap = await _context.Bookings.AnyAsync(b =>
                 b.CarId == CarId &&
                 b.Status != "cancelled" &&
@@ -227,14 +247,19 @@ namespace VentureCarRentals.Pages.User.Payments
                 return RedirectToPage("/User/Cars/BrowseCars");
             }
 
-            // A transaction is used so Booking, Payment, and Rental Agreement are saved together.
-            // If one save fails, all changes are rolled back.
+            // Transaction saves Booking, Payment, and RentalAgreement together.
             using var transaction = await _context.Database.BeginTransactionAsync();
 
             try
             {
-                // Create the booking only after payment method and agreement confirmation.
-                // Status is pending because admin still needs to review it.
+                /*
+                    IMPORTANT FEATURE:
+                    Booking is created as pending first.
+
+                    It should NOT become approved here.
+                    Admin must review the booking, signed agreement,
+                    and payment arrangement before approval.
+                */
                 var booking = new Booking
                 {
                     UserId = userId.Value,
@@ -249,54 +274,103 @@ namespace VentureCarRentals.Pages.User.Payments
                 _context.Bookings.Add(booking);
                 await _context.SaveChangesAsync();
 
-                // Create the payment record connected to the booking.
-                // Cash is marked unpaid, while saved demo card is marked paid.
+                /*
+                    IMPORTANT FEATURE:
+                    Pickup-only payment.
+
+                    Even if the user selects a saved demo card, the system does NOT mark it as paid.
+                    Payment stays pending until admin approval, agreement signing, and pickup payment completion.
+                */
                 var payment = new Payment
                 {
                     BookingId = booking.BookingId,
                     Amount = TotalPrice,
-                    PaymentMethod = selectedCard == null ? "cash" : $"card_{selectedCard.CardBrand}",
-                    PaymentStatus = selectedCard == null ? "unpaid" : "paid",
-                    PaidAt = selectedCard == null ? null : DateTime.Now
+
+                    // This records the preferred pickup payment method only.
+                    PaymentMethod = selectedCard == null
+                        ? "cash_pickup"
+                        : $"card_pickup_{selectedCard.CardBrand}",
+
+                    // Payment is not completed while booking is still pending.
+                    PaymentStatus = "pending_admin_approval",
+
+                    // PaidAt remains null until admin confirms payment.
+                    PaidAt = null
                 };
 
                 _context.Payments.Add(payment);
 
-                // This text is saved as the user's online agreement confirmation.
-                // The admin can later upload the signed face-to-face agreement.
                 var agreementText =
                     "The renter confirms that all provided information is true and correct. " +
                     "The renter agrees to return the vehicle on the selected return date and time. " +
                     "The renter accepts responsibility for damages, late returns, penalties, and other rental charges. " +
-                    "The renter understands that this booking is still subject to admin approval.";
+                    "The renter understands that this booking is still subject to admin approval. " +
+                    "The final signed agreement will be completed face-to-face and uploaded by the admin. " +
+                    "Payment is pickup-only and will not be marked as completed until admin approval, agreement signing, and pickup payment completion.";
 
-                // Create the rental agreement record after the user checks the agreement checkbox.
+                // Generate blank PDF rental agreement with empty signature lines.
+                var generatedAgreementFileUrl = RentalAgreementContractGenerator.GenerateBlankAgreementFile(
+                    _environment.WebRootPath,
+                    booking,
+                    renter,
+                    Car,
+                    agreementText,
+                    driverLicenseNumber
+                );
+
+                // Save rental agreement record with generated blank PDF path.
                 var rentalAgreement = new RentalAgreement
                 {
                     BookingId = booking.BookingId,
                     AgreementText = agreementText,
                     Status = "online_accepted",
-                    OnlineAcceptedAt = DateTime.Now
+                    OnlineAcceptedAt = DateTime.Now,
+                    GeneratedAgreementFileUrl = generatedAgreementFileUrl,
+                    GeneratedAt = DateTime.Now
                 };
 
                 _context.RentalAgreements.Add(rentalAgreement);
 
-                // Save payment and agreement, then commit the whole transaction.
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
-                TempData["Success"] = "Booking completed successfully. Your online rental agreement has been accepted and your booking is now pending admin approval.";
+                /*
+                    SUCCESS MESSAGE:
+                    This appears as a toast on My Bookings after redirect.
+                */
+                TempData["Success"] =
+                    $"Booking request submitted successfully. Please wait for admin approval. " +
+                    $"Once approved, pick up the car on {BorrowDateTime:MMM dd, yyyy hh:mm tt}. " +
+                    $"During pickup, you must sign the rental agreement contract and complete your payment at the rental office. " +
+                    $"Your payment will remain pending until the agreement signing and payment confirmation are completed.";
 
-                return RedirectToPage("/User/Home");
+                return RedirectToPage("/User/Bookings/Index", new
+                {
+                    Tab = "pending"
+                });
             }
             catch
             {
-                // If there is an error, undo all database changes from this transaction.
+                // Rollback prevents incomplete records if booking, payment, or agreement generation fails.
                 await transaction.RollbackAsync();
 
-                ErrorMessage = "Something went wrong while completing your booking. Please try again.";
+                ErrorMessage = "Something went wrong while submitting your booking request. Please try again.";
                 return Page();
             }
+        }
+
+        private async Task<string> GetDriverLicenseNumberAsync(int userId)
+        {
+            // For local renters, use driver's license.
+            // For foreign renters, use international driving permit if available.
+            var document = await _context.UserDocuments
+                .Where(d =>
+                    d.UserId == userId &&
+                    (d.DocType == "driver_license" || d.DocType == "international_driving_permit"))
+                .OrderByDescending(d => d.DocType == "driver_license")
+                .FirstOrDefaultAsync();
+
+            return document?.DocNumber ?? "";
         }
 
         private async Task<bool> LoadPageDataAsync(int userId)
@@ -313,12 +387,11 @@ namespace VentureCarRentals.Pages.User.Payments
                 return false;
             }
 
-            TotalPrice = TotalDays * Car.PricePerDay;
+            // Price calculation based on number of rental days.
+            TotalPrice = TotalDays * (double)Car.PricePerDay;
 
-            /*
-                Load both active and inactive cards.
-                The UI will show inactive cards as gray and disabled.
-            */
+            // Load both active and inactive cards.
+            // Inactive cards are visible but cannot be selected for booking payment.
             SavedCards = await _context.UserPaymentMethods
                 .Where(p =>
                     p.UserId == userId &&
