@@ -41,21 +41,57 @@ namespace VentureCarRentals.Pages
                 return Page();
             }
 
-            // Store important user information in session after successful login.
+            /*
+                IMPORTANT:
+                This determines the role of the logged-in account.
+
+                If user.IsAdmin is true:
+                    UserRole = Admin
+
+                If user.IsAdmin is false:
+                    UserRole = User
+
+                The reusable SessionAuthFilter will use this value to protect:
+                    /Admin pages -> requires Admin
+                    /User pages  -> requires User
+            */
+            string userRole = user.IsAdmin ? "Admin" : "User";
+
+            /*
+                IMPORTANT:
+                These session values are created after successful login.
+
+                UserId:
+                    Used to know who is currently logged in.
+
+                UserName:
+                    Used to display the user's name in the UI.
+
+                UserEmail:
+                    Used if pages need the logged-in user's email.
+
+                UserRole:
+                    Used by SessionAuthFilter to check if the user is allowed
+                    to access Admin or User pages.
+
+                IsAdmin:
+                    Kept for your existing code that may still use it.
+            */
             HttpContext.Session.SetInt32("UserId", user.UserId);
             HttpContext.Session.SetString("UserName", user.FirstName + " " + user.LastName);
             HttpContext.Session.SetString("UserEmail", user.Email);
+            HttpContext.Session.SetString("UserRole", userRole);
             HttpContext.Session.SetString("IsAdmin", user.IsAdmin.ToString());
 
             /*
                 IMPORTANT FEATURE:
                 TempData is used because login redirects to another page.
-                The success message will appear as a toast after redirecting.
+                The success message can appear as a toast after redirecting.
             */
             TempData["Success"] = $"Login successful. Welcome, {user.FirstName}!";
 
             // Redirect admin users to the admin dashboard.
-            if (user.IsAdmin)
+            if (userRole == "Admin")
             {
                 return RedirectToPage("/Admin/Dashboard");
             }

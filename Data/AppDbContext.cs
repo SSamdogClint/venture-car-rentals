@@ -20,6 +20,7 @@ namespace VentureCarRentals.Data
         public DbSet<MaintenanceLog> MaintenanceLogs { get; set; }
         public DbSet<UserPaymentMethod> UserPaymentMethods { get; set; }
         public DbSet<Penalty> Penalties { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<User>()
@@ -40,7 +41,25 @@ namespace VentureCarRentals.Data
 
             modelBuilder.Entity<Penalty>()
                 .HasIndex(p => p.BookingId)
-                .IsUnique();    
+                .IsUnique();
+
+            modelBuilder.Entity<Notification>()
+                .HasOne(n => n.User)
+                .WithMany()
+                .HasForeignKey(n => n.UserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Notification>()
+                .HasIndex(n => n.RecipientType);
+
+            modelBuilder.Entity<Notification>()
+                .HasIndex(n => n.UserId);
+
+            modelBuilder.Entity<Notification>()
+                .HasIndex(n => n.IsRead);
+
+            modelBuilder.Entity<Notification>()
+                .HasIndex(n => n.CreatedAt);
         }
     }
 }

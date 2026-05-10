@@ -1,0 +1,46 @@
+﻿<div id="adminNotificationBell"
+     class="app-notification-wrapper dropdown"
+     data-feed-url="@Url.Page("/Admin/Notifications/Feed", "Latest")"
+     data-mark-read-url="@Url.Page("/Admin/Notifications/Feed", "MarkRead")"
+     data-mark-all-read-url="@Url.Page("/Admin/Notifications/Feed", "MarkAllRead")">
+
+    @Html.AntiForgeryToken()
+
+    <button type="button"
+            class="app-notification-button"
+            data-bs-toggle="dropdown"
+            aria-expanded="false">
+        <i class="bi bi-bell"></i>
+
+        <span id="adminNotificationCount"
+              class="app-notification-count d-none">
+            0
+        </span>
+    </button>
+
+    <div class="dropdown-menu dropdown-menu-end app-notification-dropdown">
+        <div class="app-notification-header">
+            <div>
+                <strong>Admin Notifications</strong>
+                <small id="adminNotificationSubtext">Loading...</small>
+            </div>
+
+            <button type="button"
+                    id="adminMarkAllNotificationsReadBtn"
+                    class="app-notification-mark-all">
+                Mark all read
+            </button>
+        </div>
+
+        <div id="adminNotificationItems" class="app-notification-items">
+            <div class="app-notification-empty">
+                Loading notifications...
+            </div>
+        </div>
+
+        <a asp-page="/Admin/Notifications"
+           class="app-notification-view-all">
+            View all notifications
+        </a>
+    </div>
+</div>
