@@ -3,28 +3,6 @@
 @{
     ViewData["Title"] = "My Bookings";
     Layout = "_Layout";
-
-    /*
-        IMPORTANT FEATURE:
-        My Bookings separates booking records by real booking state.
-
-        Pending:
-        - waiting for admin approval
-        - user can cancel
-
-        Upcoming:
-        - approved booking but start date/time has not arrived yet
-
-        Live Booking:
-        - approved booking currently within start and end date/time
-        - countdown shows time remaining until end date/time
-
-        History:
-        - completed booking
-        - or approved booking where end date/time already passed
-        - customer can review
-        - customer can view/download signed rental agreement if uploaded by admin
-    */
 }
 
 <div class="user-wrapper">
@@ -106,35 +84,102 @@
 @section Scripts {
     <script>
         document.addEventListener("DOMContentLoaded", function () {
+
+            function formatDuration(milliseconds) {
+                let totalSeconds = Math.floor(milliseconds / 1000);
+
+                const days = Math.floor(totalSeconds / 86400);
+                totalSeconds -= days * 86400;
+
+                const hours = Math.floor(totalSeconds / 3600);
+                totalSeconds -= hours * 3600;
+
+                const minutes = Math.floor(totalSeconds / 60);
+                const seconds = totalSeconds - minutes * 60;
+
+                if (days > 0) {
+                    return days + "d " + hours + "h " + minutes + "m " + seconds + "s";
+                }
+
+                return hours + "h " + minutes + "m " + seconds + "s";
+            }
+
             function updateCountdowns() {
                 document.querySelectorAll("[data-booking-countdown]").forEach(function (element) {
                     const endDateText = element.getAttribute("data-end-date");
+                    const penaltyRate = parseFloat(element.getAttribute("data-penalty-rate") || "200");
+
+                    const penaltyTargetId = element.getAttribute("data-penalty-target");
+                    const statusTargetId = element.getAttribute("data-status-target");
+                    const cardTargetId = element.getAttribute("data-card-target");
+
                     const endDate = new Date(endDateText);
                     const now = new Date();
 
-                    let diff = endDate - now;
+                    const diff = endDate - now;
 
-                    if (diff <= 0) {
-                        element.textContent = "Booking ended";
+                    const penaltyTarget = penaltyTargetId ? document.getElementById(penaltyTargetId) : null;
+                    const statusTarget = statusTargetId ? document.getElementById(statusTargetId) : null;
+                    const cardTarget = cardTargetId ? document.getElementById(cardTargetId) : null;
+
+                    if (diff > 0) {
+                        element.textContent = formatDuration(diff) + " remaining";
+
+                        if (penaltyTarget) {
+                            penaltyTarget.textContent = "";
+                        }
+
+                        if (statusTarget) {
+                            statusTarget.textContent = "Live";
+                            statusTarget.className = "live-badge";
+                        }
+
+                        if (cardTarget) {
+                            cardTarget.classList.remove("overdue-live-booking-card");
+                        }
+
                         return;
                     }
 
-                    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                    diff -= days * 1000 * 60 * 60 * 24;
+                    const overdueMs = now - endDate;
+                    const overdueMinutes = overdueMs / (1000 * 60);
 
-                    const hours = Math.floor(diff / (1000 * 60 * 60));
-                    diff -= hours * 1000 * 60 * 60;
+                    /*
+                        IMPORTANT:
+                        UI penalty rule must match the backend:
+                        - Behind schedule shows immediately after return time passes.
+                        - Under 45 minutes late = no penalty.
+                        - 45 minutes or more late = ₱200 per started hour.
+                    */
+                    let overdueHours = 0;
+                    let penaltyAmount = 0;
 
-                    const minutes = Math.floor(diff / (1000 * 60));
-                    diff -= minutes * 1000 * 60;
-
-                    const seconds = Math.floor(diff / 1000);
-
-                    if (days > 0) {
-                        element.textContent = days + "d " + hours + "h " + minutes + "m " + seconds + "s remaining";
+                    if (overdueMinutes >= 45) {
+                        overdueHours = Math.ceil(overdueMs / (1000 * 60 * 60));
+                        penaltyAmount = overdueHours * penaltyRate;
                     }
-                    else {
-                        element.textContent = hours + "h " + minutes + "m " + seconds + "s remaining";
+
+                    element.textContent = "Behind schedule by " + formatDuration(overdueMs);
+
+                    if (penaltyTarget) {
+                        if (overdueMinutes < 45) {
+                            penaltyTarget.textContent = "Grace period: No penalty yet. Penalty starts at 45 minutes late.";
+                        }
+                        else {
+                            penaltyTarget.textContent = "Penalty: ₱" + penaltyAmount.toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }) + " (₱200/hour)";
+                        }
+                    }
+
+                    if (statusTarget) {
+                        statusTarget.textContent = "Behind Schedule";
+                        statusTarget.className = "badge bg-warning text-dark";
+                    }
+
+                    if (cardTarget) {
+                        cardTarget.classList.add("overdue-live-booking-card");
                     }
                 });
             }

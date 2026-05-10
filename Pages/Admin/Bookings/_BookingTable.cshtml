@@ -1,0 +1,153 @@
+﻿@model VentureCarRentals.Pages.Admin.Bookings.BookingListModel
+
+@{
+    var currentTab = string.IsNullOrWhiteSpace(Model.Tab) ? "live" : Model.Tab.ToLower();
+}
+
+<div class="booking-table-card">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        @if (currentTab == "pending")
+        {
+            <h5>Pending Bookings</h5>
+        }
+        else if (currentTab == "upcoming")
+        {
+            <h5>Upcoming Bookings</h5>
+        }
+        else if (currentTab == "history")
+        {
+            <h5>Booking History</h5>
+        }
+        else if (currentTab == "unpaid")
+        {
+            <h5>Unpaid Penalties</h5>
+        }
+        else
+        {
+            <h5>Live Bookings</h5>
+        }
+
+        <small class="text-muted">Showing @Model.Bookings.Count booking(s)</small>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table align-middle booking-admin-table">
+            <thead>
+                <tr>
+                    <th>No.</th>
+                    <th>Car No.</th>
+                    <th>Car Model</th>
+                    <th>Customer</th>
+                    <th>Earning</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @if (Model.Bookings.Any())
+                {
+                    var rowNo = 1;
+
+                    foreach (var booking in Model.Bookings)
+                    {
+                        var penaltyIsUnpaid = booking.HasPenalty && booking.PenaltyStatus != "paid";
+                        var rowClass = booking.IsOverdue ? "overdue-row" : penaltyIsUnpaid ? "unpaid-penalty-row" : "";
+
+                        <tr class="@rowClass">
+                            <td>@rowNo.ToString("D2")</td>
+
+                            <td>
+                                <span class="car-no-pill">@booking.CarNo</span>
+                            </td>
+
+                            <td>@booking.CarModel</td>
+
+                            <td>
+                                <strong>@booking.CustomerName</strong>
+                                <br />
+                                <small class="text-muted">@booking.CustomerEmail</small>
+                            </td>
+
+                            <td>
+                                ₱@booking.TotalPrice.ToString("N2")
+
+                                @if (booking.HasPenalty)
+                                {
+                                    <br />
+                                    <small class="text-warning">
+                                        + ₱@booking.PenaltyAmount.ToString("N2") penalty
+                                    </small>
+                                }
+                            </td>
+
+                            <td>
+                                @if (booking.DisplayStatus == "Live")
+                                {
+                                    <span class="badge bg-success">Live</span>
+                                }
+                                else if (booking.DisplayStatus == "Overdue")
+                                {
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="bi bi-exclamation-triangle"></i> Overdue
+                                    </span>
+                                }
+                                else if (booking.DisplayStatus == "Upcoming")
+                                {
+                                    <span class="badge bg-info text-dark">Upcoming</span>
+                                }
+                                else if (booking.DisplayStatus == "Pending")
+                                {
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                }
+                                else if (booking.DisplayStatus == "Completed")
+                                {
+                                    <span class="badge bg-primary">Completed</span>
+
+                                    @if (booking.HasPenalty)
+                                    {
+                                        if (booking.PenaltyStatus == "paid")
+                                        {
+                                            <span class="badge bg-success ms-1">Penalty Paid</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger ms-1">Penalty Unpaid</span>
+                                        }
+                                    }
+                                }
+                                else if (booking.DisplayStatus == "Cancelled")
+                                {
+                                    <span class="badge bg-danger">Cancelled</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">@booking.DisplayStatus</span>
+                                }
+                            </td>
+
+                            <td>
+                                <button type="button"
+                                        class="btn btn-sm btn-dark"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#bookingDetailsModal-@booking.BookingId">
+                                    Details
+                                </button>
+                            </td>
+                        </tr>
+
+                        rowNo++;
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-5">
+                            No bookings found.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -74,8 +74,17 @@
         {
             <div class="upcoming-note mt-3">
                 <i class="bi bi-clock-history"></i>
-                This booking is approved and will start on
-                <strong>@Model.StartDate.ToString("MMM dd, yyyy hh:mm tt")</strong>.
+                This booking is approved and waiting for admin to start it.
+            </div>
+        }
+
+        @if (Model.IsHistory && Model.HasPenalty)
+        {
+            <div class="penalty-summary-box mt-3">
+                <i class="bi bi-exclamation-triangle"></i>
+                Late return penalty added:
+                <strong>₱@Model.PenaltyAmount.ToString("N2")</strong>
+                for @Model.OverdueHours hour(s).
             </div>
         }
 
@@ -109,11 +118,37 @@
     </div>
 
     <div class="booking-price-actions">
-        <h4>₱@Model.PricePerDay.ToString("N2") <span>/ day</span></h4>
+        @if (Model.IsHistory)
+        {
+            <div class="final-price-box">
+                <small>Rental Fee</small>
+                <p>₱@Model.TotalPrice.ToString("N2")</p>
 
-        <p>
-            ₱@Model.TotalPrice.ToString("N2") total
-        </p>
+                @if (Model.HasPenalty)
+                {
+                    <small>Penalty Charge</small>
+                    <p class="penalty-price">₱@Model.PenaltyAmount.ToString("N2")</p>
+                }
+                else
+                {
+                    <small>Penalty Charge</small>
+                    <p class="text-muted">₱0.00</p>
+                }
+
+                <hr />
+
+                <small>Final Total</small>
+                <h4>₱@Model.FinalAmount.ToString("N2")</h4>
+            </div>
+        }
+        else
+        {
+            <h4>₱@Model.PricePerDay.ToString("N2") <span>/ day</span></h4>
+
+            <p>
+                ₱@Model.TotalPrice.ToString("N2") total
+            </p>
+        }
 
         <button type="button"
                 class="btn btn-outline-dark w-100"

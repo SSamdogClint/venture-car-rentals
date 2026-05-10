@@ -1,0 +1,91 @@
+﻿@model VentureCarRentals.Pages.Admin.Bookings.BookingListModel
+
+<aside class="booking-stats-panel">
+    <div class="booking-stat-title">
+        <h5>Today's Statistics</h5>
+        <small>@DateTime.Now.ToString("ddd, dd MMM, yyyy, hh:mm tt")</small>
+    </div>
+
+    <div class="booking-stat-card">
+        <div class="d-flex justify-content-between">
+            <span>Income</span>
+            <small>Today</small>
+        </div>
+
+        <h3>₱@Model.TodayIncome.ToString("N2")</h3>
+        <p>Total approved booking income today</p>
+
+        <a asp-page="/Admin/Bookings/BookingList"
+           asp-route-viewMode="stats"
+           asp-route-statType="income"
+           asp-route-statRange="today"
+           class="booking-stat-view-btn">
+            View Graph
+        </a>
+    </div>
+
+    <div class="booking-stat-card">
+        <div class="d-flex justify-content-between">
+            <span>Pending</span>
+            <small>Total</small>
+        </div>
+
+        <h3>@Model.PendingCount</h3>
+        <p>Bookings waiting for approval</p>
+
+        @* No View button for Pending as requested. *@
+    </div>
+
+    <div class="booking-stat-card">
+        <div class="d-flex justify-content-between">
+            <span>Booking Status</span>
+            <small>Total</small>
+        </div>
+
+        <div class="booking-mini-list">
+            <div>
+                <span class="dot dot-green"></span>
+                Live Bookings
+                <strong>@Model.LiveCount</strong>
+            </div>
+
+            <div>
+                <span class="dot dot-green"></span>
+                Upcoming
+                <strong>@Model.UpcomingCount</strong>
+            </div>
+
+            <div>
+                <span class="dot dot-yellow"></span>
+                Overdue
+                <strong>@Model.OverdueCount</strong>
+            </div>
+
+            <div>
+                <span class="dot dot-orange"></span>
+                Unpaid Penalties
+                <strong>@Model.UnpaidPenaltyCount</strong>
+            </div>
+
+            <div>
+                <span class="dot dot-black"></span>
+                Completed
+                <strong>@Model.CompletedCount</strong>
+            </div>
+
+            <div>
+                <span class="dot dot-red"></span>
+                Cancelled
+                <strong>@Model.CancelledCount</strong>
+            </div>
+        </div>
+
+        <a asp-page="/Admin/Bookings/BookingList"
+           asp-route-viewMode="stats"
+           asp-route-statType="status"
+           asp-route-statRange="today"
+           class="booking-stat-view-btn">
+            View Graph
+        </a>
+    </div>
+</aside>

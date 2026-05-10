@@ -1,0 +1,103 @@
+﻿@model VentureCarRentals.Pages.Admin.Bookings.BookingListModel
+
+<div class="booking-chart-panel">
+
+    <div class="booking-chart-header">
+        <a asp-page="/Admin/Bookings/BookingList"
+           asp-route-tab="@Model.Tab"
+           class="booking-back-link">
+            <i class="bi bi-arrow-left"></i> Back to Bookings
+        </a>
+
+        <div>
+            @if (Model.StatType == "income")
+            {
+                <h4>Income Statistics</h4>
+                <p>Approved booking income based on approval date.</p>
+            }
+            else
+            {
+                <h4>Booking Status Comparison</h4>
+                <p>Line comparison of live, upcoming, overdue, unpaid penalties, completed, and cancelled bookings.</p>
+            }
+        </div>
+    </div>
+
+    <div class="booking-chart-range-tabs">
+        <a asp-page="/Admin/Bookings/BookingList"
+           asp-route-viewMode="stats"
+           asp-route-statType="@Model.StatType"
+           asp-route-statRange="today"
+           class="@(Model.StatRange == "today" ? "active" : "")">
+            Today
+        </a>
+
+        <a asp-page="/Admin/Bookings/BookingList"
+           asp-route-viewMode="stats"
+           asp-route-statType="@Model.StatType"
+           asp-route-statRange="weekly"
+           class="@(Model.StatRange == "weekly" ? "active" : "")">
+            Weekly
+        </a>
+
+        <a asp-page="/Admin/Bookings/BookingList"
+           asp-route-viewMode="stats"
+           asp-route-statType="@Model.StatType"
+           asp-route-statRange="monthly"
+           class="@(Model.StatRange == "monthly" ? "active" : "")">
+            Monthly
+        </a>
+
+        <a asp-page="/Admin/Bookings/BookingList"
+           asp-route-viewMode="stats"
+           asp-route-statType="@Model.StatType"
+           asp-route-statRange="overall"
+           class="@(Model.StatRange == "overall" ? "active" : "")">
+            Overall
+        </a>
+    </div>
+
+    <div class="booking-chart-card">
+        @if (Model.StatType == "income")
+        {
+            <canvas id="bookingIncomeChart"></canvas>
+        }
+        else
+        {
+            <canvas id="bookingStatusChart"></canvas>
+        }
+    </div>
+
+    <div class="booking-chart-summary-grid">
+        <div>
+            <span>Live</span>
+            <strong>@Model.LiveCount</strong>
+        </div>
+
+        <div>
+            <span>Upcoming</span>
+            <strong>@Model.UpcomingCount</strong>
+        </div>
+
+        <div>
+            <span>Overdue</span>
+            <strong>@Model.OverdueCount</strong>
+        </div>
+
+        <div>
+            <span>Unpaid Penalties</span>
+            <strong>@Model.UnpaidPenaltyCount</strong>
+        </div>
+
+        <div>
+            <span>Completed</span>
+            <strong>@Model.CompletedCount</strong>
+        </div>
+
+        <div>
+            <span>Cancelled</span>
+            <strong>@Model.CancelledCount</strong>
+        </div>
+    </div>
+
+</div>

@@ -1302,6 +1302,546 @@ textarea {
     box-shadow: 0 12px 30px rgba(37, 99, 235, 0.14);
 }
 
+.admin-confirm-modal {
+    background: #ffffff;
+    color: #111827;
+    border-radius: 18px;
+}
+
+    .admin-confirm-modal .modal-title,
+    .admin-confirm-modal .modal-body,
+    .admin-confirm-modal .modal-body p {
+        color: #111827 !important;
+    }
+
+.overdue-row {
+    background: #fffbeb !important;
+    box-shadow: inset 4px 0 0 #facc15;
+}
+
+.unpaid-penalty-row {
+    background: #fff7ed !important;
+    box-shadow: inset 4px 0 0 #f97316;
+}
+
+.overdue-warning-box {
+    background: #fff7d6;
+    color: #7c4a03;
+    border: 1px solid #facc15;
+    border-radius: 12px;
+}
+
+.penalty-warning-box {
+    background: #fff7ed;
+    color: #7c2d12;
+    border: 1px solid #fb923c;
+    border-radius: 12px;
+}
+
+.dot-yellow {
+    background: #facc15;
+}
+
+.dot-orange {
+    background: #f97316;
+}
+
+.overdue-glow-box {
+    border: 1px solid #facc15;
+    box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.25), 0 0 24px rgba(250, 204, 21, 0.35);
+    background: #fffbeb;
+    border-radius: 14px;
+    padding: 14px;
+}
+
+/* Confirmation modal */
+.admin-confirm-modal {
+    background: #ffffff;
+    color: #111827;
+    border-radius: 18px;
+}
+
+    .admin-confirm-modal .modal-title,
+    .admin-confirm-modal .modal-body,
+    .admin-confirm-modal .modal-body p {
+        color: #111827 !important;
+    }
+
+/* Overdue live booking row */
+.overdue-row {
+    background: #fffbeb !important;
+    box-shadow: inset 4px 0 0 #facc15;
+}
+
+/* Completed booking with unpaid penalty */
+.unpaid-penalty-row {
+    background: #fff7ed !important;
+    box-shadow: inset 4px 0 0 #f97316;
+}
+
+/* Warning boxes */
+.overdue-warning-box {
+    background: #fff7d6;
+    color: #7c4a03;
+    border: 1px solid #facc15;
+    border-radius: 12px;
+}
+
+.penalty-warning-box {
+    background: #fff7ed;
+    color: #7c2d12;
+    border: 1px solid #fb923c;
+    border-radius: 12px;
+}
+
+/* Dot colors for statistics */
+.dot-yellow {
+    background: #facc15;
+}
+
+.dot-orange {
+    background: #f97316;
+}
+
+/* Yellow glow on overdue modal */
+.overdue-glow-box {
+    border: 1px solid #facc15;
+    box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.25), 0 0 24px rgba(250, 204, 21, 0.35);
+    background: #fffbeb;
+    border-radius: 14px;
+    padding: 14px;
+}
+
+/* Red badge for Pending Bookings tab */
+.pending-tab-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: #ef4444;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #ffffff;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+    z-index: 5;
+}
+
+/* Orange/red badge for Unpaid Penalties tab */
+.unpaid-tab-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: #f97316;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #ffffff;
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.35);
+    z-index: 5;
+}
+
+/* Make tab badges position correctly */
+.booking-tab.position-relative {
+    position: relative;
+}
+
+/* =========================================================
+   Admin Booking List Extra Styles
+   ========================================================= */
+
+.admin-confirm-modal {
+    background: #ffffff;
+    color: #111827;
+    border-radius: 18px;
+}
+
+    .admin-confirm-modal .modal-title,
+    .admin-confirm-modal .modal-body,
+    .admin-confirm-modal .modal-body p {
+        color: #111827 !important;
+    }
+
+.overdue-row {
+    background: #fffbeb !important;
+    box-shadow: inset 4px 0 0 #facc15;
+}
+
+.unpaid-penalty-row {
+    background: #fff7ed !important;
+    box-shadow: inset 4px 0 0 #f97316;
+}
+
+.overdue-warning-box {
+    background: #fff7d6;
+    color: #7c4a03;
+    border: 1px solid #facc15;
+    border-radius: 12px;
+}
+
+.penalty-warning-box {
+    background: #fff7ed;
+    color: #7c2d12;
+    border: 1px solid #fb923c;
+    border-radius: 12px;
+}
+
+.dot-yellow {
+    background: #facc15;
+}
+
+.dot-orange {
+    background: #f97316;
+}
+
+.overdue-glow-box {
+    border: 1px solid #facc15;
+    box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.25), 0 0 24px rgba(250, 204, 21, 0.35);
+    background: #fffbeb;
+    border-radius: 14px;
+    padding: 14px;
+}
+
+.pending-tab-badge,
+.unpaid-tab-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 999px;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #ffffff;
+    z-index: 5;
+}
+
+.pending-tab-badge {
+    background: #ef4444;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+}
+
+.unpaid-tab-badge {
+    background: #f97316;
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.35);
+}
+
+.booking-tab.position-relative {
+    position: relative;
+}
+
+.booking-stat-view-btn {
+    margin-top: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 7px 12px;
+    border-radius: 999px;
+    background: #2563eb;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+    .booking-stat-view-btn:hover {
+        background: #1d4ed8;
+        color: #ffffff;
+    }
+
+.booking-chart-panel {
+    background: #ffffff;
+    border-radius: 0;
+    padding: 28px;
+    min-height: 620px;
+}
+
+.booking-chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 24px;
+    margin-bottom: 20px;
+}
+
+    .booking-chart-header h4 {
+        margin: 0;
+        font-weight: 800;
+        color: #111827;
+    }
+
+    .booking-chart-header p {
+        margin: 4px 0 0;
+        color: #6b7280;
+    }
+
+.booking-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 14px;
+    border-radius: 999px;
+    background: #f3f4f6;
+    color: #111827;
+    text-decoration: none;
+    font-weight: 700;
+}
+
+    .booking-back-link:hover {
+        background: #e5e7eb;
+        color: #111827;
+    }
+
+.booking-chart-range-tabs {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding-bottom: 18px;
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 20px;
+}
+
+    .booking-chart-range-tabs a {
+        padding: 10px 18px;
+        border-radius: 999px;
+        border: 1px solid #e5e7eb;
+        color: #111827;
+        text-decoration: none;
+        font-weight: 700;
+        background: #ffffff;
+    }
+
+        .booking-chart-range-tabs a.active {
+            background: #2563eb;
+            color: #ffffff;
+            border-color: #2563eb;
+        }
+
+.booking-chart-card {
+    height: 380px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    padding: 20px;
+    margin-bottom: 22px;
+}
+
+.booking-chart-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 14px;
+}
+
+    .booking-chart-summary-grid div {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 14px;
+    }
+
+    .booking-chart-summary-grid span {
+        display: block;
+        color: #6b7280;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .booking-chart-summary-grid strong {
+        display: block;
+        margin-top: 5px;
+        font-size: 22px;
+        color: #111827;
+    }
+
+@media (max-width: 1100px) {
+    .booking-chart-summary-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .booking-chart-header {
+        flex-direction: column;
+    }
+
+    .booking-chart-summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* =========================================================
+   Admin Maintenance Page
+   ========================================================= */
+
+.maintenance-page {
+    padding: 24px;
+}
+
+.maintenance-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+    .maintenance-header h3 {
+        margin: 0;
+        font-weight: 800;
+        color: #111827;
+    }
+
+    .maintenance-header p {
+        margin: 4px 0 0;
+        color: #6b7280;
+    }
+
+.maintenance-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.maintenance-stat-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    padding: 18px;
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+}
+
+    .maintenance-stat-card span {
+        display: block;
+        color: #6b7280;
+        font-weight: 700;
+        font-size: 13px;
+    }
+
+    .maintenance-stat-card h4 {
+        margin: 8px 0;
+        font-size: 28px;
+        font-weight: 900;
+        color: #111827;
+    }
+
+    .maintenance-stat-card p {
+        margin: 0;
+        color: #6b7280;
+        font-size: 13px;
+    }
+
+.maintenance-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.maintenance-tab {
+    padding: 10px 16px;
+    border-radius: 999px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    color: #111827;
+    text-decoration: none;
+    font-weight: 800;
+}
+
+    .maintenance-tab span {
+        margin-left: 6px;
+        background: #f3f4f6;
+        color: #111827;
+        padding: 2px 7px;
+        border-radius: 999px;
+        font-size: 12px;
+    }
+
+    .maintenance-tab.active {
+        background: #111827;
+        color: #ffffff;
+        border-color: #111827;
+    }
+
+        .maintenance-tab.active span {
+            background: #ffffff;
+            color: #111827;
+        }
+
+.maintenance-table-card {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 18px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+}
+
+.maintenance-table thead th {
+    color: #6b7280;
+    font-size: 13px;
+    text-transform: uppercase;
+}
+
+.maintenance-modal {
+    border-radius: 20px;
+    border: none;
+}
+
+    .maintenance-modal .modal-header {
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .maintenance-modal .modal-footer {
+        border-top: 1px solid #e5e7eb;
+    }
+
+@media (max-width: 1100px) {
+    .maintenance-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .maintenance-page {
+        padding: 14px;
+    }
+
+    .maintenance-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .maintenance-stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1329,7 +1869,6 @@ textarea {
 
 
 /* ─── USER HOME PAGE ───────────────────────── */
-
 .user-wrapper {
     display: flex;
     min-height: 100vh;
@@ -4044,3 +4583,150 @@ textarea {
 .review-card .stars {
     color: #f5b301;
 }
+
+/* Overdue live booking card fix */
+.overdue-live-booking-card {
+    background: #fffbeb !important;
+    border: 1px solid #facc15 !important;
+    box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.25), 0 0 28px rgba(250, 204, 21, 0.45) !important;
+    color: #111827 !important;
+}
+
+    .overdue-live-booking-card h5,
+    .overdue-live-booking-card p,
+    .overdue-live-booking-card small,
+    .overdue-live-booking-card strong,
+    .overdue-live-booking-card div {
+        color: #111827 !important;
+    }
+
+    .overdue-live-booking-card .text-muted {
+        color: #6b7280 !important;
+    }
+
+    .overdue-live-booking-card .text-warning,
+    .overdue-live-booking-card .fw-bold {
+        color: #b45309 !important;
+    }
+
+    .overdue-live-booking-card .btn {
+        color: #111827 !important;
+    }
+
+    .overdue-live-booking-card img {
+        border-radius: 14px;
+    }
+
+.live-penalty-text {
+    color: #b45309 !important;
+    font-weight: 800;
+}
+
+.live-behind-text {
+    color: #92400e !important;
+    font-weight: 800;
+}
+
+.penalty-summary-box {
+    background: #fff7d6;
+    color: #7c4a03;
+    border: 1px solid #facc15;
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-size: 14px;
+}
+
+.final-price-box {
+    width: 100%;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 12px;
+}
+
+.final-price-box small {
+    display: block;
+    color: #6b7280;
+    font-weight: 600;
+}
+
+.final-price-box p {
+    margin-bottom: 8px;
+    color: #111827;
+    font-weight: 700;
+}
+
+.final-price-box .penalty-price {
+    color: #b45309;
+}
+
+.final-price-box h4 {
+    color: #111827;
+    margin-bottom: 0;
+    font-weight: 900;
+}
+
+.billing-summary-box {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 16px;
+}
+
+.billing-summary-box .final-total-line {
+    font-size: 18px;
+    color: #111827;
+}
+
+.penalty-summary-box {
+    background: #fff7d6;
+    color: #7c4a03;
+    border: 1px solid #facc15;
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-size: 14px;
+}
+
+.final-price-box {
+    width: 100%;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 12px;
+}
+
+    .final-price-box small {
+        display: block;
+        color: #6b7280;
+        font-weight: 600;
+    }
+
+    .final-price-box p {
+        margin-bottom: 8px;
+        color: #111827;
+        font-weight: 700;
+    }
+
+    .final-price-box .penalty-price {
+        color: #b45309;
+    }
+
+    .final-price-box h4 {
+        color: #111827;
+        margin-bottom: 0;
+        font-weight: 900;
+    }
+
+.billing-summary-box {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 16px;
+}
+
+    .billing-summary-box .final-total-line {
+        font-size: 18px;
+        color: #111827;
+    }

@@ -1,0 +1,485 @@
+﻿@page
+@model VentureCarRentals.Pages.Admin.Maintenance.IndexModel
+@{
+    ViewData["Title"] = "Maintenance";
+    Layout = "_Layout";
+
+    var currentTab = string.IsNullOrWhiteSpace(Model.Tab)
+        ? "ongoing"
+        : Model.Tab.ToLower();
+
+    var successMessage = TempData["Success"] as string;
+    var errorMessage = TempData["Error"] as string;
+}
+
+<div class="maintenance-page">
+
+    <div class="maintenance-header">
+        <div>
+            <h3>Car Maintenance</h3>
+            <p>Control car maintenance records and update car availability.</p>
+        </div>
+
+        <button type="button"
+                class="btn btn-dark"
+                data-bs-toggle="modal"
+                data-bs-target="#startMaintenanceModal">
+            <i class="bi bi-tools"></i> Start Maintenance
+        </button>
+    </div>
+
+    <div class="maintenance-stats-grid">
+        <div class="maintenance-stat-card">
+            <span>Ongoing</span>
+            <h4>@Model.OngoingCount</h4>
+            <p>Cars currently under maintenance</p>
+        </div>
+
+        <div class="maintenance-stat-card">
+            <span>Completed</span>
+            <h4>@Model.CompletedCount</h4>
+            <p>Finished maintenance records</p>
+        </div>
+
+        <div class="maintenance-stat-card">
+            <span>Available Cars</span>
+            <h4>@Model.AvailableCars.Count</h4>
+            <p>Cars ready for maintenance or booking</p>
+        </div>
+
+        <div class="maintenance-stat-card">
+            <span>Total Cost</span>
+            <h4>₱@Model.TotalMaintenanceCost.ToString("N2")</h4>
+            <p>Total maintenance expenses</p>
+        </div>
+    </div>
+
+    <div class="maintenance-tabs">
+        <a asp-page="/Admin/Maintenance/Index"
+           asp-route-tab="ongoing"
+           class="maintenance-tab @(currentTab == "ongoing" ? "active" : "")">
+            Ongoing
+            <span>@Model.OngoingCount</span>
+        </a>
+
+        <a asp-page="/Admin/Maintenance/Index"
+           asp-route-tab="completed"
+           class="maintenance-tab @(currentTab == "completed" ? "active" : "")">
+            Completed
+            <span>@Model.CompletedCount</span>
+        </a>
+
+        <a asp-page="/Admin/Maintenance/Index"
+           asp-route-tab="all"
+           class="maintenance-tab @(currentTab == "all" ? "active" : "")">
+            All Records
+            <span>@(Model.OngoingCount + Model.CompletedCount)</span>
+        </a>
+    </div>
+
+    <div class="maintenance-table-card">
+        <div class="table-responsive">
+            <table class="table align-middle maintenance-table">
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>Vehicle</th>
+                        <th>VIN</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Cost</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @if (Model.MaintenanceLogs.Any())
+                    {
+                        var rowNo = 1;
+
+                        foreach (var log in Model.MaintenanceLogs)
+                        {
+                            <tr>
+                                <td>@rowNo.ToString("D2")</td>
+
+                                <td>
+                                    @if (log.Car != null)
+                                    {
+                                        <strong>@log.Car.Make @log.Car.Model</strong>
+                                        <br />
+                                        <small class="text-muted">
+                                            @log.Car.Year - @log.Car.Category
+                                        </small>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Unknown Car</span>
+                                    }
+                                </td>
+
+                                <td>
+                                    @if (log.Car != null && !string.IsNullOrWhiteSpace(log.Car.VIN))
+                                    {
+                                        <span class="badge bg-dark">@log.Car.VIN</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">No VIN</span>
+                                    }
+                                </td>
+
+                                <td>
+                                    <span>@log.Description</span>
+                                </td>
+
+                                <td>
+                                    @if (log.MaintenanceStatus == "ongoing")
+                                    {
+                                        <span class="badge bg-warning text-dark">
+                                            Ongoing
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success">
+                                            Completed
+                                        </span>
+                                    }
+                                </td>
+
+                                <td>
+                                    @log.StartDate.ToString("MMM dd, yyyy hh:mm tt")
+                                </td>
+
+                                <td>
+                                    @if (log.EndDate != null)
+                                    {
+                                        @log.EndDate.Value.ToString("MMM dd, yyyy hh:mm tt")
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Not completed</span>
+                                    }
+                                </td>
+
+                                <td>
+                                    ₱@log.Cost.ToString("N2")
+                                </td>
+
+                                <td>
+                                    @if (log.MaintenanceStatus == "ongoing")
+                                    {
+                                        <button type="button"
+                                                class="btn btn-sm btn-success"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#completeMaintenanceModal-@log.MaintenanceLogId">
+                                            Complete
+                                        </button>
+
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-danger"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#cancelMaintenanceModal-@log.MaintenanceLogId">
+                                            Cancel
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Done</span>
+                                    }
+                                </td>
+                            </tr>
+
+                            rowNo++;
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="9" class="text-center text-muted py-5">
+                                No maintenance records found.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- Start Maintenance Modal -->
+<div class="modal fade" id="startMaintenanceModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content maintenance-modal">
+
+            <form method="post" asp-page-handler="StartMaintenance">
+                <div class="modal-header">
+                    <h5 class="modal-title">Start Maintenance</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    <div class="mb-3">
+                        <label class="form-label">Car VIN</label>
+
+                        <input type="text"
+                               name="CarVin"
+                               class="form-control"
+                               list="availableCarVinList"
+                               placeholder="Search or enter car VIN"
+                               required />
+
+                        <datalist id="availableCarVinList">
+                            @foreach (var car in Model.AvailableCars)
+                            {
+                                <option value="@car.VIN">
+                                    @car.VIN - @car.Make @car.Model (@car.Category)
+                                </option>
+                            }
+                        </datalist>
+
+                        <small class="text-muted">
+                            Type or search the VIN. The system will select the car using its VIN.
+                        </small>
+
+                        @if (!Model.AvailableCars.Any())
+                        {
+                            <small class="text-danger d-block mt-1">
+                                No available cars can be placed under maintenance.
+                            </small>
+                        }
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+
+                        <textarea name="Description"
+                                  class="form-control"
+                                  rows="4"
+                                  placeholder="Example: Change oil, brake repair, engine check..."
+                                  required></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Start Date</label>
+
+                        <input type="datetime-local"
+                               name="StartDate"
+                               class="form-control"
+                               value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")"
+                               required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Estimated / Initial Cost</label>
+
+                        <input type="number"
+                               name="Cost"
+                               class="form-control"
+                               min="0"
+                               step="0.01"
+                               value="0" />
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+
+                    <button type="submit" class="btn btn-dark">
+                        Start Maintenance
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+@if (Model.MaintenanceLogs.Any())
+{
+    foreach (var log in Model.MaintenanceLogs.Where(m => m.MaintenanceStatus == "ongoing"))
+    {
+        <!-- Complete Maintenance Modal -->
+        <div class="modal fade" id="completeMaintenanceModal-@log.MaintenanceLogId" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content maintenance-modal">
+
+                    <form method="post" asp-page-handler="CompleteMaintenance">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Complete Maintenance</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+
+                        <div class="modal-body">
+
+                            <input type="hidden"
+                                   name="MaintenanceLogId"
+                                   value="@log.MaintenanceLogId" />
+
+                            <p class="mb-1">
+                                Are you sure this maintenance is completed?
+                            </p>
+
+                            <strong>
+                                @(log.Car != null ? $"{log.Car.Make} {log.Car.Model}" : "Unknown Car")
+                            </strong>
+
+                            @if (log.Car != null)
+                            {
+                                <div class="small text-muted mt-1">
+                                    VIN: @log.Car.VIN
+                                </div>
+                            }
+
+                            <div class="mt-3">
+                                <label class="form-label">Completion Date</label>
+
+                                <input type="datetime-local"
+                                       name="EndDate"
+                                       class="form-control"
+                                       value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")"
+                                       required />
+                            </div>
+
+                            <div class="mt-3">
+                                <label class="form-label">Final Cost</label>
+
+                                <input type="number"
+                                       name="Cost"
+                                       class="form-control"
+                                       min="0"
+                                       step="0.01"
+                                       value="@log.Cost" />
+                            </div>
+
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                                Close
+                            </button>
+
+                            <button type="submit" class="btn btn-success">
+                                Mark as Completed
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Cancel Maintenance Modal -->
+        <div class="modal fade" id="cancelMaintenanceModal-@log.MaintenanceLogId" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content maintenance-modal">
+
+                    <form method="post" asp-page-handler="CancelMaintenance">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Cancel Maintenance</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+
+                        <div class="modal-body">
+
+                            <input type="hidden"
+                                   name="MaintenanceLogId"
+                                   value="@log.MaintenanceLogId" />
+
+                            <p class="mb-1">
+                                Are you sure you want to cancel this maintenance record?
+                            </p>
+
+                            <strong>
+                                @(log.Car != null ? $"{log.Car.Make} {log.Car.Model}" : "Unknown Car")
+                            </strong>
+
+                            @if (log.Car != null)
+                            {
+                                <div class="small text-muted mt-1">
+                                    VIN: @log.Car.VIN
+                                </div>
+                            }
+
+                            <p class="text-muted mt-2 mb-0">
+                                This will remove the maintenance log and set the car back to available.
+                            </p>
+
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                                Close
+                            </button>
+
+                            <button type="submit" class="btn btn-danger">
+                                Continue Cancel
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@if (!string.IsNullOrWhiteSpace(successMessage) || !string.IsNullOrWhiteSpace(errorMessage))
+{
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 2000;">
+        @if (!string.IsNullOrWhiteSpace(successMessage))
+        {
+            <div class="toast maintenance-toast text-bg-success border-0" role="alert">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="bi bi-check-circle me-1"></i>
+                        @successMessage
+                    </div>
+
+                    <button type="button"
+                            class="btn-close btn-close-white me-2 m-auto"
+                            data-bs-dismiss="toast">
+                    </button>
+                </div>
+            </div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(errorMessage))
+        {
+            <div class="toast maintenance-toast text-bg-danger border-0" role="alert">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="bi bi-exclamation-circle me-1"></i>
+                        @errorMessage
+                    </div>
+
+                    <button type="button"
+                            class="btn-close btn-close-white me-2 m-auto"
+                            data-bs-dismiss="toast">
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            document.querySelectorAll(".maintenance-toast").forEach(function (toastElement) {
+                const toast = new bootstrap.Toast(toastElement, {
+                    delay: 3500
+                });
+
+                toast.show();
+            });
+        });
+    </script>
+}

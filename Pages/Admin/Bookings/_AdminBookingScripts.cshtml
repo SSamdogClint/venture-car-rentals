@@ -1,0 +1,178 @@
+﻿@model VentureCarRentals.Pages.Admin.Bookings.BookingListModel
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div id="bookingChartData"
+     data-labels='@Model.ChartLabelsJson'
+     data-income='@Model.IncomeChartDataJson'
+     data-live='@Model.LiveChartDataJson'
+     data-upcoming='@Model.UpcomingChartDataJson'
+     data-overdue='@Model.OverdueChartDataJson'
+     data-unpaid='@Model.UnpaidPenaltyChartDataJson'
+     data-completed='@Model.CompletedChartDataJson'
+     data-cancelled='@Model.CancelledChartDataJson'>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".admin-booking-toast").forEach(function (toastElement) {
+            const toast = new bootstrap.Toast(toastElement, {
+                delay: 3500
+            });
+
+            toast.show();
+        });
+
+        let selectedForm = null;
+
+        const confirmModalElement = document.getElementById("adminBookingConfirmModal");
+        const confirmTitle = document.getElementById("adminBookingConfirmTitle");
+        const confirmMessage = document.getElementById("adminBookingConfirmMessage");
+        const confirmButton = document.getElementById("adminBookingConfirmButton");
+
+        if (confirmModalElement && confirmTitle && confirmMessage && confirmButton) {
+            const confirmModal = new bootstrap.Modal(confirmModalElement);
+
+            document.querySelectorAll(".needs-admin-confirmation").forEach(function (form) {
+                form.addEventListener("submit", function (event) {
+                    event.preventDefault();
+
+                    selectedForm = form;
+
+                    confirmTitle.textContent = form.dataset.confirmTitle || "Confirm Action";
+                    confirmMessage.textContent = form.dataset.confirmMessage || "Are you sure you want to continue?";
+                    confirmButton.textContent = form.dataset.confirmButton || "Confirm";
+
+                    confirmButton.className = "btn";
+
+                    if (form.dataset.confirmVariant === "danger") {
+                        confirmButton.classList.add("btn-danger");
+                    }
+                    else if (form.dataset.confirmVariant === "success") {
+                        confirmButton.classList.add("btn-success");
+                    }
+                    else {
+                        confirmButton.classList.add("btn-primary");
+                    }
+
+                    confirmModal.show();
+                });
+            });
+
+            confirmButton.addEventListener("click", function () {
+                if (selectedForm) {
+                    selectedForm.classList.remove("needs-admin-confirmation");
+                    selectedForm.submit();
+                }
+            });
+        }
+
+        const chartDataElement = document.getElementById("bookingChartData");
+
+        function readJsonData(attributeName) {
+            if (!chartDataElement) {
+                return [];
+            }
+
+            const rawValue = chartDataElement.getAttribute(attributeName);
+
+            if (!rawValue) {
+                return [];
+            }
+
+            try {
+                return JSON.parse(rawValue);
+            }
+            catch (error) {
+                console.error("Invalid chart JSON for " + attributeName, error);
+                return [];
+            }
+        }
+
+        const labels = readJsonData("data-labels");
+        const incomeData = readJsonData("data-income");
+
+        const liveData = readJsonData("data-live");
+        const upcomingData = readJsonData("data-upcoming");
+        const overdueData = readJsonData("data-overdue");
+        const unpaidPenaltyData = readJsonData("data-unpaid");
+        const completedData = readJsonData("data-completed");
+        const cancelledData = readJsonData("data-cancelled");
+
+        const incomeCanvas = document.getElementById("bookingIncomeChart");
+
+        if (incomeCanvas) {
+            new Chart(incomeCanvas, {
+                type: "line",
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: "Income",
+                            data: incomeData,
+                            borderWidth: 3,
+                            tension: 0.35
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        const statusCanvas = document.getElementById("bookingStatusChart");
+
+        if (statusCanvas) {
+            new Chart(statusCanvas, {
+                type: "line",
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: "Live Bookings",
+                            data: liveData,
+                            borderWidth: 3,
+                            tension: 0.35
+                        },
+                        {
+                            label: "Upcoming",
+                            data: upcomingData,
+                            borderWidth: 3,
+                            tension: 0.35
+                        },
+                        {
+                            label: "Overdue",
+                            data: overdueData,
+                            borderWidth: 3,
+                            tension: 0.35
+                        },
+                        {
+                            label: "Unpaid Penalties",
+                            data: unpaidPenaltyData,
+                            borderWidth: 3,
+                            tension: 0.35
+                        },
+                        {
+                            label: "Completed",
+                            data: completedData,
+                            borderWidth: 3,
+                            tension: 0.35
+                        },
+                        {
+                            label: "Cancelled",
+                            data: cancelledData,
+                            borderWidth: 3,
+                            tension: 0.35
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+    });
+</script>

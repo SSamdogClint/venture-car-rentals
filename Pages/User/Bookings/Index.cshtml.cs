@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using VentureCarRentals.Data;
@@ -9,6 +9,15 @@ namespace VentureCarRentals.Pages.User.Bookings
     public class IndexModel : PageModel
     {
         private readonly AppDbContext _context;
+
+        /*
+            IMPORTANT:
+            This must match the admin penalty rule.
+            Under 45 minutes late = no penalty.
+            45 minutes or more late = ₱200 per started hour.
+        */
+        private const double PenaltyPerHour = 200;
+        private const int PenaltyGraceMinutes = 45;
 
         public IndexModel(AppDbContext context)
         {
@@ -72,11 +81,6 @@ namespace VentureCarRentals.Pages.User.Bookings
 
             var status = NormalizeStatus(booking.Status);
 
-            /*
-                IMPORTANT FEATURE:
-                Customer can cancel ONLY pending bookings.
-                Approved, live, upcoming, completed, and history bookings cannot be cancelled by the customer.
-            */
             if (status != "pending")
             {
                 TempData["Error"] = "Only pending bookings can be cancelled.";
@@ -126,16 +130,11 @@ namespace VentureCarRentals.Pages.User.Bookings
                 return RedirectToPage(new { Tab = "history" });
             }
 
-            var now = DateTime.Now;
             var status = NormalizeStatus(booking.Status);
 
-            var isHistory =
-                status == "completed" ||
-                (status == "approved" && booking.EndDate <= now);
-
-            if (!isHistory)
+            if (status != "completed")
             {
-                TempData["Error"] = "You can only review completed booking history.";
+                TempData["Error"] = "You can only review completed bookings.";
                 return RedirectToPage(new { Tab = "history" });
             }
 
@@ -164,11 +163,6 @@ namespace VentureCarRentals.Pages.User.Bookings
 
                 _context.Reviews.Add(review);
 
-                if (status == "approved" && booking.EndDate <= now)
-                {
-                    booking.Status = "completed";
-                }
-
                 await _context.SaveChangesAsync();
 
                 TempData["Success"] = "Review submitted successfully.";
@@ -195,17 +189,26 @@ namespace VentureCarRentals.Pages.User.Bookings
                 .Where(r => r.UserId == userId)
                 .ToListAsync();
 
+            var bookingIds = bookings
+                .Select(b => b.BookingId)
+                .ToList();
+
             var rentalAgreements = await _context.RentalAgreements
-                .Where(a => bookings.Select(b => b.BookingId).Contains(a.BookingId))
+                .Where(a => bookingIds.Contains(a.BookingId))
+                .ToListAsync();
+
+            var penalties = await _context.Penalties
+                .Where(p => bookingIds.Contains(p.BookingId))
                 .ToListAsync();
 
             var bookingRows = bookings
-                .Select(booking => MapBookingRow(booking, reviews, rentalAgreements, now))
+                .Select(booking => MapBookingRow(booking, reviews, rentalAgreements, penalties, now))
                 .ToList();
 
             LiveBookings = bookingRows
                 .Where(b => b.IsLive)
-                .OrderBy(b => b.EndDate)
+                .OrderByDescending(b => b.IsOverdue)
+                .ThenBy(b => b.EndDate)
                 .ToList();
 
             var pendingBookings = bookingRows
@@ -253,27 +256,36 @@ namespace VentureCarRentals.Pages.User.Bookings
             Booking booking,
             List<Review> reviews,
             List<RentalAgreement> rentalAgreements,
+            List<Penalty> penalties,
             DateTime now)
         {
             var status = NormalizeStatus(booking.Status);
 
-            var isLive =
-                status == "approved" &&
-                booking.StartDate <= now &&
-                booking.EndDate > now;
+            var isLive = status == "started";
+            var isUpcoming = status == "approved";
+            var isHistory = status == "completed";
+            var isOverdue = isLive && booking.EndDate < now;
 
-            var isUpcoming =
-                status == "approved" &&
-                booking.StartDate > now;
+            var savedPenalty = penalties.FirstOrDefault(p => p.BookingId == booking.BookingId);
 
-            var isHistory =
-                status == "completed" ||
-                (status == "approved" && booking.EndDate <= now);
+            var liveOverdueHours = GetOverdueHours(booking.EndDate, now);
+            var livePenaltyAmount = liveOverdueHours * PenaltyPerHour;
 
             /*
-                IMPORTANT FEATURE:
-                Only pending bookings can be cancelled by the customer.
+                IMPORTANT:
+                If completed, use saved penalty from database.
+                If still live, compute temporary penalty for display only.
             */
+            var overdueHours = isHistory
+                ? savedPenalty?.OverdueHours ?? 0
+                : liveOverdueHours;
+
+            var penaltyAmount = isHistory
+                ? savedPenalty?.Amount ?? 0
+                : livePenaltyAmount;
+
+            var finalAmount = booking.TotalPrice + penaltyAmount;
+
             var canCancel = status == "pending";
 
             var review = reviews.FirstOrDefault(r => r.BookingId == booking.BookingId);
@@ -301,12 +313,20 @@ namespace VentureCarRentals.Pages.User.Bookings
                 EndDateIso = booking.EndDate.ToString("yyyy-MM-ddTHH:mm:ss"),
 
                 TotalPrice = booking.TotalPrice,
+                PenaltyAmount = penaltyAmount,
+                FinalAmount = finalAmount,
+                OverdueHours = overdueHours,
+                HasPenalty = penaltyAmount > 0,
+                PenaltyStatus = savedPenalty?.Status ?? "No Penalty",
+
                 BookingStatus = status,
-                DisplayStatus = GetDisplayStatus(status, isLive, isUpcoming, isHistory),
+                DisplayStatus = GetDisplayStatus(status, isOverdue),
 
                 IsLive = isLive,
                 IsUpcoming = isUpcoming,
                 IsHistory = isHistory,
+                IsOverdue = isOverdue,
+
                 CanCancel = canCancel,
 
                 HasReview = review != null,
@@ -346,27 +366,39 @@ namespace VentureCarRentals.Pages.User.Bookings
             return allowedTabs.Contains(value) ? value : "all";
         }
 
-        private string GetDisplayStatus(string status, bool isLive, bool isUpcoming, bool isHistory)
+        /*
+            IMPORTANT PENALTY FORMULA:
+            Must match the admin formula.
+        */
+        private static int GetOverdueHours(DateTime endDate, DateTime now)
         {
-            if (isLive)
+            if (now <= endDate)
             {
-                return "Live Booking";
+                return 0;
             }
 
-            if (isUpcoming)
+            var overdueTime = now - endDate;
+
+            if (overdueTime.TotalMinutes < PenaltyGraceMinutes)
             {
-                return "Upcoming";
+                return 0;
             }
 
-            if (isHistory)
+            return (int)Math.Ceiling(overdueTime.TotalHours);
+        }
+
+        private string GetDisplayStatus(string status, bool isOverdue)
+        {
+            if (status == "started" && isOverdue)
             {
-                return "History";
+                return "Behind Schedule";
             }
 
             return status switch
             {
                 "pending" => "Pending",
-                "approved" => "Approved",
+                "approved" => "Upcoming",
+                "started" => "Live Booking",
                 "cancelled" => "Cancelled",
                 "completed" => "Completed",
                 _ => status
@@ -388,7 +420,14 @@ namespace VentureCarRentals.Pages.User.Bookings
         public string Color { get; set; } = "";
 
         public double PricePerDay { get; set; }
+
         public double TotalPrice { get; set; }
+        public double PenaltyAmount { get; set; }
+        public double FinalAmount { get; set; }
+
+        public bool HasPenalty { get; set; }
+        public int OverdueHours { get; set; }
+        public string PenaltyStatus { get; set; } = "";
 
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
@@ -402,6 +441,7 @@ namespace VentureCarRentals.Pages.User.Bookings
         public bool IsLive { get; set; }
         public bool IsUpcoming { get; set; }
         public bool IsHistory { get; set; }
+        public bool IsOverdue { get; set; }
 
         public bool CanCancel { get; set; }
         public bool CanReview { get; set; }

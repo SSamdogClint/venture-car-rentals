@@ -1,0 +1,315 @@
+﻿@model VentureCarRentals.Pages.Admin.Bookings.BookingListModel
+
+@{
+    var currentTab = string.IsNullOrWhiteSpace(Model.Tab) ? "live" : Model.Tab.ToLower();
+}
+
+@if (Model.Bookings.Any())
+{
+    foreach (var booking in Model.Bookings)
+    {
+        <div class="modal fade" id="bookingDetailsModal-@booking.BookingId" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content @(booking.IsOverdue ? "overdue-glow-box" : "")">
+
+                    <div class="modal-header">
+                        <h5 class="modal-title">Booking #@booking.BookingId Details</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+
+                        @if (booking.IsOverdue)
+                        {
+                            <div class="alert overdue-warning-box">
+                                <strong>
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                    Return time exceeded.
+                                </strong>
+                                <br />
+                                This booking is already behind schedule by
+                                <strong>@booking.OverdueHours hour(s)</strong>.
+                                <br />
+                                Penalty rule:
+                                <strong>₱200.00 per hour after 45 minutes late</strong>
+                                <br />
+                                Current penalty:
+                                <strong>₱@booking.PenaltyAmount.ToString("N2")</strong>
+                            </div>
+                        }
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <strong>Customer</strong>
+                                <p>@booking.CustomerName</p>
+                            </div>
+
+                            <div class="col-md-6">
+                                <strong>Email</strong>
+                                <p>@booking.CustomerEmail</p>
+                            </div>
+
+                            <div class="col-md-6">
+                                <strong>Car</strong>
+                                <p>@booking.CarModel</p>
+                            </div>
+
+                            <div class="col-md-6">
+                                <strong>Status</strong>
+                                <p>
+                                    @booking.DisplayStatus
+
+                                    @if (booking.HasPenalty)
+                                    {
+                                        if (booking.PenaltyStatus == "paid")
+                                        {
+                                            <span class="badge bg-success ms-1">Penalty Paid</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger ms-1">Penalty Unpaid</span>
+                                        }
+                                    }
+                                </p>
+                            </div>
+
+                            <div class="col-md-6">
+                                <strong>Borrow / Started Date</strong>
+                                <p>@booking.StartDate.ToString("MMM dd, yyyy hh:mm tt")</p>
+                            </div>
+
+                            <div class="col-md-6">
+                                <strong>Expected Return Date</strong>
+                                <p>@booking.EndDate.ToString("MMM dd, yyyy hh:mm tt")</p>
+                            </div>
+
+                            <div class="col-md-6">
+                                <strong>Payment</strong>
+                                <p>@booking.PaymentMethod - @booking.PaymentStatus</p>
+                            </div>
+
+                            <div class="col-md-6">
+                                <strong>Agreement Status</strong>
+                                <p>@booking.AgreementStatus</p>
+                            </div>
+
+                            <div class="col-md-12">
+                                <strong>Total Price</strong>
+                                <p>₱@booking.TotalPrice.ToString("N2")</p>
+                            </div>
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(booking.SignedAgreementFileUrl))
+                        {
+                            <a href="@booking.SignedAgreementFileUrl"
+                               target="_blank"
+                               class="btn btn-outline-dark mt-2">
+                                Open Signed Agreement
+                            </a>
+                        }
+
+                        @if ((currentTab == "history" || currentTab == "unpaid") && booking.HasPenalty)
+                        {
+                            <hr />
+
+                            <div class="alert penalty-warning-box">
+                                <strong>Penalty Summary</strong>
+                                <br />
+                                Late duration:
+                                <strong>@booking.OverdueHours hour(s)</strong>
+                                <br />
+                                Penalty amount:
+                                <strong>₱@booking.PenaltyAmount.ToString("N2")</strong>
+                                <br />
+                                Payment status:
+                                @if (booking.PenaltyStatus == "paid")
+                                {
+                                    <span class="badge bg-success">Paid</span>
+                                }
+                                else if (booking.PenaltyStatus == "waived")
+                                {
+                                    <span class="badge bg-secondary">Waived</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning text-dark">Unpaid</span>
+                                }
+
+                                @if (booking.PenaltyPaidAt != null)
+                                {
+                                    <br />
+                                    <small>
+                                        Paid on @booking.PenaltyPaidAt.Value.ToString("MMM dd, yyyy hh:mm tt")
+                                    </small>
+                                }
+                            </div>
+
+                            @if (booking.PenaltyStatus != "paid")
+                            {
+                                <form method="post"
+                                      asp-page-handler="MarkPenaltyPaid"
+                                      class="needs-admin-confirmation"
+                                      data-confirm-title="Mark Penalty as Paid"
+                                      data-confirm-message="Are you sure you want to mark this penalty as paid?"
+                                      data-confirm-button="Mark as Paid"
+                                      data-confirm-variant="success">
+
+                                    <input type="hidden" name="BookingId" value="@booking.BookingId" />
+
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="bi bi-cash-check"></i> Mark Penalty as Paid
+                                    </button>
+                                </form>
+                            }
+                        }
+
+                        @if (currentTab == "pending")
+                        {
+                            <hr />
+
+                            @if (!string.IsNullOrWhiteSpace(booking.GeneratedAgreementFileUrl))
+                            {
+                                <a href="@booking.GeneratedAgreementFileUrl"
+                                   target="_blank"
+                                   download
+                                   class="btn btn-outline-dark mb-3">
+                                    Download Blank Agreement
+                                </a>
+                            }
+                            else
+                            {
+                                <div class="alert alert-warning">
+                                    Blank agreement has not been generated yet.
+                                </div>
+                            }
+
+                            <form method="post"
+                                  enctype="multipart/form-data"
+                                  asp-page-handler="UploadAgreement"
+                                  class="mb-3">
+
+                                <input type="hidden" name="BookingId" value="@booking.BookingId" />
+
+                                <label class="form-label">Upload Signed Agreement</label>
+
+                                <input type="file"
+                                       name="SignedAgreementFile"
+                                       class="form-control mb-2"
+                                       accept=".pdf,.jpg,.jpeg,.png" />
+
+                                <button type="submit" class="btn btn-primary">
+                                    Upload Agreement
+                                </button>
+                            </form>
+
+                            <div class="d-flex gap-2 flex-wrap">
+                                <form method="post"
+                                      asp-page-handler="ApproveBooking"
+                                      class="needs-admin-confirmation"
+                                      data-confirm-title="Approve Booking"
+                                      data-confirm-message="Are you sure you want to approve this booking?"
+                                      data-confirm-button="Approve Booking"
+                                      data-confirm-variant="success">
+
+                                    <input type="hidden" name="BookingId" value="@booking.BookingId" />
+
+                                    <button type="submit" class="btn btn-success">
+                                        Approve Booking
+                                    </button>
+                                </form>
+
+                                <form method="post"
+                                      asp-page-handler="CancelBooking"
+                                      class="needs-admin-confirmation"
+                                      data-confirm-title="Cancel Booking"
+                                      data-confirm-message="Are you sure you want to cancel this pending booking?"
+                                      data-confirm-button="Cancel Booking"
+                                      data-confirm-variant="danger">
+
+                                    <input type="hidden" name="BookingId" value="@booking.BookingId" />
+
+                                    <button type="submit" class="btn btn-danger">
+                                        Cancel Booking
+                                    </button>
+                                </form>
+                            </div>
+                        }
+
+                        @if (currentTab == "upcoming")
+                        {
+                            <hr />
+
+                            <div class="alert alert-info">
+                                This booking is approved but not yet started.
+                            </div>
+
+                            <div class="d-flex gap-2 flex-wrap">
+                                <form method="post"
+                                      asp-page-handler="StartBooking"
+                                      class="needs-admin-confirmation"
+                                      data-confirm-title="Start Booking"
+                                      data-confirm-message="Are you sure you want to start this booking now?"
+                                      data-confirm-button="Start Booking"
+                                      data-confirm-variant="success">
+
+                                    <input type="hidden" name="BookingId" value="@booking.BookingId" />
+
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="bi bi-play-circle"></i> Start Booking
+                                    </button>
+                                </form>
+
+                                <form method="post"
+                                      asp-page-handler="CancelBooking"
+                                      class="needs-admin-confirmation"
+                                      data-confirm-title="Cancel Upcoming Booking"
+                                      data-confirm-message="Are you sure you want to cancel this upcoming booking?"
+                                      data-confirm-button="Cancel Booking"
+                                      data-confirm-variant="danger">
+
+                                    <input type="hidden" name="BookingId" value="@booking.BookingId" />
+
+                                    <button type="submit" class="btn btn-danger">
+                                        Cancel Booking
+                                    </button>
+                                </form>
+                            </div>
+                        }
+
+                        @if (currentTab == "live")
+                        {
+                            <hr />
+
+                            @if (booking.IsOverdue)
+                            {
+                                <div class="alert overdue-warning-box">
+                                    <strong>Overdue Return:</strong>
+                                    This booking exceeded the expected return time.
+                                    Current penalty:
+                                    <strong>₱@booking.PenaltyAmount.ToString("N2")</strong>.
+                                </div>
+                            }
+
+                            <form method="post"
+                                  asp-page-handler="ReturnBooking"
+                                  class="needs-admin-confirmation"
+                                  data-confirm-title="Complete Booking"
+                                  data-confirm-message="Are you sure you want to mark this vehicle as returned and complete the booking?"
+                                  data-confirm-button="Mark as Returned"
+                                  data-confirm-variant="primary">
+
+                                <input type="hidden" name="BookingId" value="@booking.BookingId" />
+
+                                <button type="submit" class="btn btn-primary">
+                                    Mark as Returned / Complete
+                                </button>
+                            </form>
+                        }
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    }
+}

@@ -1,0 +1,51 @@
+﻿@model VentureCarRentals.Pages.Admin.Bookings.BookingListModel
+
+@{
+    var currentTab = string.IsNullOrWhiteSpace(Model.Tab) ? "live" : Model.Tab.ToLower();
+}
+
+<div class="booking-tabs">
+    <a asp-page="/Admin/Bookings/BookingList"
+       asp-route-tab="live"
+       class="booking-tab @(currentTab == "live" ? "active" : "")">
+        Live Bookings
+    </a>
+
+    <a asp-page="/Admin/Bookings/BookingList"
+       asp-route-tab="upcoming"
+       class="booking-tab @(currentTab == "upcoming" ? "active" : "")">
+        Upcoming Bookings
+    </a>
+
+    <a asp-page="/Admin/Bookings/BookingList"
+       asp-route-tab="pending"
+       class="booking-tab position-relative @(currentTab == "pending" ? "active" : "")">
+        Pending Bookings
+
+        @if (Model.PendingCount > 0)
+        {
+            <span class="pending-tab-badge">
+                @Model.PendingCount
+            </span>
+        }
+    </a>
+
+    <a asp-page="/Admin/Bookings/BookingList"
+       asp-route-tab="history"
+       class="booking-tab @(currentTab == "history" ? "active" : "")">
+        Booking History
+    </a>
+
+    <a asp-page="/Admin/Bookings/BookingList"
+       asp-route-tab="unpaid"
+       class="booking-tab position-relative @(currentTab == "unpaid" ? "active" : "")">
+        Unpaid Penalties
+
+        @if (Model.UnpaidPenaltyCount > 0)
+        {
+            <span class="unpaid-tab-badge">
+                @Model.UnpaidPenaltyCount
+            </span>
+        }
+    </a>
+</div>

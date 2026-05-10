@@ -19,7 +19,7 @@ namespace VentureCarRentals.Data
         public DbSet<Review> Reviews { get; set; }
         public DbSet<MaintenanceLog> MaintenanceLogs { get; set; }
         public DbSet<UserPaymentMethod> UserPaymentMethods { get; set; }
-
+        public DbSet<Penalty> Penalties { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<User>()
@@ -37,6 +37,10 @@ namespace VentureCarRentals.Data
             modelBuilder.Entity<Review>()
                 .HasIndex(r => r.BookingId)
                 .IsUnique();
+
+            modelBuilder.Entity<Penalty>()
+                .HasIndex(p => p.BookingId)
+                .IsUnique();    
         }
     }
 }

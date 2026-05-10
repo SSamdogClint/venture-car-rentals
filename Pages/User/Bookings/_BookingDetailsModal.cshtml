@@ -2,7 +2,7 @@
 
 <div class="modal fade" id="bookingDetailsModal-@Model.BookingId" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content booking-modal">
+        <div class="modal-content booking-modal @(Model.IsOverdue ? "overdue-booking-modal" : "")">
 
             <div class="modal-header">
                 <h5 class="modal-title">Booking Details</h5>
@@ -10,6 +10,21 @@
             </div>
 
             <div class="modal-body">
+
+                @if (Model.IsOverdue)
+                {
+                    <div class="alert overdue-warning-box">
+                        <strong>
+                            <i class="bi bi-exclamation-triangle"></i>
+                            Return time exceeded.
+                        </strong>
+                        <br />
+                        This live booking is already behind schedule.
+                        Current penalty:
+                        <strong>₱@Model.PenaltyAmount.ToString("N2")</strong>
+                        at <strong>₱200.00 per hour</strong>.
+                    </div>
+                }
 
                 <div class="row g-4">
                     <div class="col-md-4">
@@ -29,24 +44,73 @@
                     <div class="col-md-8">
                         <h4>@Model.CarName</h4>
 
-                        <span class="booking-status-badge status-@Model.BookingStatus @(Model.IsUpcoming ? "status-upcoming" : "") @(Model.IsHistory ? "status-history" : "")">
+                        <span class="booking-status-badge status-@Model.BookingStatus @(Model.IsUpcoming ? "status-upcoming" : "") @(Model.IsHistory ? "status-history" : "") @(Model.IsOverdue ? "status-overdue" : "")">
                             @Model.DisplayStatus
                         </span>
 
                         <div class="booking-detail-grid mt-3">
                             <p><strong>Booking ID:</strong> #@Model.BookingId</p>
                             <p><strong>Category:</strong> @Model.Category</p>
-                            <p><strong>Borrow:</strong> @Model.StartDate.ToString("MMM dd, yyyy hh:mm tt")</p>
-                            <p><strong>Return:</strong> @Model.EndDate.ToString("MMM dd, yyyy hh:mm tt")</p>
+                            <p><strong>Borrow / Started:</strong> @Model.StartDate.ToString("MMM dd, yyyy hh:mm tt")</p>
+                            <p><strong>Expected Return:</strong> @Model.EndDate.ToString("MMM dd, yyyy hh:mm tt")</p>
                             <p><strong>Seats:</strong> @Model.Seats</p>
                             <p><strong>Transmission:</strong> @Model.Transmission</p>
                             <p><strong>Color:</strong> @Model.Color</p>
                             <p><strong>Price Per Day:</strong> ₱@Model.PricePerDay.ToString("N2")</p>
-                            <p><strong>Total Price:</strong> ₱@Model.TotalPrice.ToString("N2")</p>
+                            <p><strong>Rental Fee:</strong> ₱@Model.TotalPrice.ToString("N2")</p>
                             <p><strong>Agreement Status:</strong> @Model.RentalAgreementStatus</p>
                         </div>
                     </div>
                 </div>
+
+                @if (Model.IsHistory)
+                {
+                    <hr />
+
+                    <h6>Final Billing Summary</h6>
+
+                    <div class="billing-summary-box">
+                        <div class="d-flex justify-content-between">
+                            <span>Rental Fee</span>
+                            <strong>₱@Model.TotalPrice.ToString("N2")</strong>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <span>
+                                Penalty Charge
+                                @if (Model.HasPenalty)
+                                {
+                                    <small class="text-muted">
+                                        (@Model.OverdueHours hour(s) late)
+                                    </small>
+                                }
+                            </span>
+
+                            @if (Model.HasPenalty)
+                            {
+                                <strong class="text-warning">₱@Model.PenaltyAmount.ToString("N2")</strong>
+                            }
+                            else
+                            {
+                                <strong>₱0.00</strong>
+                            }
+                        </div>
+
+                        @if (Model.HasPenalty)
+                        {
+                            <div class="small text-muted mt-1">
+                                Penalty status: @Model.PenaltyStatus
+                            </div>
+                        }
+
+                        <hr />
+
+                        <div class="d-flex justify-content-between final-total-line">
+                            <span>Final Total</span>
+                            <strong>₱@Model.FinalAmount.ToString("N2")</strong>
+                        </div>
+                    </div>
+                }
 
                 @if (Model.IsHistory)
                 {

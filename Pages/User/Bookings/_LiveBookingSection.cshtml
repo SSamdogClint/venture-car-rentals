@@ -8,15 +8,23 @@
                 <h5 class="mb-0">
                     <i class="bi bi-broadcast-pin"></i> Live Booking
                 </h5>
+
                 <small class="text-muted">
-                    Your currently active booking and remaining rental time.
+                    Your active booking continues until admin marks the vehicle as returned.
+                    Penalty is ₱200 per hour once the return is 45 minutes late or more.
                 </small>
             </div>
         </div>
 
         @foreach (var booking in Model.LiveBookings)
         {
-            <div class="live-booking-card">
+            var cardId = $"liveBookingCard-{booking.BookingId}";
+            var penaltyId = $"penaltyAmount-{booking.BookingId}";
+            var statusId = $"liveStatusBadge-{booking.BookingId}";
+
+            <div id="@cardId"
+                 class="live-booking-card @(booking.IsOverdue ? "overdue-live-booking-card" : "")">
+
                 <div class="live-booking-left">
                     @if (!string.IsNullOrWhiteSpace(booking.ImageUrl))
                     {
@@ -31,30 +39,77 @@
 
                     <div>
                         <h5>@booking.CarName</h5>
-                        <p class="mb-1">@booking.Category</p>
+
+                        <p class="mb-1">
+                            @booking.Category
+                        </p>
 
                         <small>
-                            <strong>Borrow:</strong>
+                            <strong>Started:</strong>
                             @booking.StartDate.ToString("MMM dd, yyyy hh:mm tt")
                         </small>
 
                         <br />
 
                         <small>
-                            <strong>Return:</strong>
+                            <strong>Expected Return:</strong>
                             @booking.EndDate.ToString("MMM dd, yyyy hh:mm tt")
                         </small>
+
+                        @if (booking.IsOverdue)
+                        {
+                            <div class="mt-2 live-behind-text">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                Return time exceeded. Penalty applies after 45 minutes late.
+                            </div>
+                        }
                     </div>
                 </div>
 
                 <div class="live-booking-right">
-                    <span class="live-badge">Live</span>
+                    @if (booking.IsOverdue)
+                    {
+                        <span id="@statusId" class="badge bg-warning text-dark">
+                            Behind Schedule
+                        </span>
+                    }
+                    else
+                    {
+                        <span id="@statusId" class="live-badge">
+                            Live
+                        </span>
+                    }
 
-                    <strong data-booking-countdown data-end-date="@booking.EndDateIso">
+                    <strong data-booking-countdown
+                            data-end-date="@booking.EndDateIso"
+                            data-penalty-rate="200"
+                            data-penalty-target="@penaltyId"
+                            data-status-target="@statusId"
+                            data-card-target="@cardId">
                         Loading countdown...
                     </strong>
 
-                    <small>Until booking ends</small>
+                    <small>
+                        Until admin marks as returned
+                    </small>
+
+                    <div id="@penaltyId" class="mt-2 live-penalty-text">
+                        @if (booking.IsOverdue)
+                        {
+                            if (booking.PenaltyAmount > 0)
+                            {
+                                <span>
+                                    Penalty: ₱@booking.PenaltyAmount.ToString("N2") (₱200/hour)
+                                </span>
+                            }
+                            else
+                            {
+                                <span>
+                                    Grace period: No penalty yet. Penalty starts at 45 minutes late.
+                                </span>
+                            }
+                        }
+                    </div>
 
                     <button type="button"
                             class="btn btn-light btn-sm mt-3"
