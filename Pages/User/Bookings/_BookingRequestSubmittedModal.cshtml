@@ -1,0 +1,131 @@
+﻿@*
+    IMPORTANT:
+    This partial shows a Bootstrap modal after the customer submits
+    a booking request.
+
+    It uses TempData from PaymentMethod.cshtml.cs:
+
+    TempData["BookingRequestSubmitted"]
+        - if this exists, the modal will be rendered and shown.
+
+    TempData["BookingPickupDate"]
+        - contains the pickup date/time shown in the modal.
+*@
+
+@if (TempData["BookingRequestSubmitted"] != null)
+{
+    var pickupDate = TempData["BookingPickupDate"]?.ToString() ?? "your selected pickup schedule";
+
+    <div class="modal fade" id="bookingRequestSubmittedModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
+
+                <!-- Modal Header -->
+                <div class="modal-header bg-primary text-white border-0 px-4 py-3">
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-check-circle me-2"></i>
+                        Booking Request Submitted
+                    </h5>
+
+                    <button type="button"
+                            class="btn-close btn-close-white"
+                            data-bs-dismiss="modal"
+                            aria-label="Close">
+                    </button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="modal-body px-4 py-4 text-center">
+
+                    <!-- Main success icon -->
+                    <div class="bg-primary-subtle text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                         style="width: 76px; height: 76px;">
+                        <i class="bi bi-calendar-check fs-1"></i>
+                    </div>
+
+                    <h5 class="fw-bold mb-2">
+                        Booking request submitted successfully.
+                    </h5>
+
+                    <p class="text-muted mb-4">
+                        Please wait for admin approval before proceeding with the pickup.
+                    </p>
+
+                    <!-- Pickup schedule box -->
+                    <div class="alert alert-light border rounded-4 text-start mb-3">
+                        <div class="d-flex gap-3">
+                            <div class="text-primary">
+                                <i class="bi bi-car-front fs-3"></i>
+                            </div>
+
+                            <div>
+                                <strong class="d-block text-dark mb-1">
+                                    Pickup Schedule
+                                </strong>
+
+                                <span class="text-muted">
+                                    Once approved, pick up the car on
+                                    <strong class="text-dark">
+                                        @pickupDate
+                                    </strong>.
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Important reminder box -->
+                    <div class="alert alert-warning rounded-4 text-start mb-0">
+                        <div class="d-flex gap-3">
+                            <div>
+                                <i class="bi bi-exclamation-triangle fs-3"></i>
+                            </div>
+
+                            <div>
+                                <strong class="d-block mb-1">
+                                    Important Reminder
+                                </strong>
+
+                                <span>
+                                    During pickup, you must sign the rental agreement contract
+                                    and complete your payment at the rental office.
+                                    Your payment will remain pending until the agreement signing
+                                    and payment confirmation are completed.
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer border-0 justify-content-center px-4 pb-4">
+                    <button type="button"
+                            class="btn btn-primary rounded-pill px-5"
+                            data-bs-dismiss="modal">
+                        Okay, I understand
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    @*
+        IMPORTANT:
+        This script automatically opens the modal after redirecting
+        to My Bookings.
+
+        Do not place this inside another @section Scripts because this partial
+        may be included near the bottom of the page.
+    *@
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const modalElement = document.getElementById("bookingRequestSubmittedModal");
+
+            if (modalElement) {
+                const modal = new bootstrap.Modal(modalElement);
+                modal.show();
+            }
+        });
+    </script>
+}

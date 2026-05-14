@@ -38,16 +38,8 @@
 
         <hr />
 
-        <a class="@(currentPage == "/User/Profile" ? "active" : "")" asp-page="/User/Profile">
+        <a class="@(currentPage == "/User/Profile" ? "active" : "")" asp-page="/User/Profile/Index">
             <i class="bi bi-person"></i> Profile
-        </a>
-
-        <a class="@(currentPage.StartsWith("/User/Documents") ? "active" : "")" asp-page="/User/Documents/Index">
-            <i class="bi bi-file-earmark"></i> My Documents
-        </a>
-
-        <a class="@(currentPage == "/User/Settings" ? "active" : "")" asp-page="/User/Settings">
-            <i class="bi bi-gear"></i> Settings
         </a>
 
     </nav>

@@ -13,6 +13,7 @@ namespace VentureCarRentals.Pages.User.Bookings
         /*
             IMPORTANT:
             This must match the admin penalty rule.
+
             Under 45 minutes late = no penalty.
             45 minutes or more late = ₱200 per started hour.
         */
@@ -81,6 +82,7 @@ namespace VentureCarRentals.Pages.User.Bookings
 
             var status = NormalizeStatus(booking.Status);
 
+            // User can only cancel their own pending booking.
             if (status != "pending")
             {
                 TempData["Error"] = "Only pending bookings can be cancelled.";
@@ -89,7 +91,33 @@ namespace VentureCarRentals.Pages.User.Bookings
 
             try
             {
+                /*
+                    IMPORTANT:
+                    USER CANCELS BOOKING
+
+                    Status flow:
+                    pending -> cancelled
+                */
                 booking.Status = "cancelled";
+
+                /*
+                    IMPORTANT:
+                    ADMIN NOTIFICATION WHEN USER CANCELS A BOOKING
+
+                    This tells the admin that a user cancelled a pending request.
+                    Admin can click it and go to booking history.
+                */
+                _context.Notifications.Add(new Notification
+                {
+                    RecipientType = "admin",
+                    UserId = null,
+                    Title = "Booking Cancelled by User",
+                    Message = $"Booking #{booking.BookingId} was cancelled by the customer.",
+                    Type = "booking",
+                    TargetUrl = "/Admin/Bookings/BookingList?tab=history",
+                    IsRead = false,
+                    CreatedAt = DateTime.Now
+                });
 
                 await _context.SaveChangesAsync();
 
@@ -162,6 +190,29 @@ namespace VentureCarRentals.Pages.User.Bookings
                 };
 
                 _context.Reviews.Add(review);
+
+                var carName = booking.Car == null
+                    ? "Unknown Car"
+                    : $"{booking.Car.Make} {booking.Car.Model}";
+
+                /*
+                    IMPORTANT:
+                    ADMIN NOTIFICATION WHEN USER SUBMITS A REVIEW
+
+                    This tells the admin that a new customer review was created.
+                    Admin can open booking history and check completed bookings.
+                */
+                _context.Notifications.Add(new Notification
+                {
+                    RecipientType = "admin",
+                    UserId = null,
+                    Title = "New Customer Review",
+                    Message = $"A customer rated {carName} {Rating}/5 for booking #{booking.BookingId}.",
+                    Type = "review",
+                    TargetUrl = "/Admin/Bookings/BookingList?tab=history",
+                    IsRead = false,
+                    CreatedAt = DateTime.Now
+                });
 
                 await _context.SaveChangesAsync();
 

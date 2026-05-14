@@ -25,8 +25,64 @@ namespace VentureCarRentals.Filters
             PageHandlerExecutionDelegate next)
         {
             /*
-                IMPORTANT:
-                This disables browser caching for protected pages.
+                // IMPORTANT SS THIS:
+                Get the current page path.
+
+                Example:
+                /Login
+                /Admin/Dashboard
+                /User/Cars/BrowseCars
+                /Guest/Cars/BrowseCars
+
+                ToLower() makes the checking case-insensitive.
+                TrimEnd('/') prevents issues if the URL ends with slash.
+            */
+            var path = context.HttpContext.Request.Path.Value?.ToLower().TrimEnd('/') ?? "";
+
+            /*
+                // IMPORTANT SS THIS:
+                These pages are public.
+
+                Public pages can be opened even if the visitor is not logged in.
+
+                Guest Browse Cars is public:
+                    /Guest/Cars/BrowseCars
+
+                Private User Browse Cars is NOT public:
+                    /User/Cars/BrowseCars
+            */
+            var publicPages = new[]
+            {
+                "",
+                "/",
+                "/index",
+                "/login",
+                "/register",
+                "/logout",
+
+                /*
+                    // IMPORTANT SS THIS:
+                    This is the separated guest/public car catalog page.
+
+                    Guests can view cars here without logging in.
+                    If guest clicks Book or Join Us, they should go to /Index.
+                */
+                "/guest/cars/browsecars"
+            };
+
+            /*
+                // IMPORTANT SS THIS:
+                If the current page is public, skip login checking.
+            */
+            if (publicPages.Contains(path))
+            {
+                await next();
+                return;
+            }
+
+            /*
+                // IMPORTANT SS THIS:
+                Disable browser caching for protected pages.
 
                 This helps prevent the browser Back button from showing
                 old Admin/User pages after logout.
@@ -36,34 +92,41 @@ namespace VentureCarRentals.Filters
             context.HttpContext.Response.Headers["Expires"] = "0";
 
             /*
-                IMPORTANT:
+                // IMPORTANT SS THIS:
                 These session values must match what you set during login.
 
-                Example after login:
-                Session["UserId"] = user.UserId
-                Session["UserRole"] = "Admin" or "User"
+                Example after successful login:
+                    Session["UserId"] = user.UserId
+                    Session["UserRole"] = "Admin" or "User"
             */
             var userId = context.HttpContext.Session.GetInt32("UserId");
             var userRole = context.HttpContext.Session.GetString("UserRole");
 
             /*
-                IMPORTANT:
-                This checks if someone is logged in and has the correct role.
+                // IMPORTANT SS THIS:
+                This checks if the visitor is logged in and has the correct role.
 
-                For /Admin pages:
-                required role = Admin
+                For Admin protected pages:
+                    required role = Admin
 
-                For /User pages:
-                required role = User
+                For User protected pages:
+                    required role = User
             */
             var isAllowed =
                 userId != null &&
                 string.Equals(userRole, _requiredRole, StringComparison.OrdinalIgnoreCase);
 
             /*
-                IMPORTANT:
-                If the session is gone or the role is wrong,
-                redirect the visitor back to the login page.
+                // IMPORTANT SS THIS:
+                If there is no session or the role is wrong,
+                redirect the visitor to the login page.
+
+                Example:
+                Guest tries to open /User/Cars/BrowseCars
+                    -> redirect to /Login
+
+                User tries to open /Admin/Dashboard
+                    -> redirect to /Login
             */
             if (!isAllowed)
             {

@@ -1,0 +1,213 @@
+﻿@page
+@model VentureCarRentals.Pages.User.Agreements.IndexModel
+@{
+    ViewData["Title"] = "My Agreements";
+    Layout = "_Layout";
+}
+
+<div class="user-wrapper">
+
+    @await Html.PartialAsync("/Pages/User/_UserSidebar.cshtml")
+
+    <main class="user-main">
+
+        <div class="user-topbar">
+            <div class="d-flex align-items-center gap-3">
+                <button type="button" class="user-menu-btn" onclick="toggleUserSidebar()">
+                    <i class="bi bi-list"></i>
+                </button>
+
+                <a asp-page="/User/Home" class="text-decoration-none text-dark fw-semibold">
+                    <i class="bi bi-arrow-left me-1"></i> Back
+                </a>
+            </div>
+
+            @await Html.PartialAsync("_UserNotificationBell")
+        </div>
+
+        <section class="container-fluid py-4">
+
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+                <div>
+                    <h3 class="fw-bold mb-1">My Agreements</h3>
+                    <p class="text-muted mb-0">
+                        View your online rental agreements and signed contract files.
+                    </p>
+                </div>
+            </div>
+
+            <hr />
+
+            @if (Model.Agreements.Any())
+            {
+                <div class="row g-4">
+
+                    @foreach (var agreement in Model.Agreements)
+                    {
+                        <div class="col-12">
+                            <div class="card border-0 shadow-sm rounded-4">
+
+                                <div class="card-body p-4">
+
+                                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
+                                        <div>
+                                            <h5 class="fw-bold mb-1">
+                                                <i class="bi bi-car-front text-primary me-1"></i>
+                                                @agreement.CarName
+                                            </h5>
+
+                                            <small class="text-muted">
+                                                Booking #@agreement.BookingId
+                                            </small>
+                                        </div>
+
+                                        @if (agreement.Status == "approved")
+                                        {
+                                            <span class="badge rounded-pill text-bg-success px-3 py-2">
+                                                @agreement.DisplayStatus
+                                            </span>
+                                        }
+                                        else if (agreement.Status == "signed_uploaded")
+                                        {
+                                            <span class="badge rounded-pill text-bg-primary px-3 py-2">
+                                                @agreement.DisplayStatus
+                                            </span>
+                                        }
+                                        else if (agreement.Status == "online_accepted")
+                                        {
+                                            <span class="badge rounded-pill text-bg-warning px-3 py-2">
+                                                @agreement.DisplayStatus
+                                            </span>
+                                        }
+                                        else if (agreement.Status == "cancelled")
+                                        {
+                                            <span class="badge rounded-pill text-bg-danger px-3 py-2">
+                                                @agreement.DisplayStatus
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge rounded-pill text-bg-secondary px-3 py-2">
+                                                @agreement.DisplayStatus
+                                            </span>
+                                        }
+                                    </div>
+
+                                    <div class="row g-3 mb-4">
+
+                                        <div class="col-lg-3 col-md-6">
+                                            <div class="border rounded-4 p-3 h-100 bg-light">
+                                                <small class="text-muted d-block mb-1">Borrow Date</small>
+                                                <strong>
+                                                    @agreement.StartDate.ToString("MMM dd, yyyy hh:mm tt")
+                                                </strong>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-lg-3 col-md-6">
+                                            <div class="border rounded-4 p-3 h-100 bg-light">
+                                                <small class="text-muted d-block mb-1">Return Date</small>
+                                                <strong>
+                                                    @agreement.EndDate.ToString("MMM dd, yyyy hh:mm tt")
+                                                </strong>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-lg-3 col-md-6">
+                                            <div class="border rounded-4 p-3 h-100 bg-light">
+                                                <small class="text-muted d-block mb-1">Total Price</small>
+                                                <strong>
+                                                    ₱@agreement.TotalPrice.ToString("N2")
+                                                </strong>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-lg-3 col-md-6">
+                                            <div class="border rounded-4 p-3 h-100 bg-light">
+                                                <small class="text-muted d-block mb-1">Online Accepted</small>
+
+                                                <strong>
+                                                    @if (agreement.OnlineAcceptedAt != null)
+                                                    {
+                                                        @agreement.OnlineAcceptedAt.Value.ToString("MMM dd, yyyy hh:mm tt")
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted">Not recorded</span>
+                                                    }
+                                                </strong>
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                    <div class="d-flex flex-wrap gap-2">
+
+                                        @if (!string.IsNullOrWhiteSpace(agreement.GeneratedAgreementFileUrl))
+                                        {
+                                            <a href="@agreement.GeneratedAgreementFileUrl"
+                                               target="_blank"
+                                               class="btn btn-outline-primary">
+                                                <i class="bi bi-file-earmark-pdf"></i>
+                                                View Generated Agreement
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" class="btn btn-light border" disabled>
+                                                <i class="bi bi-file-earmark-x"></i>
+                                                No Generated Agreement
+                                            </button>
+                                        }
+
+                                        @if (!string.IsNullOrWhiteSpace(agreement.SignedAgreementFileUrl))
+                                        {
+                                            <a href="@agreement.SignedAgreementFileUrl"
+                                               target="_blank"
+                                               download
+                                               class="btn btn-primary">
+                                                <i class="bi bi-download"></i>
+                                                Download Signed Agreement
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" class="btn btn-light border" disabled>
+                                                <i class="bi bi-clock-history"></i>
+                                                Signed Agreement Not Uploaded Yet
+                                            </button>
+                                        }
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        </div>
+                    }
+
+                </div>
+            }
+            else
+            {
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-body text-center py-5">
+
+                        <div class="display-4 text-muted mb-3">
+                            <i class="bi bi-file-earmark-text"></i>
+                        </div>
+
+                        <h5 class="fw-bold">No agreements found</h5>
+
+                        <p class="text-muted mb-0">
+                            Your rental agreements will appear here after you submit a booking request.
+                        </p>
+
+                    </div>
+                </div>
+            }
+
+        </section>
+
+    </main>
+</div>

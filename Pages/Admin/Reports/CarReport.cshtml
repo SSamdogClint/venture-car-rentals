@@ -1,0 +1,342 @@
+﻿@page
+@model VentureCarRentals.Pages.Admin.Reports.CarReportModel
+@{
+    ViewData["Title"] = "Car Report";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-1">Car Report</h3>
+            <p class="text-muted mb-0">
+                View car inventory, vehicle status, pricing, and booking performance.
+            </p>
+        </div>
+
+        <a asp-page-handler="DownloadPdf"
+           asp-route-SearchTerm="@Model.SearchTerm"
+           asp-route-StatusFilter="@Model.StatusFilter"
+           asp-route-CategoryFilter="@Model.CategoryFilter"
+           asp-route-TransmissionFilter="@Model.TransmissionFilter"
+           class="btn btn-danger">
+            <i class="bi bi-file-earmark-pdf"></i>
+            Download PDF
+        </a>
+    </div>
+
+    <!-- STATISTICS CARDS -->
+    <div class="row g-3 mb-4">
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-1">Total Cars</p>
+                            <h3 class="fw-bold mb-0">@Model.TotalCars</h3>
+                        </div>
+
+                        <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center"
+                             style="width:45px;height:45px;">
+                            <i class="bi bi-car-front fs-5"></i>
+                        </div>
+                    </div>
+
+                    <small class="text-muted">All vehicles in inventory</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-1">Available Cars</p>
+                            <h3 class="fw-bold mb-0">@Model.AvailableCars</h3>
+                        </div>
+
+                        <div class="bg-success-subtle text-success rounded-circle d-flex align-items-center justify-content-center"
+                             style="width:45px;height:45px;">
+                            <i class="bi bi-check-circle fs-5"></i>
+                        </div>
+                    </div>
+
+                    <small class="text-muted">Ready for booking</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-1">Booked Cars</p>
+                            <h3 class="fw-bold mb-0">@Model.BookedCars</h3>
+                        </div>
+
+                        <div class="bg-warning-subtle text-warning rounded-circle d-flex align-items-center justify-content-center"
+                             style="width:45px;height:45px;">
+                            <i class="bi bi-calendar-check fs-5"></i>
+                        </div>
+                    </div>
+
+                    <small class="text-muted">Currently reserved/booked</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-1">Maintenance</p>
+                            <h3 class="fw-bold mb-0">@Model.MaintenanceCars</h3>
+                        </div>
+
+                        <div class="bg-danger-subtle text-danger rounded-circle d-flex align-items-center justify-content-center"
+                             style="width:45px;height:45px;">
+                            <i class="bi bi-tools fs-5"></i>
+                        </div>
+                    </div>
+
+                    <small class="text-muted">Vehicles under maintenance</small>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body">
+                    <p class="text-muted mb-1">Average Price / Day</p>
+                    <h4 class="fw-bold mb-0">₱@Model.AveragePricePerDay.ToString("N2")</h4>
+                    <small class="text-muted">Average daily rental price</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body">
+                    <p class="text-muted mb-1">Highest Price / Day</p>
+                    <h4 class="fw-bold mb-0">₱@Model.HighestPricePerDay.ToString("N2")</h4>
+                    <small class="text-muted">Most expensive vehicle</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body">
+                    <p class="text-muted mb-1">Lowest Price / Day</p>
+                    <h4 class="fw-bold mb-0">₱@Model.LowestPricePerDay.ToString("N2")</h4>
+                    <small class="text-muted">Most affordable vehicle</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body">
+                    <p class="text-muted mb-1">Total Bookings</p>
+                    <h4 class="fw-bold mb-0">@Model.TotalBookings</h4>
+                    <small class="text-muted">Bookings connected to vehicles</small>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- FILTER CARD -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body">
+
+            <form method="get" class="row g-3 align-items-end">
+
+                <div class="col-lg-3 col-md-6">
+                    <label class="form-label">Search</label>
+                    <input type="text"
+                           name="SearchTerm"
+                           value="@Model.SearchTerm"
+                           class="form-control"
+                           placeholder="Search car, plate, VIN..." />
+                </div>
+
+                <div class="col-lg-2 col-md-6">
+                    <label class="form-label">Status</label>
+                    <select name="StatusFilter" class="form-control">
+                        <option value="">All Status</option>
+                        <option value="available" selected="@(Model.StatusFilter == "available")">available</option>
+                        <option value="booked" selected="@(Model.StatusFilter == "booked")">booked</option>
+                        <option value="maintenance" selected="@(Model.StatusFilter == "maintenance")">maintenance</option>
+                        <option value="inactive" selected="@(Model.StatusFilter == "inactive")">inactive</option>
+                    </select>
+                </div>
+
+                <div class="col-lg-2 col-md-6">
+                    <label class="form-label">Category</label>
+                    <select name="CategoryFilter" class="form-control">
+                        <option value="">All Categories</option>
+
+                        @foreach (var category in Model.Categories)
+                        {
+                            <option value="@category" selected="@(Model.CategoryFilter == category)">
+                                @category
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-lg-2 col-md-6">
+                    <label class="form-label">Transmission</label>
+                    <select name="TransmissionFilter" class="form-control">
+                        <option value="">All Transmission</option>
+
+                        @foreach (var transmission in Model.Transmissions)
+                        {
+                            <option value="@transmission" selected="@(Model.TransmissionFilter == transmission)">
+                                @transmission
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-lg-3 col-md-6 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-funnel"></i>
+                        Apply Filter
+                    </button>
+
+                    <a asp-page="/Admin/Reports/CarReport" class="btn btn-light">
+                        Clear
+                    </a>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+    <!-- TABLE CARD -->
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body">
+
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                <div>
+                    <h5 class="fw-bold mb-0">Car Inventory Report</h5>
+                    <small class="text-muted">
+                        Showing @Model.Cars.Count car record(s)
+                    </small>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Car ID</th>
+                            <th>Vehicle</th>
+                            <th>Category</th>
+                            <th>Status</th>
+                            <th>Seats</th>
+                            <th>Transmission</th>
+                            <th>Plate No.</th>
+                            <th>VIN</th>
+                            <th class="text-end">Price / Day</th>
+                            <th class="text-center">Bookings</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @if (Model.Cars.Any())
+                        {
+                            foreach (var car in Model.Cars)
+                            {
+                                <tr>
+                                    <td>
+                                        <span class="fw-semibold">#@car.CarId</span>
+                                    </td>
+
+                                    <td>
+                                        <strong>@car.VehicleName</strong>
+                                        <br />
+                                        <small class="text-muted">
+                                            @car.Year • @car.Color
+                                        </small>
+                                    </td>
+
+                                    <td>@car.Category</td>
+
+                                    <td>
+                                        @if (car.Status == "available")
+                                        {
+                                            <span class="badge bg-success">available</span>
+                                        }
+                                        else if (car.Status == "booked")
+                                        {
+                                            <span class="badge bg-warning text-dark">booked</span>
+                                        }
+                                        else if (car.Status == "maintenance")
+                                        {
+                                            <span class="badge bg-danger">maintenance</span>
+                                        }
+                                        else if (car.Status == "inactive")
+                                        {
+                                            <span class="badge bg-secondary">inactive</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-light text-dark border">
+                                                @car.DisplayStatus
+                                            </span>
+                                        }
+                                    </td>
+
+                                    <td>@car.Seats</td>
+
+                                    <td>@car.Transmission</td>
+
+                                    <td>
+                                        @(string.IsNullOrWhiteSpace(car.LicensePlate) ? "N/A" : car.LicensePlate)
+                                    </td>
+
+                                    <td>
+                                        @(string.IsNullOrWhiteSpace(car.VIN) ? "N/A" : car.VIN)
+                                    </td>
+
+                                    <td class="text-end">
+                                        ₱@car.PricePerDay.ToString("N2")
+                                    </td>
+
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">
+                                            @car.TotalBookings
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="10" class="text-center text-muted py-5">
+                                    No car records found.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+</div>

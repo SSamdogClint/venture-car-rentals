@@ -80,6 +80,7 @@
 
 @await Html.PartialAsync("_BookingConfirmModal")
 @await Html.PartialAsync("_BookingToastMessages")
+@await Html.PartialAsync("/Pages/User/Bookings/_BookingRequestSubmittedModal.cshtml")
 
 @section Scripts {
     <script>
@@ -235,5 +236,19 @@
                 toast.show();
             });
         });
+
+        @if (TempData["BookingRequestSubmitted"] != null)
+        {
+                <script>
+                    document.addEventListener("DOMContentLoaded", function () {
+                        const modalElement = document.getElementById("bookingRequestSubmittedModal");
+
+                        if (modalElement) {
+                            const modal = new bootstrap.Modal(modalElement);
+                            modal.show();
+                        }
+                    });
+        </script>
+        }
     </script>
 }

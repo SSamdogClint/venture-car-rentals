@@ -106,10 +106,9 @@ app.UseAuthorization();
 
     Your /Index page will still work for Sign Up / Sign In.
 */
-app.MapGet("/", () => Results.Redirect("/User/Cars/BrowseCars"));
+app.MapGet("/", () => Results.Redirect("/Guest/Cars/BrowseCars"));
 
 app.MapRazorPages();
-
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();

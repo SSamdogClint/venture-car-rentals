@@ -1,41 +1,35 @@
 ﻿@page
-@model VentureCarRentals.Pages.User.Cars.BrowseCarsModel
+@model VentureCarRentals.Pages.Guest.Cars.BrowseCarsModel
 @{
     ViewData["Title"] = "Browse Cars";
     Layout = "_Layout";
 
     /*
         // IMPORTANT SS THIS:
-        This is the PRIVATE USER Browse Cars page.
+        This is the GUEST Browse Cars page.
 
-        Guest code is removed from this file.
-
-        Guest Browse Cars should be here:
-            /Guest/Cars/BrowseCars
-
-        Private User Browse Cars should be here:
-            /User/Cars/BrowseCars
+        Guest behavior:
+        - No user sidebar
+        - No notification bell
+        - Join Us button goes to /Index
+        - Book button goes to /Index
+        - User cannot proceed to booking unless they login/register first
     */
 }
 
-<div class="user-wrapper">
+<div class="public-cars-wrapper">
 
-    @await Html.PartialAsync("/Pages/User/_UserSidebar.cshtml")
+    <main class="public-cars-main">
 
-    <main class="user-main">
-
-        <div class="user-topbar">
-            <div class="d-flex align-items-center gap-3">
-                <button type="button" class="user-menu-btn" onclick="toggleUserSidebar()">
-                    <i class="bi bi-list"></i>
-                </button>
-
-                <a asp-page="/User/Home" class="back-link">
-                    <i class="bi bi-arrow-left"></i> Back
-                </a>
+        <div class="public-cars-topbar">
+            <div class="public-brand">
+                <img src="~/images/logo.png" class="public-brand-logo" alt="V Car Rentals Logo" />
+                <span>Car Rentals</span>
             </div>
 
-            @await Html.PartialAsync("_UserNotificationBell")
+            <a href="/Index" class="btn btn-primary px-4">
+                Join Us
+            </a>
         </div>
 
         <section class="available-cars-section">
@@ -57,11 +51,6 @@
 
             <div class="collapse @(Model.HasActiveFilters ? "show" : "")" id="carFilterPanel">
                 <div class="content-card mb-4">
-
-                    <!--
-                        // IMPORTANT SS THIS:
-                        This form keeps the selected booking schedule while applying filters.
-                    -->
                     <form method="get" class="row g-3 align-items-end">
 
                         @if (!string.IsNullOrWhiteSpace(Model.BorrowDate))
@@ -157,7 +146,7 @@
                                 <i class="bi bi-funnel"></i> Apply Filter
                             </button>
 
-                            <a asp-page="/User/Cars/BrowseCars"
+                            <a asp-page="/Guest/Cars/BrowseCars"
                                asp-route-BorrowDate="@Model.BorrowDate"
                                asp-route-BorrowTime="@Model.BorrowTime"
                                asp-route-ReturnDate="@Model.ReturnDate"
@@ -189,7 +178,7 @@
                 else
                 {
                     <div class="selected-date-box mb-3">
-                        Select a schedule from Home to start the booking process.
+                        Browse available cars. Click Book to sign in or create an account.
                     </div>
                 }
 
@@ -282,152 +271,32 @@
                                 }
                                 else
                                 {
-                                    <p>Choose your booking schedule first.</p>
+                                    <p>Start booking by signing in or creating an account.</p>
                                     <small>Price may vary depending on duration.</small>
                                 }
 
                                 <button type="button"
                                         class="btn btn-outline-dark w-100 mt-3"
                                         data-bs-toggle="modal"
-                                        data-bs-target="#carDetailsModal-@car.CarId">
+                                        data-bs-target="#guestCarDetailsModal-@car.CarId">
                                     <i class="bi bi-eye"></i> View Details
                                 </button>
 
-                                @if (Model.IsSearchMode)
-                                {
-                                    if (Model.VerificationStatus == "verified")
-                                    {
-                                        <!--
-                                            // IMPORTANT SS THIS:
-                                            Only verified users can proceed to Create Booking.
-                                        -->
-                                        <a class="book-btn mt-2"
-                                           asp-page="/User/Cars/Create"
-                                           asp-route-carId="@car.CarId"
-                                           asp-route-borrowDate="@Model.BorrowDate"
-                                           asp-route-borrowTime="@Model.BorrowTime"
-                                           asp-route-returnDate="@Model.ReturnDate"
-                                           asp-route-returnTime="@Model.ReturnTime">
-                                            Book
-                                        </a>
-                                    }
-                                    else if (Model.VerificationStatus == "underage")
-                                    {
-                                        <button type="button" class="book-btn not-verified-btn border-0 mt-2" disabled>
-                                            Must be 18+
-                                        </button>
-                                    }
-                                    else if (Model.VerificationStatus == "needs_requirements")
-                                    {
-                                        <button type="button"
-                                                class="book-btn border-0 mt-2"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#verifyAccountModal-@car.CarId">
-                                            Complete Verification
-                                        </button>
-                                    }
-                                    else if (Model.VerificationStatus == "pending")
-                                    {
-                                        <button type="button" class="book-btn not-verified-btn border-0 mt-2" disabled>
-                                            Verification Pending
-                                        </button>
-                                    }
-                                    else if (Model.VerificationStatus == "rejected")
-                                    {
-                                        <a class="book-btn mt-2"
-                                           asp-page="/User/Profile/Index"
-                                           asp-route-carId="@car.CarId"
-                                           asp-route-borrowDate="@Model.BorrowDate"
-                                           asp-route-borrowTime="@Model.BorrowTime"
-                                           asp-route-returnDate="@Model.ReturnDate"
-                                           asp-route-returnTime="@Model.ReturnTime">
-                                            Update Documents
-                                        </a>
-                                    }
-                                    else if (Model.VerificationStatus == "expired")
-                                    {
-                                        <a class="book-btn mt-2"
-                                           asp-page="/User/Profile/Index"
-                                           asp-route-carId="@car.CarId"
-                                           asp-route-borrowDate="@Model.BorrowDate"
-                                           asp-route-borrowTime="@Model.BorrowTime"
-                                           asp-route-returnDate="@Model.ReturnDate"
-                                           asp-route-returnTime="@Model.ReturnTime">
-                                            Renew Documents
-                                        </a>
-                                    }
-                                    else
-                                    {
-                                        <button type="button"
-                                                class="book-btn border-0 mt-2"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#verifyAccountModal-@car.CarId">
-                                            Complete Verification
-                                        </button>
-                                    }
-                                }
-                                else
-                                {
-                                    <!--
-                                        // IMPORTANT SS THIS:
-                                        User must select a borrow and return schedule from Home first.
-                                    -->
-                                    <a class="book-btn mt-2" asp-page="/User/Home">
-                                        Book
-                                    </a>
-                                }
+                                <!--
+                                    // IMPORTANT SS THIS:
+                                    Guest cannot directly book.
+
+                                    Guest Book button must go to /Index,
+                                    where they can choose Sign Up or Sign In.
+                                -->
+                                <a class="book-btn mt-2" href="/Index">
+                                    Book
+                                </a>
                             </div>
 
                         </div>
 
-                        @await Html.PartialAsync("_CarDetailsModal", car)
-
-                        @if (Model.IsSearchMode &&
-                                    (Model.VerificationStatus == "needs_requirements" ||
-                                    Model.VerificationStatus != "verified" &&
-                                    Model.VerificationStatus != "underage" &&
-                                    Model.VerificationStatus != "pending" &&
-                                    Model.VerificationStatus != "rejected" &&
-                                    Model.VerificationStatus != "expired"))
-                        {
-                            <div class="modal fade" id="verifyAccountModal-@car.CarId" tabindex="-1" aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content verification-modal">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title">Verify Account First</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                        </div>
-
-                                        <div class="modal-body text-center">
-                                            <i class="bi bi-shield-check verification-icon"></i>
-
-                                            <h5 class="mt-3">Account verification required</h5>
-
-                                            <p class="text-muted">
-                                                Before booking this car, please complete your renter information
-                                                and upload the required documents for verification.
-                                            </p>
-                                        </div>
-
-                                        <div class="modal-footer justify-content-center">
-                                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">
-                                                Cancel
-                                            </button>
-
-                                            <a class="btn btn-primary"
-                                               asp-page="/User/Profile/Index"
-                                               asp-route-carId="@car.CarId"
-                                               asp-route-borrowDate="@Model.BorrowDate"
-                                               asp-route-borrowTime="@Model.BorrowTime"
-                                               asp-route-returnDate="@Model.ReturnDate"
-                                               asp-route-returnTime="@Model.ReturnTime">
-                                                Continue Verification
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        }
+                        @await Html.PartialAsync("_GuestCarDetailsModal", car)
                     }
                 }
                 else

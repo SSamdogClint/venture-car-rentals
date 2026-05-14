@@ -1,4 +1,4 @@
-﻿@model VentureCarRentals.Pages.User.Cars.CarBrowseViewModel
+﻿@model VentureCarRentals.Pages.Guest.Cars.GuestCarBrowseViewModel
 
 @{
     /*
@@ -6,10 +6,10 @@
         This file is a PARTIAL VIEW only.
 
         Do NOT add @page here.
-        Do NOT create _CarDetailsModal.cshtml.cs.
+        Do NOT create _GuestCarDetailsModal.cshtml.cs.
 
-        This modal receives one CarBrowseViewModel from:
-        Pages/User/Cars/BrowseCars.cshtml
+        This partial receives one GuestCarBrowseViewModel from:
+        Pages/Guest/Cars/BrowseCars.cshtml
     */
 
     var roundedRating = Math.Clamp((int)Math.Round(Model.AverageRating), 0, 5);
@@ -19,9 +19,9 @@
 }
 
 <div class="modal fade"
-     id="carDetailsModal-@Model.CarId"
+     id="guestCarDetailsModal-@Model.CarId"
      tabindex="-1"
-     aria-labelledby="carDetailsModalLabel-@Model.CarId"
+     aria-labelledby="guestCarDetailsModalLabel-@Model.CarId"
      aria-hidden="true">
 
     <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
@@ -39,7 +39,7 @@
 
                     <div>
                         <h5 class="modal-title fw-bold mb-0"
-                            id="carDetailsModalLabel-@Model.CarId">
+                            id="guestCarDetailsModalLabel-@Model.CarId">
                             @Model.Make @Model.Model
                         </h5>
 
@@ -68,7 +68,7 @@
 
                 <div class="row g-4">
 
-                    <!-- LEFT SIDE: IMAGE AND PRICE -->
+                    <!-- LEFT SIDE: CAR IMAGE AND PRICE CARD -->
                     <div class="col-lg-5">
 
                         <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
@@ -106,23 +106,20 @@
                                         </small>
                                     </div>
 
-                                    <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3 py-2 text-capitalize">
+                                    <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3 py-2">
                                         @Model.Status
                                     </span>
                                 </div>
 
                                 <!-- IMPORTANT SS THIS:
-                                     This is only the details modal.
-                                     Actual booking action stays in the vehicle card button.
+                                     Guest users cannot directly book from this modal.
+                                     They must go to /Index first to sign in or register.
                                 -->
-                                <div class="alert alert-light border rounded-4 mb-0">
-                                    <div class="d-flex gap-2">
-                                        <i class="bi bi-info-circle text-primary"></i>
-                                        <small class="text-muted">
-                                            Review the vehicle details before proceeding with your booking.
-                                        </small>
-                                    </div>
-                                </div>
+                                <a href="/Index"
+                                   class="btn btn-primary w-100 rounded-pill py-2 fw-semibold">
+                                    <i class="bi bi-person-plus me-1"></i>
+                                    Join Us to Book
+                                </a>
 
                             </div>
                         </div>
@@ -132,7 +129,7 @@
                     <!-- RIGHT SIDE: DETAILS -->
                     <div class="col-lg-7">
 
-                        <!-- OVERVIEW CARD -->
+                        <!-- RATING SUMMARY -->
                         <div class="card border-0 shadow-sm rounded-4 mb-4">
                             <div class="card-body p-4">
 
@@ -144,7 +141,7 @@
                                         </h5>
 
                                         <p class="text-muted mb-0">
-                                            Check specifications, description, and renter reviews.
+                                            Review vehicle specifications before signing in to book.
                                         </p>
                                     </div>
 
@@ -182,7 +179,7 @@
                             </div>
                         </div>
 
-                        <!-- SPECIFICATIONS -->
+                        <!-- SPECIFICATION CARDS -->
                         <div class="row g-3 mb-4">
 
                             <div class="col-md-6">
@@ -251,38 +248,6 @@
                                 </div>
                             </div>
 
-                            <div class="col-md-6">
-                                <div class="border rounded-4 p-3 h-100">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center"
-                                             style="width: 42px; height: 42px;">
-                                            <i class="bi bi-snow"></i>
-                                        </div>
-
-                                        <div>
-                                            <small class="text-muted">Comfort</small>
-                                            <h6 class="fw-bold mb-0">Airconditioning</h6>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <div class="border rounded-4 p-3 h-100">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center"
-                                             style="width: 42px; height: 42px;">
-                                            <i class="bi bi-steering-wheel"></i>
-                                        </div>
-
-                                        <div>
-                                            <small class="text-muted">Handling</small>
-                                            <h6 class="fw-bold mb-0">Power Steering</h6>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
                         </div>
 
                         <!-- DESCRIPTION -->
@@ -315,16 +280,10 @@
                             <div class="card-body p-4">
 
                                 <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <div>
-                                        <h6 class="fw-bold mb-0">
-                                            <i class="bi bi-chat-left-text me-1"></i>
-                                            Recent Reviews
-                                        </h6>
-
-                                        <small class="text-muted">
-                                            See what renters are saying about this vehicle.
-                                        </small>
-                                    </div>
+                                    <h6 class="fw-bold mb-0">
+                                        <i class="bi bi-chat-left-text me-1"></i>
+                                        Recent Reviews
+                                    </h6>
 
                                     <span class="badge bg-light text-dark border">
                                         @Model.ReviewCount total
@@ -403,6 +362,15 @@
                         data-bs-dismiss="modal">
                     Close
                 </button>
+
+                <!-- IMPORTANT SS THIS:
+                     This sends the guest to the splash page where Sign Up and Sign In are available.
+                -->
+                <a href="/Index"
+                   class="btn btn-primary rounded-pill px-4">
+                    <i class="bi bi-person-plus me-1"></i>
+                    Join Us to Book
+                </a>
 
             </div>
 

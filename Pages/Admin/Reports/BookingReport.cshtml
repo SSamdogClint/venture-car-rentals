@@ -1,0 +1,322 @@
+﻿@page
+@model VentureCarRentals.Pages.Admin.Reports.BookingReportModel
+@{
+    ViewData["Title"] = "Booking Report";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-1">Booking Report</h3>
+            <p class="text-muted mb-0">
+                View booking reports by today, weekly, monthly, or overall period.
+            </p>
+        </div>
+
+        <a asp-page-handler="DownloadPdf"
+           asp-route-Period="@Model.Period"
+           asp-route-SearchTerm="@Model.SearchTerm"
+           class="btn btn-danger">
+            <i class="bi bi-file-earmark-pdf"></i>
+            Download PDF
+        </a>
+    </div>
+
+    <!-- PERIOD FILTER BUTTONS -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+
+                <div class="btn-group flex-wrap" role="group">
+                    <a asp-page="/Admin/Reports/BookingReport"
+                       asp-route-Period="today"
+                       class="btn @(Model.Period == "today" ? "btn-primary" : "btn-outline-primary")">
+                        Today
+                    </a>
+
+                    <a asp-page="/Admin/Reports/BookingReport"
+                       asp-route-Period="weekly"
+                       class="btn @(Model.Period == "weekly" ? "btn-primary" : "btn-outline-primary")">
+                        Weekly
+                    </a>
+
+                    <a asp-page="/Admin/Reports/BookingReport"
+                       asp-route-Period="monthly"
+                       class="btn @(Model.Period == "monthly" ? "btn-primary" : "btn-outline-primary")">
+                        Monthly
+                    </a>
+
+                    <a asp-page="/Admin/Reports/BookingReport"
+                       asp-route-Period="overall"
+                       class="btn @(Model.Period == "overall" ? "btn-primary" : "btn-outline-primary")">
+                        Overall
+                    </a>
+                </div>
+
+                <form method="get" class="d-flex flex-wrap gap-2">
+                    <input type="hidden" name="Period" value="@Model.Period" />
+
+                    <input type="text"
+                           name="SearchTerm"
+                           value="@Model.SearchTerm"
+                           class="form-control"
+                           placeholder="Search booking, customer, car..."
+                           style="min-width: 280px;" />
+
+                    <button type="submit" class="btn btn-dark">
+                        <i class="bi bi-search"></i>
+                    </button>
+
+                    <a asp-page="/Admin/Reports/BookingReport"
+                       asp-route-Period="@Model.Period"
+                       class="btn btn-light">
+                        Clear
+                    </a>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- STATISTICS CARDS -->
+    <div class="row g-3 mb-4">
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body">
+                    <p class="text-muted mb-1">Total Bookings</p>
+                    <h3 class="fw-bold mb-0">@Model.TotalBookings</h3>
+                    <small class="text-muted">@Model.PeriodTitle</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body">
+                    <p class="text-muted mb-1">Completed</p>
+                    <h3 class="fw-bold mb-0">@Model.CompletedBookings</h3>
+                    <small class="text-muted">Finished rental bookings</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body">
+                    <p class="text-muted mb-1">Cancelled</p>
+                    <h3 class="fw-bold mb-0">@Model.CancelledBookings</h3>
+                    <small class="text-muted">Cancelled booking records</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body">
+                    <p class="text-muted mb-1">Overdue</p>
+                    <h3 class="fw-bold mb-0">@Model.OverdueBookings</h3>
+                    <small class="text-muted">Live bookings past return time</small>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body">
+                    <p class="text-muted mb-1">Collected Amount</p>
+                    <h3 class="fw-bold mb-0 text-success">
+                        ₱@Model.CollectedAmount.ToString("N2")
+                    </h3>
+                    <small class="text-muted">Paid payments only</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body">
+                    <p class="text-muted mb-1">Total Booking Amount</p>
+                    <h3 class="fw-bold mb-0">
+                        ₱@Model.TotalBookingAmount.ToString("N2")
+                    </h3>
+                    <small class="text-muted">Total amount of shown bookings</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body">
+                    <p class="text-muted mb-1">Pending Amount</p>
+                    <h3 class="fw-bold mb-0 text-warning">
+                        ₱@Model.PendingAmount.ToString("N2")
+                    </h3>
+                    <small class="text-muted">Not paid and not cancelled</small>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- TABLE CARD -->
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body">
+
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                <div>
+                    <h5 class="fw-bold mb-0">@Model.PeriodTitle</h5>
+                    <small class="text-muted">
+                        Showing @Model.Bookings.Count booking record(s)
+                    </small>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Booking ID</th>
+                            <th>Customer</th>
+                            <th>Vehicle</th>
+                            <th>Schedule</th>
+                            <th>Booking Status</th>
+                            <th>Payment</th>
+                            <th>Agreement</th>
+                            <th class="text-end">Amount</th>
+                            <th>Created</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @if (Model.Bookings.Any())
+                        {
+                            foreach (var booking in Model.Bookings)
+                            {
+                                <tr>
+                                    <td>
+                                        <span class="fw-semibold">#@booking.BookingId</span>
+                                    </td>
+
+                                    <td>
+                                        <strong>@booking.CustomerName</strong>
+                                        <br />
+                                        <small class="text-muted">@booking.CustomerEmail</small>
+                                    </td>
+
+                                    <td>
+                                        <strong>@booking.VehicleName</strong>
+                                        <br />
+                                        <small class="text-muted">
+                                            @booking.VehicleCategory
+                                            @if (!string.IsNullOrWhiteSpace(booking.VehiclePlate))
+                                            {
+                                                <span> • @booking.VehiclePlate</span>
+                                            }
+                                        </small>
+                                    </td>
+
+                                    <td>
+                                        <strong>@booking.StartDate.ToString("MMM dd, yyyy")</strong>
+                                        <br />
+                                        <small class="text-muted">
+                                            @booking.StartDate.ToString("hh:mm tt") -
+                                            @booking.EndDate.ToString("MMM dd, yyyy hh:mm tt")
+                                        </small>
+                                    </td>
+
+                                    <td>
+                                        @if (booking.IsOverdue)
+                                        {
+                                            <span class="badge bg-danger">overdue</span>
+                                        }
+                                        else if (booking.BookingStatus == "pending")
+                                        {
+                                            <span class="badge bg-warning text-dark">pending</span>
+                                        }
+                                        else if (booking.BookingStatus == "approved")
+                                        {
+                                            <span class="badge bg-primary">upcoming</span>
+                                        }
+                                        else if (booking.BookingStatus == "started")
+                                        {
+                                            <span class="badge bg-success">live</span>
+                                        }
+                                        else if (booking.BookingStatus == "completed")
+                                        {
+                                            <span class="badge bg-dark">completed</span>
+                                        }
+                                        else if (booking.BookingStatus == "cancelled")
+                                        {
+                                            <span class="badge bg-secondary">cancelled</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-light text-dark border">
+                                                @booking.DisplayBookingStatus
+                                            </span>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        @if (booking.PaymentStatus == "paid")
+                                        {
+                                            <span class="badge bg-success">paid</span>
+                                        }
+                                        else if (booking.PaymentStatus == "refunded")
+                                        {
+                                            <span class="badge bg-danger">refunded</span>
+                                        }
+                                        else if (booking.PaymentStatus == "pending_admin_approval")
+                                        {
+                                            <span class="badge bg-warning text-dark">pending approval</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-light text-dark border">
+                                                @booking.DisplayPaymentStatus
+                                            </span>
+                                        }
+
+                                        <br />
+                                        <small class="text-muted">@booking.DisplayPaymentMethod</small>
+                                    </td>
+
+                                    <td>
+                                        <span class="badge bg-light text-dark border">
+                                            @booking.DisplayAgreementStatus
+                                        </span>
+                                    </td>
+
+                                    <td class="text-end">
+                                        ₱@booking.TotalPrice.ToString("N2")
+                                    </td>
+
+                                    <td>
+                                        @booking.CreatedAt.ToString("MMM dd, yyyy")
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="9" class="text-center text-muted py-5">
+                                    No booking records found for this report.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+</div>

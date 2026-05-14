@@ -112,7 +112,51 @@ namespace VentureCarRentals.Pages.Admin.Documents
 
             try
             {
+                /*
+                    IMPORTANT:
+                    Admin updates the status of one uploaded document.
+
+                    Status can be:
+                    - pending
+                    - approved
+                    - rejected
+                */
                 document.Status = Status;
+
+                var notificationTitle = Status switch
+                {
+                    "approved" => "Document Approved",
+                    "rejected" => "Document Rejected",
+                    _ => "Document Status Updated"
+                };
+
+                var notificationMessage = Status switch
+                {
+                    "approved" => $"Your {FormatDocType(document.DocType)} was approved by admin.",
+                    "rejected" => $"Your {FormatDocType(document.DocType)} was rejected by admin. Please upload an updated document.",
+                    _ => $"Your {FormatDocType(document.DocType)} status was updated to pending."
+                };
+
+                /*
+                    IMPORTANT:
+                    USER NOTIFICATION WHEN ADMIN UPDATES DOCUMENT STATUS
+
+                    This creates a notification for the customer.
+                    The user bell/dropdown will show it because:
+                    RecipientType = "user"
+                    UserId = document.UserId
+                */
+                _context.Notifications.Add(new Notification
+                {
+                    RecipientType = "user",
+                    UserId = document.UserId,
+                    Title = notificationTitle,
+                    Message = notificationMessage,
+                    Type = "document",
+                    TargetUrl = "/User/Documents/CompleteRequirements",
+                    IsRead = false,
+                    CreatedAt = DateTime.Now
+                });
 
                 await _context.SaveChangesAsync();
 
@@ -466,9 +510,16 @@ namespace VentureCarRentals.Pages.Admin.Documents
                 "pending" => "Users with incomplete approval of required documents",
                 "verified" => "Users with all required documents approved",
                 "rejected" => "Users with rejected required documents",
-                "expired" => "Users with expired required documents",
+                "expired" => "Expired Users with expired required documents",
                 _ => "All users for document verification"
             };
+        }
+
+        private string FormatDocType(string docType)
+        {
+            return docType
+                .Replace("_", " ")
+                .Trim();
         }
     }
 

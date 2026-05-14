@@ -1,15 +1,54 @@
-# Database
+# ================================
+# Visual Studio / .NET build files
+# ================================
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# ================================
+# SQLite database files
+# ================================
 *.db
 *.db-shm
 *.db-wal
+*.sqlite
+*.sqlite3
 
-# Build
-bin/
-obj/
+# ================================
+# Uploaded/generated files
+# ================================
+wwwroot/uploads/
+wwwroot/uploads/**
+wwwroot/rental-agreements/
+wwwroot/rental-agreements/**
+wwwroot/generated-agreements/
+wwwroot/generated-agreements/**
+wwwroot/agreements/
+wwwroot/agreements/**
 
-# Visual Studio
-.vs/
-*.user
-
-# Logs (optional but good)
+# ================================
+# Logs/temp files
+# ================================
 *.log
+*.tmp
+*.temp
+*.bak
+
+# ================================
+# OS files
+# ================================
+.DS_Store
+Thumbs.db
+
+# ================================
+# Secrets/local settings
+# ================================
+.env
+.env.*
+appsettings.Local.json
+appsettings.Production.json
+secrets.json

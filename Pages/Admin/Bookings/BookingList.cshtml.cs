@@ -11,19 +11,17 @@ namespace VentureCarRentals.Pages.Admin.Bookings
         private readonly AppDbContext _context;
         private readonly IWebHostEnvironment _environment;
 
-        /*
-            IMPORTANT:
-            This is the penalty rule used by the booking system.
-
-            Rule:
-            - If the customer is late for less than 45 minutes, no penalty will be charged.
-            - If the customer is late for 45 minutes or more, the system charges ₱200 per started hour.
-
-            Example:
-            - 30 minutes late = ₱0
-            - 45 minutes late = ₱200
-            - 1 hour 10 minutes late = ₱400 because it counts as 2 started hours
-        */
+        // IMPORTANT SS THIS:
+        // This is the penalty rule used by the booking system.
+        //
+        // Rule:
+        // - If the customer is late for less than 45 minutes, no penalty will be charged.
+        // - If the customer is late for 45 minutes or more, the system charges ₱200 per started hour.
+        //
+        // Example:
+        // - 30 minutes late = ₱0
+        // - 45 minutes late = ₱200
+        // - 1 hour 10 minutes late = ₱400 because it counts as 2 started hours
         private const double PenaltyPerHour = 200;
         private const int PenaltyGraceMinutes = 45;
 
@@ -32,7 +30,7 @@ namespace VentureCarRentals.Pages.Admin.Bookings
             // Database context for accessing Bookings, Cars, Payments, Penalties, Notifications, etc.
             _context = context;
 
-            // Web host environment is used for saving uploaded signed agreement files inside wwwroot.
+            // Used for saving uploaded signed rental agreement files inside wwwroot.
             _environment = environment;
         }
 
@@ -43,35 +41,29 @@ namespace VentureCarRentals.Pages.Admin.Bookings
         [BindProperty(SupportsGet = true)]
         public string Tab { get; set; } = "live";
 
-        /*
-            IMPORTANT:
-            ViewMode controls what appears on the right section of the admin booking page.
-
-            bookings = normal table and tabs
-            stats = statistics graph panel
-        */
+        // IMPORTANT SS THIS:
+        // ViewMode controls what appears on the right section of the admin booking page.
+        //
+        // bookings = normal table and tabs
+        // stats = statistics graph panel
         [BindProperty(SupportsGet = true)]
         public string ViewMode { get; set; } = "bookings";
 
-        /*
-            IMPORTANT:
-            StatType controls which graph is shown.
-
-            income = income graph
-            status = booking status comparison graph
-        */
+        // IMPORTANT SS THIS:
+        // StatType controls which graph is shown.
+        //
+        // income = income graph
+        // status = booking status comparison graph
         [BindProperty(SupportsGet = true)]
         public string StatType { get; set; } = "status";
 
-        /*
-            IMPORTANT:
-            StatRange controls the graph date range.
-
-            today = hourly buckets
-            weekly = last 7 days
-            monthly = current month days
-            overall = last 12 months
-        */
+        // IMPORTANT SS THIS:
+        // StatRange controls the graph date range.
+        //
+        // today = hourly buckets
+        // weekly = last 7 days
+        // monthly = current month days
+        // overall = last 12 months
         [BindProperty(SupportsGet = true)]
         public string StatRange { get; set; } = "today";
 
@@ -83,7 +75,9 @@ namespace VentureCarRentals.Pages.Admin.Bookings
         [BindProperty]
         public int BookingId { get; set; }
 
-        // Uploaded signed rental agreement file.
+        // IMPORTANT SS THIS:
+        // This uploaded file is now used directly by Approve Booking.
+        // The admin no longer needs to click a separate Upload Agreement button.
         [BindProperty]
         public IFormFile? SignedAgreementFile { get; set; }
 
@@ -109,111 +103,18 @@ namespace VentureCarRentals.Pages.Admin.Bookings
         public string CompletedChartDataJson { get; set; } = "[]";
         public string CancelledChartDataJson { get; set; } = "[]";
 
+        public bool IsRefundEligible { get; set; }
+        public bool HasRefund { get; set; }
+
+        public string RefundStatus { get; set; } = "";
+        public double RefundAmount { get; set; }
+        public double NonRefundableAmount { get; set; }
+        public DateTime? RefundedAt { get; set; }
+
         public async Task OnGetAsync()
         {
             // Loads table data, stat cards, and graph data.
             await LoadPageDataAsync();
-        }
-
-        public async Task<IActionResult> OnPostUploadAgreementAsync()
-        {
-            // Checks if admin selected a file.
-            if (SignedAgreementFile == null || SignedAgreementFile.Length == 0)
-            {
-                TempData["Error"] = "Please select a signed agreement file before uploading.";
-                return RedirectToPage(new { tab = "pending" });
-            }
-
-            // Only allow common document/image types for signed agreements.
-            var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png" };
-            var extension = Path.GetExtension(SignedAgreementFile.FileName).ToLower();
-
-            if (!allowedExtensions.Contains(extension))
-            {
-                TempData["Error"] = "Invalid file type. Only PDF, JPG, JPEG, and PNG files are allowed.";
-                return RedirectToPage(new { tab = "pending" });
-            }
-
-            // Limit upload to 5 MB.
-            var maxFileSize = 5 * 1024 * 1024;
-
-            if (SignedAgreementFile.Length > maxFileSize)
-            {
-                TempData["Error"] = "File size is too large. Maximum allowed size is 5 MB.";
-                return RedirectToPage(new { tab = "pending" });
-            }
-
-            // Find the booking where the signed agreement belongs.
-            var booking = await _context.Bookings
-                .FirstOrDefaultAsync(b => b.BookingId == BookingId);
-
-            if (booking == null)
-            {
-                TempData["Error"] = "Booking not found.";
-                return RedirectToPage(new { tab = "pending" });
-            }
-
-            // Signed agreement upload is only allowed for pending bookings.
-            if (!SameStatus(booking.Status, "pending"))
-            {
-                TempData["Error"] = "Only pending bookings can upload a signed agreement.";
-                return RedirectToPage(new { tab = "pending" });
-            }
-
-            // Find rental agreement record connected to this booking.
-            var agreement = await _context.RentalAgreements
-                .FirstOrDefaultAsync(a => a.BookingId == BookingId);
-
-            if (agreement == null)
-            {
-                TempData["Error"] = "Rental agreement record not found for this booking.";
-                return RedirectToPage(new { tab = "pending" });
-            }
-
-            try
-            {
-                // Get wwwroot path.
-                var webRootPath = _environment.WebRootPath;
-
-                if (string.IsNullOrWhiteSpace(webRootPath))
-                {
-                    TempData["Error"] = "Web root path is not available. Please check your wwwroot folder.";
-                    return RedirectToPage(new { tab = "pending" });
-                }
-
-                // Create upload folder for signed agreements.
-                var uploadFolder = Path.Combine(webRootPath, "uploads", "rental-agreements", "signed");
-
-                if (!Directory.Exists(uploadFolder))
-                {
-                    Directory.CreateDirectory(uploadFolder);
-                }
-
-                // Create unique file name to avoid duplicate file name conflict.
-                var fileName = $"signed_agreement_booking_{BookingId}_{Guid.NewGuid()}{extension}";
-                var filePath = Path.Combine(uploadFolder, fileName);
-
-                // Save file into wwwroot/uploads/rental-agreements/signed.
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await SignedAgreementFile.CopyToAsync(stream);
-                }
-
-                // Save uploaded file URL into the agreement record.
-                agreement.SignedAgreementFileUrl = $"/uploads/rental-agreements/signed/{fileName}";
-                agreement.SignedUploadedAt = DateTime.Now;
-                agreement.Status = "signed_uploaded";
-
-                await _context.SaveChangesAsync();
-
-                TempData["Success"] = "Signed rental agreement uploaded successfully.";
-                return RedirectToPage(new { tab = "pending" });
-            }
-            catch
-            {
-                TempData["Error"] = "Something went wrong while uploading the signed agreement.";
-                return RedirectToPage(new { tab = "pending" });
-            }
         }
 
         public async Task<IActionResult> OnPostApproveBookingAsync()
@@ -246,10 +147,26 @@ namespace VentureCarRentals.Pages.Admin.Bookings
                 return RedirectToPage(new { tab = "pending" });
             }
 
-            // Admin must upload signed agreement before approval.
+            // IMPORTANT SS THIS:
+            // This uploads the signed agreement at the same time the admin clicks Approve Booking.
+            // This replaces the old separate Upload Agreement button.
+            if (SignedAgreementFile != null && SignedAgreementFile.Length > 0)
+            {
+                var uploadResult = await SaveSignedAgreementFileAsync(agreement, booking.BookingId);
+
+                if (!uploadResult.Success)
+                {
+                    TempData["Error"] = uploadResult.ErrorMessage;
+                    return RedirectToPage(new { tab = "pending" });
+                }
+            }
+
+            // IMPORTANT SS THIS:
+            // Booking cannot be approved unless a signed agreement file already exists
+            // or the admin selected a file during approval.
             if (string.IsNullOrWhiteSpace(agreement.SignedAgreementFileUrl))
             {
-                TempData["Error"] = "Please upload the signed rental agreement before approving this booking.";
+                TempData["Error"] = "Please select and upload the signed rental agreement before approving this booking.";
                 return RedirectToPage(new { tab = "pending" });
             }
 
@@ -263,6 +180,16 @@ namespace VentureCarRentals.Pages.Admin.Bookings
             if (SameStatus(booking.Car.Status, "maintenance") || SameStatus(booking.Car.Status, "inactive"))
             {
                 TempData["Error"] = "This car is currently not available for booking.";
+                return RedirectToPage(new { tab = "pending" });
+            }
+
+            // Find the payment connected to this booking.
+            var payment = await _context.Payments
+                .FirstOrDefaultAsync(p => p.BookingId == booking.BookingId);
+
+            if (payment == null)
+            {
+                TempData["Error"] = "Payment record not found. Booking cannot be approved.";
                 return RedirectToPage(new { tab = "pending" });
             }
 
@@ -281,36 +208,38 @@ namespace VentureCarRentals.Pages.Admin.Bookings
                 return RedirectToPage(new { tab = "pending" });
             }
 
-            /*
-                IMPORTANT:
-                This is where the admin approves the booking.
-
-                Status flow:
-                pending  -> approved
-
-                After this, the booking appears under the Upcoming Bookings tab.
-                It will not become live yet until admin clicks Start Booking.
-            */
+            // IMPORTANT SS THIS:
+            // This is where the admin officially approves the booking.
+            //
+            // Status flow:
+            // pending -> approved
+            //
+            // After this, the booking appears under Upcoming Bookings.
+            // It will not become live until admin clicks Start Booking.
             booking.Status = "approved";
 
-            // Update the rental agreement status.
+            // IMPORTANT SS THIS:
+            // The agreement becomes approved only after the signed file exists.
             agreement.Status = "approved";
             agreement.ApprovedAt = DateTime.Now;
 
             // Mark the car as booked because it already has an approved schedule.
             booking.Car.Status = "booked";
 
-            /*
-                IMPORTANT:
-                USER NOTIFICATION WHEN BOOKING IS APPROVED
+            // IMPORTANT SS THIS:
+            // Any payment method automatically becomes paid after admin approval.
+            //
+            // This applies to:
+            // - cash pickup
+            // - saved card pickup
+            // - gcash or any other future method
+            //
+            // This prevents Payment Details and Transactions from still showing
+            // pending_admin_approval after the booking is already approved.
+            payment.PaymentStatus = "paid";
+            payment.PaidAt = DateTime.Now;
 
-                This creates a notification record for the customer.
-                The user notification bell reads from the Notifications table every 10 seconds.
-                If this record is not inserted, the user will not receive any notification.
-
-                RecipientType = "user" means this notification belongs to a customer.
-                UserId = booking.UserId means only this customer can see it.
-            */
+            // Notify the customer that the booking has been approved.
             _context.Notifications.Add(new Notification
             {
                 RecipientType = "user",
@@ -323,10 +252,10 @@ namespace VentureCarRentals.Pages.Admin.Bookings
                 CreatedAt = DateTime.Now
             });
 
-            // Saves booking update, car update, agreement update, and notification insert.
+            // Saves booking update, car update, agreement update, payment update, and notification insert.
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = "Booking approved successfully. It is now in Upcoming Bookings.";
+            TempData["Success"] = "Booking approved successfully. Signed agreement uploaded and payment marked as paid.";
             return RedirectToPage(new { tab = "upcoming" });
         }
 
@@ -378,16 +307,14 @@ namespace VentureCarRentals.Pages.Admin.Bookings
                 return RedirectToPage(new { tab = "upcoming" });
             }
 
-            /*
-                IMPORTANT:
-                Admin manually starts the booking.
-
-                Status flow:
-                approved -> started
-
-                This is why the live booking will not start automatically.
-                It only starts when admin clicks the Start Booking button.
-            */
+            // IMPORTANT SS THIS:
+            // Admin manually starts the booking.
+            //
+            // Status flow:
+            // approved -> started
+            //
+            // This is why the live booking will not start automatically.
+            // It only starts when admin clicks the Start Booking button.
             booking.Status = "started";
 
             // Save the actual start time as the time admin clicked Start Booking.
@@ -396,12 +323,7 @@ namespace VentureCarRentals.Pages.Admin.Bookings
             // Keep the car as booked while the customer is using it.
             booking.Car.Status = "booked";
 
-            /*
-                IMPORTANT:
-                USER NOTIFICATION WHEN BOOKING STARTS
-
-                This tells the customer that the booking is now live.
-            */
+            // Notify the customer that the booking is now live.
             _context.Notifications.Add(new Notification
             {
                 RecipientType = "user",
@@ -444,13 +366,11 @@ namespace VentureCarRentals.Pages.Admin.Bookings
             var agreement = await _context.RentalAgreements
                 .FirstOrDefaultAsync(a => a.BookingId == BookingId);
 
-            /*
-                IMPORTANT:
-                Admin cancels the booking.
-
-                Status flow:
-                pending/approved -> cancelled
-            */
+            // IMPORTANT SS THIS:
+            // Admin cancels the booking.
+            //
+            // Status flow:
+            // pending/approved -> cancelled
             booking.Status = "cancelled";
 
             // Cancel rental agreement too.
@@ -467,12 +387,7 @@ namespace VentureCarRentals.Pages.Admin.Bookings
                 booking.Car.Status = "available";
             }
 
-            /*
-                IMPORTANT:
-                USER NOTIFICATION WHEN BOOKING IS CANCELLED
-
-                This tells the customer that admin cancelled the booking.
-            */
+            // Notify the customer that admin cancelled the booking.
             _context.Notifications.Add(new Notification
             {
                 RecipientType = "user",
@@ -513,25 +428,21 @@ namespace VentureCarRentals.Pages.Admin.Bookings
                 return RedirectToPage(new { tab = "live" });
             }
 
-            /*
-                IMPORTANT:
-                This calculates late return penalty.
-
-                The function GetOverdueHours() already includes the 45-minute grace period.
-                If the customer is less than 45 minutes late, overdueHours will be 0.
-            */
+            // IMPORTANT SS THIS:
+            // This calculates late return penalty.
+            //
+            // The function GetOverdueHours() already includes the 45-minute grace period.
+            // If the customer is less than 45 minutes late, overdueHours will be 0.
             var overdueHours = GetOverdueHours(booking.EndDate, now);
 
             // Final penalty amount based on overdue hours.
             var penaltyAmount = overdueHours * PenaltyPerHour;
 
-            /*
-                IMPORTANT:
-                Admin marks the vehicle as returned.
-
-                Status flow:
-                started -> completed
-            */
+            // IMPORTANT SS THIS:
+            // Admin marks the vehicle as returned.
+            //
+            // Status flow:
+            // started -> completed
             booking.Status = "completed";
 
             // Once returned, the car becomes available again unless inactive/maintenance.
@@ -542,12 +453,7 @@ namespace VentureCarRentals.Pages.Admin.Bookings
                 booking.Car.Status = "available";
             }
 
-            /*
-                IMPORTANT:
-                USER NOTIFICATION WHEN BOOKING IS COMPLETED
-
-                This tells the customer that the rental transaction is finished.
-            */
+            // Notify the customer that the booking is completed.
             _context.Notifications.Add(new Notification
             {
                 RecipientType = "user",
@@ -591,13 +497,7 @@ namespace VentureCarRentals.Pages.Admin.Bookings
                     existingPenalty.CreatedAt = DateTime.Now;
                 }
 
-                /*
-                    IMPORTANT:
-                    ADMIN NOTIFICATION WHEN PENALTY IS CREATED
-
-                    RecipientType = "admin"
-                    UserId = null because this notification is for the admin side.
-                */
+                // Notify admin that an unpaid penalty was created.
                 _context.Notifications.Add(new Notification
                 {
                     RecipientType = "admin",
@@ -610,12 +510,7 @@ namespace VentureCarRentals.Pages.Admin.Bookings
                     CreatedAt = DateTime.Now
                 });
 
-                /*
-                    IMPORTANT:
-                    USER NOTIFICATION WHEN PENALTY IS CREATED
-
-                    This tells the customer that a late return penalty was charged.
-                */
+                // Notify customer that a late return penalty was charged.
                 _context.Notifications.Add(new Notification
                 {
                     RecipientType = "user",
@@ -661,13 +556,11 @@ namespace VentureCarRentals.Pages.Admin.Bookings
                 return RedirectToPage(new { tab = "unpaid" });
             }
 
-            /*
-                IMPORTANT:
-                Admin confirms that the customer already paid the penalty.
-
-                Penalty status flow:
-                unpaid -> paid
-            */
+            // IMPORTANT SS THIS:
+            // Admin confirms that the customer already paid the penalty.
+            //
+            // Penalty status flow:
+            // unpaid -> paid
             penalty.Status = "paid";
             penalty.PaidAt = DateTime.Now;
 
@@ -677,12 +570,7 @@ namespace VentureCarRentals.Pages.Admin.Bookings
 
             if (booking != null)
             {
-                /*
-                    IMPORTANT:
-                    USER NOTIFICATION WHEN PENALTY PAYMENT IS CONFIRMED
-
-                    This tells the customer that admin already marked the penalty as paid.
-                */
+                // Notify the customer that the penalty payment was confirmed.
                 _context.Notifications.Add(new Notification
                 {
                     RecipientType = "user",
@@ -700,6 +588,88 @@ namespace VentureCarRentals.Pages.Admin.Bookings
 
             TempData["Success"] = "Penalty payment marked as paid successfully.";
             return RedirectToPage(new { tab = "unpaid" });
+        }
+
+        // IMPORTANT SS THIS:
+        // This helper saves the selected signed agreement file during Approve Booking.
+        // It validates:
+        // - file exists
+        // - file extension
+        // - file size
+        // - wwwroot path
+        // Then it saves the file URL in RentalAgreement.
+        private async Task<FileUploadResult> SaveSignedAgreementFileAsync(RentalAgreement agreement, int bookingId)
+        {
+            if (SignedAgreementFile == null || SignedAgreementFile.Length == 0)
+            {
+                return new FileUploadResult
+                {
+                    Success = false,
+                    ErrorMessage = "Please select a signed agreement file before approving this booking."
+                };
+            }
+
+            var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png" };
+            var extension = Path.GetExtension(SignedAgreementFile.FileName).ToLower();
+
+            if (!allowedExtensions.Contains(extension))
+            {
+                return new FileUploadResult
+                {
+                    Success = false,
+                    ErrorMessage = "Invalid file type. Only PDF, JPG, JPEG, and PNG files are allowed."
+                };
+            }
+
+            // Limit upload to 5 MB.
+            var maxFileSize = 5 * 1024 * 1024;
+
+            if (SignedAgreementFile.Length > maxFileSize)
+            {
+                return new FileUploadResult
+                {
+                    Success = false,
+                    ErrorMessage = "File size is too large. Maximum allowed size is 5 MB."
+                };
+            }
+
+            var webRootPath = _environment.WebRootPath;
+
+            if (string.IsNullOrWhiteSpace(webRootPath))
+            {
+                return new FileUploadResult
+                {
+                    Success = false,
+                    ErrorMessage = "Web root path is not available. Please check your wwwroot folder."
+                };
+            }
+
+            var uploadFolder = Path.Combine(webRootPath, "uploads", "rental-agreements", "signed");
+
+            if (!Directory.Exists(uploadFolder))
+            {
+                Directory.CreateDirectory(uploadFolder);
+            }
+
+            var fileName = $"signed_agreement_booking_{bookingId}_{Guid.NewGuid()}{extension}";
+            var filePath = Path.Combine(uploadFolder, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await SignedAgreementFile.CopyToAsync(stream);
+            }
+
+            // IMPORTANT SS THIS:
+            // This connects the uploaded signed agreement file to the rental agreement record.
+            agreement.SignedAgreementFileUrl = $"/uploads/rental-agreements/signed/{fileName}";
+            agreement.SignedUploadedAt = DateTime.Now;
+            agreement.Status = "signed_uploaded";
+
+            return new FileUploadResult
+            {
+                Success = true,
+                ErrorMessage = ""
+            };
         }
 
         private async Task LoadPageDataAsync()
@@ -720,33 +690,27 @@ namespace VentureCarRentals.Pages.Admin.Bookings
                 .OrderByDescending(b => b.CreatedAt)
                 .ToListAsync();
 
-            // Get all booking IDs for related table queries.
             var bookingIds = allBookings
                 .Select(b => b.BookingId)
                 .ToList();
 
-            // Load agreements connected to the current bookings.
             var agreements = await _context.RentalAgreements
                 .Where(a => bookingIds.Contains(a.BookingId))
                 .ToListAsync();
 
-            // Load payments connected to the current bookings.
             var payments = await _context.Payments
                 .Where(p => bookingIds.Contains(p.BookingId))
                 .ToListAsync();
 
-            // Load penalties connected to the current bookings.
             var penalties = await _context.Penalties
                 .Where(p => bookingIds.Contains(p.BookingId))
                 .ToListAsync();
 
-            // Get completed bookings that still have unpaid penalty.
             var unpaidPenaltyBookingIds = penalties
                 .Where(p => p.Amount > 0 && !SameStatus(p.Status, "paid"))
                 .Select(p => p.BookingId)
                 .ToHashSet();
 
-            // Count values for stat cards.
             LiveCount = allBookings.Count(b => SameStatus(b.Status, "started"));
             UpcomingCount = allBookings.Count(b => SameStatus(b.Status, "approved"));
             PendingCount = allBookings.Count(b => SameStatus(b.Status, "pending"));
@@ -754,13 +718,11 @@ namespace VentureCarRentals.Pages.Admin.Bookings
             CancelledCount = allBookings.Count(b => SameStatus(b.Status, "cancelled"));
             OverdueCount = allBookings.Count(b => SameStatus(b.Status, "started") && b.EndDate < now);
 
-            // Count completed bookings with unpaid penalties.
             UnpaidPenaltyCount = allBookings.Count(b =>
                 SameStatus(b.Status, "completed") &&
                 unpaidPenaltyBookingIds.Contains(b.BookingId)
             );
 
-            // Find agreements approved today.
             var todayApprovedBookingIds = agreements
                 .Where(a =>
                     a.ApprovedAt.HasValue &&
@@ -770,7 +732,6 @@ namespace VentureCarRentals.Pages.Admin.Bookings
                 .Select(a => a.BookingId)
                 .ToHashSet();
 
-            // Calculate today's income from bookings approved today.
             TodayIncome = allBookings
                 .Where(b =>
                     todayApprovedBookingIds.Contains(b.BookingId) &&
@@ -782,14 +743,11 @@ namespace VentureCarRentals.Pages.Admin.Bookings
                 )
                 .Sum(b => b.TotalPrice);
 
-            // Build graph/chart data.
             BuildChartData(allBookings, agreements, penalties, now);
 
-            // Normalize selected tab.
             var selectedTab = NormalizeTab(Tab);
             Tab = selectedTab;
 
-            // Filter bookings based on selected tab.
             IEnumerable<Booking> filteredBookings = selectedTab switch
             {
                 "pending" => allBookings.Where(b => SameStatus(b.Status, "pending")),
@@ -807,7 +765,6 @@ namespace VentureCarRentals.Pages.Admin.Bookings
                 _ => allBookings.Where(b => SameStatus(b.Status, "started"))
             };
 
-            // Apply search filter.
             if (!string.IsNullOrWhiteSpace(SearchTerm))
             {
                 var keyword = SearchTerm.Trim().ToLower();
@@ -820,18 +777,14 @@ namespace VentureCarRentals.Pages.Admin.Bookings
                 );
             }
 
-            // Convert Booking database records into AdminBookingListItem view models.
             Bookings = filteredBookings.Select(b =>
             {
                 var agreement = agreements.FirstOrDefault(a => a.BookingId == b.BookingId);
                 var payment = payments.FirstOrDefault(p => p.BookingId == b.BookingId);
                 var savedPenalty = penalties.FirstOrDefault(p => p.BookingId == b.BookingId);
 
-                // Calculate live overdue penalty preview for started bookings.
                 var liveOverdueHours = GetOverdueHours(b.EndDate, now);
                 var livePenaltyAmount = liveOverdueHours * PenaltyPerHour;
-
-                // Check if booking is already completed.
                 var isCompleted = SameStatus(b.Status, "completed");
 
                 return new AdminBookingListItem
@@ -877,32 +830,16 @@ namespace VentureCarRentals.Pages.Admin.Bookings
             }).ToList();
         }
 
-        /*
-            IMPORTANT:
-            This method builds the data used by Chart.js.
-
-            It creates labels and values for:
-            - Income chart
-            - Live booking line
-            - Upcoming booking line
-            - Overdue booking line
-            - Unpaid penalty line
-            - Completed booking line
-            - Cancelled booking line
-        */
         private void BuildChartData(
             List<Booking> allBookings,
             List<RentalAgreement> agreements,
             List<Penalty> penalties,
             DateTime now)
         {
-            // Build the date buckets depending on selected range.
             var buckets = BuildDateBuckets(now, StatRange);
 
-            // Chart labels shown at the bottom of the graph.
             var labels = buckets.Select(b => b.Label).ToList();
 
-            // Chart data containers.
             var incomeData = new List<double>();
             var liveData = new List<int>();
             var upcomingData = new List<int>();
@@ -913,7 +850,6 @@ namespace VentureCarRentals.Pages.Admin.Bookings
 
             foreach (var bucket in buckets)
             {
-                // Get booking IDs approved inside this date bucket.
                 var approvedIds = agreements
                     .Where(a =>
                         a.ApprovedAt.HasValue &&
@@ -923,7 +859,6 @@ namespace VentureCarRentals.Pages.Admin.Bookings
                     .Select(a => a.BookingId)
                     .ToHashSet();
 
-                // Income data for this bucket.
                 incomeData.Add(allBookings
                     .Where(b =>
                         approvedIds.Contains(b.BookingId) &&
@@ -935,38 +870,32 @@ namespace VentureCarRentals.Pages.Admin.Bookings
                     )
                     .Sum(b => b.TotalPrice));
 
-                // Live booking count for this bucket.
                 liveData.Add(allBookings.Count(b =>
                     SameStatus(b.Status, "started") &&
                     b.StartDate >= bucket.Start &&
                     b.StartDate < bucket.End));
 
-                // Upcoming booking count for this bucket.
                 upcomingData.Add(allBookings.Count(b =>
                     SameStatus(b.Status, "approved") &&
                     b.CreatedAt >= bucket.Start &&
                     b.CreatedAt < bucket.End));
 
-                // Overdue booking count for this bucket.
                 overdueData.Add(allBookings.Count(b =>
                     SameStatus(b.Status, "started") &&
                     b.EndDate < now &&
                     b.EndDate >= bucket.Start &&
                     b.EndDate < bucket.End));
 
-                // Completed booking count for this bucket.
                 completedData.Add(allBookings.Count(b =>
                     SameStatus(b.Status, "completed") &&
                     b.EndDate >= bucket.Start &&
                     b.EndDate < bucket.End));
 
-                // Cancelled booking count for this bucket.
                 cancelledData.Add(allBookings.Count(b =>
                     SameStatus(b.Status, "cancelled") &&
                     b.CreatedAt >= bucket.Start &&
                     b.CreatedAt < bucket.End));
 
-                // Unpaid penalty count for this bucket.
                 var unpaidPenaltyIds = penalties
                     .Where(p =>
                         p.Amount > 0 &&
@@ -979,7 +908,6 @@ namespace VentureCarRentals.Pages.Admin.Bookings
                 unpaidPenaltyData.Add(unpaidPenaltyIds.Count);
             }
 
-            // Convert all chart data into JSON strings for Chart.js.
             ChartLabelsJson = ToJson(labels);
             IncomeChartDataJson = ToJson(incomeData);
             LiveChartDataJson = ToJson(liveData);
@@ -994,7 +922,6 @@ namespace VentureCarRentals.Pages.Admin.Bookings
         {
             var buckets = new List<ChartDateBucket>();
 
-            // Today graph uses 4-hour intervals.
             if (range == "today")
             {
                 var today = DateTime.Today;
@@ -1015,7 +942,6 @@ namespace VentureCarRentals.Pages.Admin.Bookings
                 return buckets;
             }
 
-            // Weekly graph uses last 7 days.
             if (range == "weekly")
             {
                 var startOfWeek = DateTime.Today.AddDays(-6);
@@ -1036,7 +962,6 @@ namespace VentureCarRentals.Pages.Admin.Bookings
                 return buckets;
             }
 
-            // Monthly graph uses every day of the current month.
             if (range == "monthly")
             {
                 var startOfMonth = new DateTime(now.Year, now.Month, 1);
@@ -1058,7 +983,6 @@ namespace VentureCarRentals.Pages.Admin.Bookings
                 return buckets;
             }
 
-            // Overall graph uses last 12 months.
             var firstMonth = new DateTime(now.Year, now.Month, 1).AddMonths(-11);
 
             for (var i = 0; i < 12; i++)
@@ -1077,13 +1001,11 @@ namespace VentureCarRentals.Pages.Admin.Bookings
             return buckets;
         }
 
-        // Converts C# list into JSON string.
         private static string ToJson<T>(List<T> values)
         {
             return System.Text.Json.JsonSerializer.Serialize(values);
         }
 
-        // Makes sure only valid tab names are accepted.
         private static string NormalizeTab(string? tab)
         {
             return tab?.ToLower().Trim() switch
@@ -1096,7 +1018,6 @@ namespace VentureCarRentals.Pages.Admin.Bookings
             };
         }
 
-        // Makes sure view mode is either bookings or stats.
         private static string NormalizeViewMode(string? viewMode)
         {
             return viewMode?.ToLower().Trim() == "stats"
@@ -1104,7 +1025,6 @@ namespace VentureCarRentals.Pages.Admin.Bookings
                 : "bookings";
         }
 
-        // Makes sure stat type is either income or status.
         private static string NormalizeStatType(string? statType)
         {
             return statType?.ToLower().Trim() switch
@@ -1114,7 +1034,6 @@ namespace VentureCarRentals.Pages.Admin.Bookings
             };
         }
 
-        // Makes sure stat range is valid.
         private static string NormalizeStatRange(string? statRange)
         {
             return statRange?.ToLower().Trim() switch
@@ -1126,7 +1045,6 @@ namespace VentureCarRentals.Pages.Admin.Bookings
             };
         }
 
-        // Converts status into lowercase format.
         private static string NormalizeStatus(string? status)
         {
             return string.IsNullOrWhiteSpace(status)
@@ -1134,20 +1052,11 @@ namespace VentureCarRentals.Pages.Admin.Bookings
                 : status.ToLower().Trim();
         }
 
-        // Compares status safely and ignores uppercase/lowercase differences.
         private static bool SameStatus(string? value, string expected)
         {
             return string.Equals(value, expected, StringComparison.OrdinalIgnoreCase);
         }
 
-        /*
-            IMPORTANT:
-            This method calculates penalty hours.
-
-            It applies the 45-minute grace period.
-            If the customer is less than 45 minutes late, it returns 0.
-            If the customer is 45 minutes or more late, it rounds up the hours.
-        */
         private static int GetOverdueHours(DateTime endDate, DateTime now)
         {
             if (now <= endDate)
@@ -1165,12 +1074,10 @@ namespace VentureCarRentals.Pages.Admin.Bookings
             return (int)Math.Ceiling(overdueTime.TotalHours);
         }
 
-        // Converts database booking status into display text.
         private static string GetDisplayStatus(string? status, DateTime endDate, DateTime now)
         {
             var normalizedStatus = NormalizeStatus(status);
 
-            // A started booking becomes visually overdue if the end date already passed.
             if (normalizedStatus == "started" && endDate < now)
             {
                 return "Overdue";
@@ -1228,5 +1135,11 @@ namespace VentureCarRentals.Pages.Admin.Bookings
         public string Label { get; set; } = "";
         public DateTime Start { get; set; }
         public DateTime End { get; set; }
+    }
+
+    public class FileUploadResult
+    {
+        public bool Success { get; set; }
+        public string ErrorMessage { get; set; } = "";
     }
 }

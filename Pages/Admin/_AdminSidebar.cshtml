@@ -2,7 +2,9 @@
     var currentPage = ViewContext.RouteData.Values["page"]?.ToString() ?? "";
 }
 
-<aside class="admin-sidebar">
+<div id="adminSidebarOverlay" class="admin-sidebar-overlay" onclick="closeAdminSidebar()"></div>
+
+<aside id="adminSidebar" class="admin-sidebar">
     <div class="brand-box">
         <img src="~/images/logo.png" asp-append-version="true" alt="Venture Car Rentals Logo" class="admin-logo" />
         <span>CAR RENTALS</span>
@@ -54,11 +56,7 @@
 
         <small>Report</small>
 
-        <a class="@(currentPage == "/Admin/Payments" ? "active" : "")" asp-page="/Admin/Payments">
-            <i class="bi bi-credit-card"></i> Payment Details
-        </a>
-
-        <a class="@(currentPage == "/Admin/Transactions" ? "active" : "")" asp-page="/Admin/Transactions">
+        <a class="@(currentPage.StartsWith("/Admin/Transactions") ? "active" : "")" asp-page="/Admin/Transactions/Index">
             <i class="bi bi-arrow-left-right"></i> Transactions
         </a>
 

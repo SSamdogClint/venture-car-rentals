@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using VentureCarRentals.Data;
+using VentureCarRentals.Helpers;
 using VentureCarRentals.Models;
 
 namespace VentureCarRentals.Pages.User.Cars
@@ -66,20 +67,33 @@ namespace VentureCarRentals.Pages.User.Cars
 
             if (verificationStatus == "needs_requirements")
             {
-                return RedirectToPage("/User/Documents/CompleteRequirements", new
-                {
-                    carId = CarId,
-                    borrowDate = BorrowDate,
-                    borrowTime = BorrowTime,
-                    returnDate = ReturnDate,
-                    returnTime = ReturnTime
-                });
+                return RedirectToProfile();
+            }
+
+            if (verificationStatus == "underage")
+            {
+                TempData["Error"] = AgeValidationHelper.UnderAgeMessage;
+                return RedirectToProfile();
             }
 
             if (verificationStatus == "pending")
             {
-                TempData["VerificationSubmitted"] = "Your verification is still pending. Please wait for 30 minutes to 1 day while the admin reviews your submitted requirements.";
+                TempData["VerificationSubmitted"] =
+                    "Your verification is still pending. Please wait for 30 minutes to 1 day while the admin reviews your submitted requirements.";
+
                 return RedirectToPage("/User/Home");
+            }
+
+            if (verificationStatus == "rejected")
+            {
+                TempData["Error"] = "One or more of your verification documents were rejected. Please update your documents.";
+                return RedirectToProfile();
+            }
+
+            if (verificationStatus == "expired")
+            {
+                TempData["Error"] = "One or more of your verification documents are expired. Please renew your documents.";
+                return RedirectToProfile();
             }
 
             if (verificationStatus != "verified")
@@ -113,7 +127,7 @@ namespace VentureCarRentals.Pages.User.Cars
                 return RedirectToPage("/User/Cars/BrowseCars");
             }
 
-            TotalPrice = TotalDays * (double)Car.PricePerDay;
+            TotalPrice = TotalDays * Car.PricePerDay;
 
             return Page();
         }
@@ -143,20 +157,38 @@ namespace VentureCarRentals.Pages.User.Cars
 
             if (verificationStatus == "needs_requirements")
             {
-                return RedirectToPage("/User/Documents/CompleteRequirements", new
-                {
-                    carId = CarId,
-                    borrowDate = BorrowDate,
-                    borrowTime = BorrowTime,
-                    returnDate = ReturnDate,
-                    returnTime = ReturnTime
-                });
+                /*
+                    IMPORTANT FIX:
+                    Old route was /User/Documents/CompleteRequirements.
+                    Verification is now inside /User/Profile/Index.
+                */
+                return RedirectToProfile();
+            }
+
+            if (verificationStatus == "underage")
+            {
+                TempData["Error"] = AgeValidationHelper.UnderAgeMessage;
+                return RedirectToProfile();
             }
 
             if (verificationStatus == "pending")
             {
-                TempData["VerificationSubmitted"] = "Your verification is still pending. Please wait for 30 minutes to 1 day while the admin reviews your submitted requirements.";
+                TempData["VerificationSubmitted"] =
+                    "Your verification is still pending. Please wait for 30 minutes to 1 day while the admin reviews your submitted requirements.";
+
                 return RedirectToPage("/User/Home");
+            }
+
+            if (verificationStatus == "rejected")
+            {
+                TempData["Error"] = "One or more of your verification documents were rejected. Please update your documents.";
+                return RedirectToProfile();
+            }
+
+            if (verificationStatus == "expired")
+            {
+                TempData["Error"] = "One or more of your verification documents are expired. Please renew your documents.";
+                return RedirectToProfile();
             }
 
             if (verificationStatus != "verified")
@@ -186,6 +218,18 @@ namespace VentureCarRentals.Pages.User.Cars
             }
 
             return RedirectToPage("/User/Payments/PaymentMethod", new
+            {
+                carId = CarId,
+                borrowDate = BorrowDate,
+                borrowTime = BorrowTime,
+                returnDate = ReturnDate,
+                returnTime = ReturnTime
+            });
+        }
+
+        private IActionResult RedirectToProfile()
+        {
+            return RedirectToPage("/User/Profile/Index", new
             {
                 carId = CarId,
                 borrowDate = BorrowDate,
@@ -226,17 +270,21 @@ namespace VentureCarRentals.Pages.User.Cars
 
         private async Task<string> GetVerificationStatusAsync(int userId, Models.User user)
         {
-            var hasProfile =
-                !string.IsNullOrWhiteSpace(user.PhoneNumber) &&
-                !string.IsNullOrWhiteSpace(user.Street) &&
-                !string.IsNullOrWhiteSpace(user.Barangay) &&
-                !string.IsNullOrWhiteSpace(user.City) &&
-                !string.IsNullOrWhiteSpace(user.State) &&
-                !string.IsNullOrWhiteSpace(user.ZipCode) &&
-                !string.IsNullOrWhiteSpace(user.Country) &&
-                user.Birthday != null;
+            if (user.Birthday == null)
+            {
+                return "needs_requirements";
+            }
 
-            if (!hasProfile)
+            /*
+                IMPORTANT:
+                User must be at least 18 years old before booking.
+            */
+            if (!AgeValidationHelper.IsAtLeast18(user.Birthday))
+            {
+                return "underage";
+            }
+
+            if (!IsProfileComplete(user))
             {
                 return "needs_requirements";
             }
@@ -245,60 +293,163 @@ namespace VentureCarRentals.Pages.User.Cars
                 .Where(d => d.UserId == userId)
                 .ToListAsync();
 
-            var isForeign = user.Country.ToLower() != "philippines";
+            var requiredInfo = GetRequiredDocumentInfo(user, documents);
+
+            if (!requiredInfo.HasAnySubmitted)
+            {
+                return "needs_requirements";
+            }
+
+            if (requiredInfo.HasExpired)
+            {
+                return "expired";
+            }
+
+            if (requiredInfo.HasRejected)
+            {
+                return "rejected";
+            }
+
+            if (requiredInfo.SubmittedCount == requiredInfo.RequiredTotal &&
+                requiredInfo.ApprovedCount == requiredInfo.RequiredTotal)
+            {
+                return "verified";
+            }
+
+            return "pending";
+        }
+
+        private CreateRequiredDocumentInfo GetRequiredDocumentInfo(Models.User user, List<UserDocument> documents)
+        {
+            var requiredDocuments = new List<UserDocument>();
+
+            var userCountry = user.Country?.ToLower() ?? "";
+            var isForeign = userCountry != "philippines";
 
             if (isForeign)
             {
-                var hasPassport = documents.Any(d => d.DocType == "passport");
-                var hasInternationalPermit = documents.Any(d => d.DocType == "international_driving_permit");
+                var passport = documents
+                    .Where(d => d.DocType == "passport")
+                    .OrderByDescending(d => d.UploadedAt)
+                    .FirstOrDefault();
 
-                if (!hasPassport || !hasInternationalPermit)
+                var permit = documents
+                    .Where(d => d.DocType == "international_driving_permit")
+                    .OrderByDescending(d => d.UploadedAt)
+                    .FirstOrDefault();
+
+                if (passport != null)
                 {
-                    return "needs_requirements";
+                    requiredDocuments.Add(passport);
                 }
 
-                var approvedPassport = documents.Any(d =>
-                    d.DocType == "passport" &&
-                    d.Status == "approved");
-
-                var approvedInternationalPermit = documents.Any(d =>
-                    d.DocType == "international_driving_permit" &&
-                    d.Status == "approved");
-
-                return approvedPassport && approvedInternationalPermit ? "verified" : "pending";
-            }
-            else
-            {
-                var secondaryDocTypes = new[]
+                if (permit != null)
                 {
-                    "national_id",
-                    "police_clearance",
-                    "nbi_clearance",
-                    "philhealth_id",
-                    "sss_id",
-                    "umid",
-                    "voters_id",
-                    "company_id"
+                    requiredDocuments.Add(permit);
+                }
+
+                return new CreateRequiredDocumentInfo
+                {
+                    RequiredTotal = 2,
+                    SubmittedCount = requiredDocuments.Count,
+                    ApprovedCount = requiredDocuments.Count(d => d.Status == "approved" && !IsExpired(d)),
+                    HasRejected = requiredDocuments.Any(d => d.Status == "rejected"),
+                    HasExpired = requiredDocuments.Any(IsExpired),
+                    HasAnySubmitted = requiredDocuments.Any()
                 };
-
-                var hasDriverLicense = documents.Any(d => d.DocType == "driver_license");
-                var hasSecondaryId = documents.Any(d => secondaryDocTypes.Contains(d.DocType));
-
-                if (!hasDriverLicense || !hasSecondaryId)
-                {
-                    return "needs_requirements";
-                }
-
-                var approvedDriverLicense = documents.Any(d =>
-                    d.DocType == "driver_license" &&
-                    d.Status == "approved");
-
-                var approvedSecondaryId = documents.Any(d =>
-                    secondaryDocTypes.Contains(d.DocType) &&
-                    d.Status == "approved");
-
-                return approvedDriverLicense && approvedSecondaryId ? "verified" : "pending";
             }
+
+            var secondaryDocTypes = new[]
+            {
+                "national_id",
+                "police_clearance",
+                "nbi_clearance",
+                "philhealth_id",
+                "sss_id",
+                "umid",
+                "voters_id",
+                "company_id"
+            };
+
+            var driverLicense = documents
+                .Where(d => d.DocType == "driver_license")
+                .OrderByDescending(d => d.UploadedAt)
+                .FirstOrDefault();
+
+            var secondaryId = documents
+                .Where(d => secondaryDocTypes.Contains(d.DocType))
+                .OrderByDescending(d => d.Status == "approved")
+                .ThenByDescending(d => d.UploadedAt)
+                .FirstOrDefault();
+
+            if (driverLicense != null)
+            {
+                requiredDocuments.Add(driverLicense);
+            }
+
+            if (secondaryId != null)
+            {
+                requiredDocuments.Add(secondaryId);
+            }
+
+            return new CreateRequiredDocumentInfo
+            {
+                RequiredTotal = 2,
+                SubmittedCount = requiredDocuments.Count,
+                ApprovedCount = requiredDocuments.Count(d => d.Status == "approved" && !IsExpired(d)),
+                HasRejected = requiredDocuments.Any(d => d.Status == "rejected"),
+                HasExpired = requiredDocuments.Any(IsExpired),
+                HasAnySubmitted = requiredDocuments.Any()
+            };
         }
+
+        private bool IsProfileComplete(Models.User user)
+        {
+            var userCountry = user.Country?.ToLower() ?? "";
+            var isForeign = userCountry != "philippines";
+
+            /*
+                IMPORTANT FIX:
+                Foreign renters do not need Street, Barangay, and State.
+            */
+            if (isForeign)
+            {
+                return !string.IsNullOrWhiteSpace(user.PhoneNumber) &&
+                       !string.IsNullOrWhiteSpace(user.City) &&
+                       !string.IsNullOrWhiteSpace(user.ZipCode) &&
+                       !string.IsNullOrWhiteSpace(user.Country) &&
+                       user.Birthday != null;
+            }
+
+            return !string.IsNullOrWhiteSpace(user.PhoneNumber) &&
+                   !string.IsNullOrWhiteSpace(user.Street) &&
+                   !string.IsNullOrWhiteSpace(user.Barangay) &&
+                   !string.IsNullOrWhiteSpace(user.City) &&
+                   !string.IsNullOrWhiteSpace(user.State) &&
+                   !string.IsNullOrWhiteSpace(user.ZipCode) &&
+                   !string.IsNullOrWhiteSpace(user.Country) &&
+                   user.Birthday != null;
+        }
+
+        private bool IsExpired(UserDocument document)
+        {
+            return document.ExpiryDate != null &&
+                   document.ExpiryDate.Value.Date < DateTime.Today;
+        }
+    }
+
+    /*
+        IMPORTANT:
+        This class name is CreateRequiredDocumentInfo to avoid conflict
+        with BrowseRequiredDocumentInfo in BrowseCars.cshtml.cs.
+    */
+    public class CreateRequiredDocumentInfo
+    {
+        public int RequiredTotal { get; set; }
+        public int SubmittedCount { get; set; }
+        public int ApprovedCount { get; set; }
+        public bool HasRejected { get; set; }
+        public bool HasExpired { get; set; }
+        public bool HasAnySubmitted { get; set; }
     }
 }

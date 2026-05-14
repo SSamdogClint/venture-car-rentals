@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using VentureCarRentals.Data;
+using VentureCarRentals.Helpers;
 using VentureCarRentals.Models;
 
 // This alias avoids conflict with the namespace VentureCarRentals.Pages.User.
@@ -16,17 +17,18 @@ namespace VentureCarRentals.Pages.User.Cars
 
         public BrowseCarsModel(AppDbContext context)
         {
+            // Database context used to load cars, bookings, reviews, user profile, and user documents.
             _context = context;
         }
 
-        // This now uses a view model so every car can include review/rating data.
+        // List of cars displayed on the private user Browse Cars page.
         public List<CarBrowseViewModel> Cars { get; set; } = new();
 
+        // Filter dropdown options.
         public List<string> FilterCategories { get; set; } = new();
         public List<string> FilterTransmissions { get; set; } = new();
 
-        public bool IsLoggedIn { get; set; }
-
+        // Schedule query string values from User/Home search form.
         [BindProperty(SupportsGet = true)]
         public string? BorrowDate { get; set; }
 
@@ -39,6 +41,7 @@ namespace VentureCarRentals.Pages.User.Cars
         [BindProperty(SupportsGet = true)]
         public string? ReturnTime { get; set; }
 
+        // Filter query string values.
         [BindProperty(SupportsGet = true)]
         public string? SearchTerm { get; set; }
 
@@ -57,13 +60,63 @@ namespace VentureCarRentals.Pages.User.Cars
         [BindProperty(SupportsGet = true)]
         public string SortBy { get; set; } = "popular";
 
+        // Parsed date/time values used for booking availability checking.
         public DateTime BorrowDateTime { get; set; }
         public DateTime ReturnDateTime { get; set; }
 
+        // Rental duration based on selected borrow and return schedule.
         public double TotalDays { get; set; }
 
+        /*
+            IMPORTANT SS THIS:
+            IsSearchMode means the user already selected borrow and return schedule.
+
+            false:
+                Show normal available cars.
+
+            true:
+                Show cars available for the selected schedule and allow booking flow.
+        */
         public bool IsSearchMode { get; set; }
 
+        // Page title text.
+        public string PageHeading { get; set; } = "Browse Cars";
+
+        // Error message shown when date/time input is invalid.
+        public string? ErrorMessage { get; set; }
+
+        /*
+            // IMPORTANT SS THIS:
+            These are the possible verification statuses for a logged-in user.
+
+            needs_requirements:
+                User profile or required documents are incomplete.
+
+            pending:
+                Documents are uploaded but not fully approved yet.
+
+            verified:
+                User can proceed to booking.
+
+            rejected:
+                User must update rejected documents.
+
+            expired:
+                User must renew expired documents.
+
+            underage:
+                User is below 18 years old and cannot book.
+        */
+        public string VerificationStatus { get; set; } = "needs_requirements";
+
+        /*
+            // IMPORTANT SS THIS:
+            This controls whether the filter panel should stay open.
+
+            Example:
+            If the user searched "Toyota" or selected a category,
+            the filter panel remains open after page reload.
+        */
         public bool HasActiveFilters =>
             !string.IsNullOrWhiteSpace(SearchTerm) ||
             !string.IsNullOrWhiteSpace(CategoryFilter) ||
@@ -72,29 +125,30 @@ namespace VentureCarRentals.Pages.User.Cars
             MaxPrice != null ||
             SortBy != "popular";
 
-        public string PageHeading { get; set; } = "Browse Cars";
-
-        public string? ErrorMessage { get; set; }
-
-        /*
-            VerificationStatus possible values:
-
-            not_logged_in        = user is not logged in
-            needs_requirements   = user has incomplete profile or missing required documents
-            pending              = user submitted some/all requirements but not fully approved yet
-            verified             = all required documents are approved
-            rejected             = one required document was rejected
-            expired              = one required document is expired
-        */
-        public string VerificationStatus { get; set; } = "not_logged_in";
-
-        public async Task OnGetAsync()
+        public async Task<IActionResult> OnGetAsync()
         {
-            // Checks if the visitor is logged in.
-            IsLoggedIn = HttpContext.Session.GetInt32("UserId") != null;
+            var userId = HttpContext.Session.GetInt32("UserId");
+
+            /*
+                // IMPORTANT SS THIS:
+                This is the PRIVATE user Browse Cars page.
+
+                Guests should not use this page anymore.
+                Guests should use:
+                    /Guest/Cars/BrowseCars
+
+                This check is only a safety fallback.
+                Your SessionAuthFilter should also protect /User pages.
+            */
+            if (userId == null)
+            {
+                return RedirectToPage("/Login");
+            }
 
             await LoadFilterOptionsAsync();
-            await CheckUserVerificationStatusAsync();
+
+            // Check if the logged-in user is allowed to book.
+            VerificationStatus = await GetVerificationStatusAsync(userId.Value);
 
             IsSearchMode = HasCompleteDateTimeInput();
 
@@ -111,11 +165,9 @@ namespace VentureCarRentals.Pages.User.Cars
 
                 var carList = await query.ToListAsync();
 
-                // IMPORTANT:
-                // Adds average rating, review count, and recent review comments to every car.
                 Cars = await MapCarsWithReviewsAsync(carList);
 
-                return;
+                return Page();
             }
 
             var borrowValue = $"{BorrowDate} {BorrowTime}";
@@ -126,24 +178,39 @@ namespace VentureCarRentals.Pages.User.Cars
             {
                 ErrorMessage = "Invalid date or time format.";
                 PageHeading = "Available Vehicles";
-                return;
+                return Page();
             }
 
             if (borrowDateTime >= returnDateTime)
             {
                 ErrorMessage = "Return date and time must be after borrow date and time.";
                 PageHeading = "Available Vehicles";
-                return;
+                return Page();
             }
 
             BorrowDateTime = borrowDateTime;
             ReturnDateTime = returnDateTime;
 
+            /*
+                // IMPORTANT SS THIS:
+                Partial rental days count as a full day.
+
+                Example:
+                25 rental hours = 2 rental days.
+            */
             var totalHours = (ReturnDateTime - BorrowDateTime).TotalHours;
             TotalDays = Math.Ceiling(totalHours / 24);
 
             PageHeading = "Available Vehicles";
 
+            /*
+                // IMPORTANT SS THIS:
+                This query prevents double booking.
+
+                A car is shown only if:
+                - car is available
+                - no existing non-cancelled booking overlaps with the selected schedule
+            */
             var availableQuery = _context.Cars
                 .AsNoTracking()
                 .Where(car => car.Status == "available")
@@ -159,13 +226,14 @@ namespace VentureCarRentals.Pages.User.Cars
 
             var availableCars = await availableQuery.ToListAsync();
 
-            // IMPORTANT:
-            // Available cars still include real review data.
             Cars = await MapCarsWithReviewsAsync(availableCars);
+
+            return Page();
         }
 
         private async Task LoadFilterOptionsAsync()
         {
+            // Loads available car categories for the filter dropdown.
             FilterCategories = await _context.Cars
                 .AsNoTracking()
                 .Where(c => c.Status == "available" && c.Category != "")
@@ -174,6 +242,7 @@ namespace VentureCarRentals.Pages.User.Cars
                 .OrderBy(c => c)
                 .ToListAsync();
 
+            // Loads available car transmission types for the filter dropdown.
             FilterTransmissions = await _context.Cars
                 .AsNoTracking()
                 .Where(c => c.Status == "available" && c.Transmission != "")
@@ -185,7 +254,6 @@ namespace VentureCarRentals.Pages.User.Cars
 
         private IQueryable<Car> ApplyCarFilters(IQueryable<Car> query)
         {
-            // Filters work in both public browse mode and date/time availability mode.
             if (!string.IsNullOrWhiteSpace(SearchTerm))
             {
                 var keyword = SearchTerm.Trim().ToLower();
@@ -201,14 +269,12 @@ namespace VentureCarRentals.Pages.User.Cars
             if (!string.IsNullOrWhiteSpace(CategoryFilter))
             {
                 var category = CategoryFilter.Trim();
-
                 query = query.Where(c => c.Category == category);
             }
 
             if (!string.IsNullOrWhiteSpace(TransmissionFilter))
             {
                 var transmission = TransmissionFilter.Trim();
-
                 query = query.Where(c => c.Transmission == transmission);
             }
 
@@ -231,16 +297,18 @@ namespace VentureCarRentals.Pages.User.Cars
                 ? "popular"
                 : SortBy.ToLower().Trim();
 
-            /*
-                Popular uses booking count.
-                Cars with more bookings appear first.
-            */
             return SortBy switch
             {
                 "lowest_price" => query.OrderBy(c => c.PricePerDay),
                 "highest_price" => query.OrderByDescending(c => c.PricePerDay),
                 "newest" => query.OrderByDescending(c => c.CreatedAt),
 
+                /*
+                    // IMPORTANT SS THIS:
+                    Default sorting is popular.
+
+                    Popular means cars with more bookings appear first.
+                */
                 _ => query
                     .OrderByDescending(c => _context.Bookings.Count(b => b.CarId == c.CarId))
                     .ThenByDescending(c => c.CreatedAt)
@@ -297,9 +365,6 @@ namespace VentureCarRentals.Pages.User.Cars
                     Description = car.Description,
                     ImageUrl = car.ImageUrl,
                     Color = car.Color,
-
-                    // Do not include LicensePlate and VIN here because Browse Cars is user/public side.
-
                     AverageRating = averageRating,
                     ReviewCount = reviewCount,
                     RecentReviews = recentReviews
@@ -317,29 +382,31 @@ namespace VentureCarRentals.Pages.User.Cars
                    !string.IsNullOrWhiteSpace(ReturnTime);
         }
 
-        private async Task CheckUserVerificationStatusAsync()
+        private async Task<string> GetVerificationStatusAsync(int userId)
         {
-            var userId = HttpContext.Session.GetInt32("UserId");
-
-            if (userId == null)
-            {
-                VerificationStatus = "not_logged_in";
-                return;
-            }
-
-            var user = await _context.Users.FindAsync(userId.Value);
+            var user = await _context.Users.FindAsync(userId);
 
             if (user == null)
             {
-                VerificationStatus = "not_logged_in";
-                return;
+                return "needs_requirements";
             }
 
-            VerificationStatus = await GetVerificationStatusAsync(user.UserId, user);
-        }
+            /*
+                // IMPORTANT SS THIS:
+                User must have a birthday and must be at least 18 years old.
 
-        private async Task<string> GetVerificationStatusAsync(int userId, AppUser user)
-        {
+                This is required before allowing car rental booking.
+            */
+            if (user.Birthday == null)
+            {
+                return "needs_requirements";
+            }
+
+            if (!AgeValidationHelper.IsAtLeast18(user.Birthday))
+            {
+                return "underage";
+            }
+
             if (!IsProfileComplete(user))
             {
                 return "needs_requirements";
@@ -366,6 +433,11 @@ namespace VentureCarRentals.Pages.User.Cars
                 return "rejected";
             }
 
+            /*
+                // IMPORTANT SS THIS:
+                User becomes verified only if all required documents are approved
+                and none are expired.
+            */
             if (requiredInfo.SubmittedCount == requiredInfo.RequiredTotal &&
                 requiredInfo.ApprovedCount == requiredInfo.RequiredTotal)
             {
@@ -375,14 +447,8 @@ namespace VentureCarRentals.Pages.User.Cars
             return "pending";
         }
 
-        private RequiredDocumentInfo GetRequiredDocumentInfo(AppUser user, List<UserDocument> documents)
+        private BrowseRequiredDocumentInfo GetRequiredDocumentInfo(AppUser user, List<UserDocument> documents)
         {
-            /*
-                IMPORTANT FEATURE:
-                User can book only when ALL required documents are approved.
-                If only one document is approved, the status remains pending.
-            */
-
             var requiredDocuments = new List<UserDocument>();
 
             var userCountry = user.Country?.ToLower() ?? "";
@@ -390,6 +456,12 @@ namespace VentureCarRentals.Pages.User.Cars
 
             if (isForeign)
             {
+                /*
+                    // IMPORTANT SS THIS:
+                    Foreign renters require:
+                    - Passport
+                    - International Driving Permit
+                */
                 var passport = documents
                     .Where(d => d.DocType == "passport")
                     .OrderByDescending(d => d.UploadedAt)
@@ -410,7 +482,7 @@ namespace VentureCarRentals.Pages.User.Cars
                     requiredDocuments.Add(permit);
                 }
 
-                return new RequiredDocumentInfo
+                return new BrowseRequiredDocumentInfo
                 {
                     RequiredTotal = 2,
                     SubmittedCount = requiredDocuments.Count,
@@ -421,6 +493,12 @@ namespace VentureCarRentals.Pages.User.Cars
                 };
             }
 
+            /*
+                // IMPORTANT SS THIS:
+                Local renters require:
+                - Driver's License
+                - One secondary valid ID
+            */
             var secondaryDocTypes = new[]
             {
                 "national_id",
@@ -454,7 +532,7 @@ namespace VentureCarRentals.Pages.User.Cars
                 requiredDocuments.Add(secondaryId);
             }
 
-            return new RequiredDocumentInfo
+            return new BrowseRequiredDocumentInfo
             {
                 RequiredTotal = 2,
                 SubmittedCount = requiredDocuments.Count,
@@ -467,6 +545,33 @@ namespace VentureCarRentals.Pages.User.Cars
 
         private bool IsProfileComplete(AppUser user)
         {
+            var userCountry = user.Country?.ToLower() ?? "";
+            var isForeign = userCountry != "philippines";
+
+            /*
+                // IMPORTANT SS THIS:
+                Foreign renters do not need Street, Barangay, and State.
+
+                Required for foreign renters:
+                - Phone number
+                - City
+                - Zip code
+                - Country
+                - Birthday
+            */
+            if (isForeign)
+            {
+                return !string.IsNullOrWhiteSpace(user.PhoneNumber) &&
+                       !string.IsNullOrWhiteSpace(user.City) &&
+                       !string.IsNullOrWhiteSpace(user.ZipCode) &&
+                       !string.IsNullOrWhiteSpace(user.Country) &&
+                       user.Birthday != null;
+            }
+
+            /*
+                // IMPORTANT SS THIS:
+                Local renters must complete full local address information.
+            */
             return !string.IsNullOrWhiteSpace(user.PhoneNumber) &&
                    !string.IsNullOrWhiteSpace(user.Street) &&
                    !string.IsNullOrWhiteSpace(user.Barangay) &&
@@ -515,7 +620,7 @@ namespace VentureCarRentals.Pages.User.Cars
         public DateTime CreatedAt { get; set; }
     }
 
-    public class RequiredDocumentInfo
+    public class BrowseRequiredDocumentInfo
     {
         public int RequiredTotal { get; set; }
         public int SubmittedCount { get; set; }

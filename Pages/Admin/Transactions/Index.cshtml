@@ -1,0 +1,319 @@
+﻿@page
+@model VentureCarRentals.Pages.Admin.Transactions.IndexModel
+@{
+    ViewData["Title"] = "Transactions";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid">
+
+    <!-- HEADER -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-1">Transactions</h3>
+            <p class="text-muted mb-0">
+                View transaction records by today, weekly, monthly, or all transactions.
+            </p>
+        </div>
+
+        <!-- IMPORTANT:
+             This is the only PDF download button.
+             It downloads the PDF based on the currently selected period:
+             Today, Weekly, Monthly, or All.
+        -->
+        <a asp-page-handler="DownloadPdf"
+           asp-route-period="@Model.Period"
+           asp-route-SearchTerm="@Model.SearchTerm"
+           class="btn btn-danger">
+            <i class="bi bi-file-earmark-pdf"></i>
+            Download @Model.PeriodTitle PDF
+        </a>
+    </div>
+
+    <!-- PERIOD FILTER BUTTONS -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+
+                <div class="btn-group flex-wrap" role="group">
+
+                    <a asp-page="/Admin/Transactions/Index"
+                       asp-route-period="today"
+                       class="btn @(Model.Period == "today" ? "btn-primary" : "btn-outline-primary")">
+                        Today
+                    </a>
+
+                    <a asp-page="/Admin/Transactions/Index"
+                       asp-route-period="weekly"
+                       class="btn @(Model.Period == "weekly" ? "btn-primary" : "btn-outline-primary")">
+                        Weekly
+                    </a>
+
+                    <a asp-page="/Admin/Transactions/Index"
+                       asp-route-period="monthly"
+                       class="btn @(Model.Period == "monthly" ? "btn-primary" : "btn-outline-primary")">
+                        Monthly
+                    </a>
+
+                    <a asp-page="/Admin/Transactions/Index"
+                       asp-route-period="all"
+                       class="btn @(Model.Period == "all" ? "btn-primary" : "btn-outline-primary")">
+                        All
+                    </a>
+
+                </div>
+
+                <!-- SEARCH FORM -->
+                <form method="get" class="d-flex flex-wrap gap-2">
+                    <input type="hidden" name="Period" value="@Model.Period" />
+
+                    <input type="text"
+                           name="SearchTerm"
+                           value="@Model.SearchTerm"
+                           class="form-control"
+                           placeholder="Search transaction..."
+                           style="min-width: 260px;" />
+
+                    <button type="submit" class="btn btn-dark">
+                        <i class="bi bi-search"></i>
+                    </button>
+
+                    <a asp-page="/Admin/Transactions/Index"
+                       asp-route-period="@Model.Period"
+                       class="btn btn-light">
+                        Clear
+                    </a>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- STATISTICS CARDS -->
+    <div class="row g-3 mb-4">
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-1">Total Transactions</p>
+                            <h3 class="fw-bold mb-0">@Model.TotalTransactions</h3>
+                        </div>
+
+                        <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center"
+                             style="width:45px;height:45px;">
+                            <i class="bi bi-arrow-left-right fs-5"></i>
+                        </div>
+                    </div>
+
+                    <small class="text-muted">@Model.PeriodTitle</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-1">Collected</p>
+                            <h3 class="fw-bold mb-0">
+                                ₱@Model.CollectedAmount.ToString("N2")
+                            </h3>
+                        </div>
+
+                        <div class="bg-success-subtle text-success rounded-circle d-flex align-items-center justify-content-center"
+                             style="width:45px;height:45px;">
+                            <i class="bi bi-cash-coin fs-5"></i>
+                        </div>
+                    </div>
+
+                    <small class="text-muted">@Model.PaidTransactions paid transaction(s)</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-1">Pending Amount</p>
+                            <h3 class="fw-bold mb-0">
+                                ₱@Model.PendingAmount.ToString("N2")
+                            </h3>
+                        </div>
+
+                        <div class="bg-warning-subtle text-warning rounded-circle d-flex align-items-center justify-content-center"
+                             style="width:45px;height:45px;">
+                            <i class="bi bi-hourglass-split fs-5"></i>
+                        </div>
+                    </div>
+
+                    <small class="text-muted">@Model.PendingTransactions pending transaction(s)</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-1">Refunded</p>
+                            <h3 class="fw-bold mb-0">
+                                ₱@Model.RefundedAmount.ToString("N2")
+                            </h3>
+                        </div>
+
+                        <div class="bg-danger-subtle text-danger rounded-circle d-flex align-items-center justify-content-center"
+                             style="width:45px;height:45px;">
+                            <i class="bi bi-arrow-counterclockwise fs-5"></i>
+                        </div>
+                    </div>
+
+                    <small class="text-muted">@Model.RefundedTransactions refunded transaction(s)</small>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- TRANSACTION TABLE -->
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body">
+
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                <div>
+                    <h5 class="fw-bold mb-0">@Model.PeriodTitle</h5>
+                    <small class="text-muted">
+                        Showing @Model.Transactions.Count transaction record(s)
+                    </small>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Transaction ID</th>
+                            <th>Booking ID</th>
+                            <th>Renter</th>
+                            <th>Vehicle</th>
+                            <th>Method</th>
+                            <th>Payment Status</th>
+                            <th>Booking Status</th>
+                            <th class="text-end">Amount</th>
+                            <th class="text-end">Collected</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @if (Model.Transactions.Any())
+                        {
+                            foreach (var transaction in Model.Transactions)
+                            {
+                                <tr>
+                                    <td>
+                                        <span class="fw-semibold">#@transaction.TransactionId</span>
+                                    </td>
+
+                                    <td>
+                                        <span class="fw-semibold">#@transaction.BookingId</span>
+                                    </td>
+
+                                    <td>
+                                        <strong>@transaction.RenterName</strong>
+                                        <br />
+                                        <small class="text-muted">@transaction.RenterEmail</small>
+                                    </td>
+
+                                    <td>
+                                        <strong>@transaction.Vehicle</strong>
+                                        <br />
+                                        <small class="text-muted">@transaction.VehicleCategory</small>
+                                    </td>
+
+                                    <td class="text-capitalize">
+                                        @transaction.DisplayPaymentMethod
+                                    </td>
+
+                                    <td>
+                                        @if (transaction.PaymentStatus == "paid")
+                                        {
+                                            <span class="badge bg-success">paid</span>
+                                        }
+                                        else if (transaction.PaymentStatus == "refunded")
+                                        {
+                                            <span class="badge bg-danger">refunded</span>
+                                        }
+                                        else if (transaction.PaymentStatus == "pending_admin_approval")
+                                        {
+                                            <span class="badge bg-warning text-dark">pending admin approval</span>
+                                        }
+                                        else if (transaction.PaymentStatus == "unpaid")
+                                        {
+                                            <span class="badge bg-secondary">unpaid</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-light text-dark border">
+                                                @transaction.DisplayPaymentStatus
+                                            </span>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        <span class="badge bg-light text-dark border">
+                                            @transaction.DisplayBookingStatus
+                                        </span>
+                                    </td>
+
+                                    <td class="text-end">
+                                        ₱@transaction.Amount.ToString("N2")
+                                    </td>
+
+                                    <td class="text-end">
+                                        @if (transaction.IsPaid)
+                                        {
+                                            <strong class="text-success">
+                                                ₱@transaction.Amount.ToString("N2")
+                                            </strong>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Not collected</span>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        @if (transaction.TransactionDate != DateTime.MinValue)
+                                        {
+                                            @transaction.TransactionDate.ToString("MMM dd, yyyy hh:mm tt")
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">N/A</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="10" class="text-center text-muted py-5">
+                                    No transactions found for this period.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+</div>

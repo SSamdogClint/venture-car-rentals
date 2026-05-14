@@ -15,7 +15,12 @@ namespace VentureCarRentals.Pages.User.Payments
 
         public PaymentMethodModel(AppDbContext context, IWebHostEnvironment environment)
         {
+            // Database context used for Cars, Bookings, Payments, Rental Agreements,
+            // User Payment Methods, User Documents, Users, and Notifications.
             _context = context;
+
+            // Used by the rental agreement generator to save the generated PDF file
+            // inside wwwroot.
             _environment = environment;
         }
 
@@ -71,13 +76,17 @@ namespace VentureCarRentals.Pages.User.Payments
         {
             var userId = HttpContext.Session.GetInt32("UserId");
 
-            // User must be logged in before accessing the booking payment page.
+            // IMPORTANT:
+            // The payment method page is part of the booking process.
+            // Only logged-in users should access this page.
             if (userId == null)
             {
                 return RedirectToPage("/Login");
             }
 
-            // Load selected car, schedule, total amount, and saved cards.
+            // IMPORTANT:
+            // Load selected car, selected booking schedule, calculated total price,
+            // and saved card list before displaying the page.
             if (!await LoadPageDataAsync(userId.Value))
             {
                 TempData["Error"] = "Payment details are missing or invalid. Please select your booking schedule again.";
@@ -91,20 +100,23 @@ namespace VentureCarRentals.Pages.User.Payments
         {
             var userId = HttpContext.Session.GetInt32("UserId");
 
-            // User must be logged in before saving a payment method.
+            // User must be logged in before saving a demo payment method.
             if (userId == null)
             {
                 return RedirectToPage("/Login");
             }
 
-            // Reload page data so validation errors can return to this same page.
+            // Reload the page data so validation errors can return to this same page.
             if (!await LoadPageDataAsync(userId.Value))
             {
                 TempData["Error"] = "Payment details are missing or invalid. Please try again.";
                 return RedirectToPage("/User/Home");
             }
 
-            // Validate demo card details using your security helper.
+            // IMPORTANT:
+            // This validates the demo card input.
+            // It also detects card type, last 4 digits, masked card number,
+            // card holder name, and expiration date.
             var validation = PaymentSecurityHelper.ValidateDemoCard(
                 CardAccountNumber,
                 CardHolderName,
@@ -117,7 +129,7 @@ namespace VentureCarRentals.Pages.User.Payments
                 return Page();
             }
 
-            // Check if the same saved card already exists for this user.
+            // Check if the same card already exists for this user.
             var existingCard = await _context.UserPaymentMethods
                 .FirstOrDefaultAsync(p =>
                     p.UserId == userId.Value &&
@@ -127,9 +139,19 @@ namespace VentureCarRentals.Pages.User.Payments
 
             if (existingCard == null)
             {
-                // IMPORTANT:
-                // Never save the full 16-digit card number.
-                // Only save masked card number and last 4 digits.
+                /*
+                    IMPORTANT:
+                    Never save the full card number.
+
+                    The system saves only:
+                    - card brand
+                    - masked card number
+                    - last 4 digits
+                    - card holder name
+                    - expiry date
+
+                    This is safer and cleaner for a demo payment feature.
+                */
                 var newCard = new UserPaymentMethod
                 {
                     UserId = userId.Value,
@@ -148,7 +170,8 @@ namespace VentureCarRentals.Pages.User.Payments
             }
             else
             {
-                // If the same card exists, update and reactivate it.
+                // If the same card exists, update its latest safe display values
+                // and reactivate it.
                 existingCard.CardHolderName = validation.CardHolderName;
                 existingCard.ExpiryDate = validation.ExpiryDate;
                 existingCard.MaskedCardNumber = validation.MaskedCardNumber;
@@ -179,21 +202,25 @@ namespace VentureCarRentals.Pages.User.Payments
                 return RedirectToPage("/Login");
             }
 
-            // Reload car, schedule, total amount, and saved cards.
+            // IMPORTANT:
+            // Reload car, schedule, saved cards, and total amount.
+            // This prevents missing values after form submission.
             if (!await LoadPageDataAsync(userId.Value))
             {
                 TempData["Error"] = "Booking details are missing or invalid. Please try again.";
                 return RedirectToPage("/User/Home");
             }
 
-            // Stop if selected car is missing.
+            // Stop if the selected car no longer exists.
             if (Car == null)
             {
                 TempData["Error"] = "Selected car was not found.";
                 return RedirectToPage("/User/Cars/BrowseCars");
             }
 
-            // User must accept the online rental agreement before creating the booking request.
+            // IMPORTANT:
+            // User must accept the online rental agreement before creating
+            // the booking request.
             if (!AgreementAccepted)
             {
                 ErrorMessage = "You must read and agree to the rental agreement before submitting your booking request.";
@@ -203,7 +230,7 @@ namespace VentureCarRentals.Pages.User.Payments
             var renter = await _context.Users
                 .FirstOrDefaultAsync(u => u.UserId == userId.Value);
 
-            // Stop if the user record is missing from the database.
+            // Stop if the logged-in user cannot be found in the database.
             if (renter == null)
             {
                 ErrorMessage = "User account was not found. Please login again.";
@@ -214,7 +241,11 @@ namespace VentureCarRentals.Pages.User.Payments
 
             UserPaymentMethod? selectedCard = null;
 
-            // If user selected a saved card, only active cards owned by the user are allowed.
+            // IMPORTANT:
+            // If the user selected a saved card, validate that the card:
+            // - belongs to the logged-in user
+            // - is a card payment method
+            // - is active
             if (SelectedSavedCardId != null)
             {
                 selectedCard = await _context.UserPaymentMethods
@@ -233,7 +264,10 @@ namespace VentureCarRentals.Pages.User.Payments
                 SelectedPaymentType = "SavedCard";
             }
 
-            // Final availability check to prevent double-booking.
+            // IMPORTANT:
+            // Final availability check before saving booking.
+            // This prevents double-booking if another user/admin booked the car
+            // after this user opened the page.
             var hasOverlap = await _context.Bookings.AnyAsync(b =>
                 b.CarId == CarId &&
                 b.Status != "cancelled" &&
@@ -247,18 +281,24 @@ namespace VentureCarRentals.Pages.User.Payments
                 return RedirectToPage("/User/Cars/BrowseCars");
             }
 
-            // Transaction saves Booking, Payment, and RentalAgreement together.
+            // IMPORTANT:
+            // This transaction saves all related records together:
+            // - Booking
+            // - Payment
+            // - Rental Agreement
+            // - Admin Notification
+            //
+            // If one part fails, everything is rolled back.
             using var transaction = await _context.Database.BeginTransactionAsync();
 
             try
             {
                 /*
-                    IMPORTANT FEATURE:
-                    Booking is created as pending first.
+                    IMPORTANT:
+                    Booking starts as pending.
 
-                    It should NOT become approved here.
-                    Admin must review the booking, signed agreement,
-                    and payment arrangement before approval.
+                    The user does not directly approve the booking.
+                    Admin must review and approve it first.
                 */
                 var booking = new Booking
                 {
@@ -272,29 +312,41 @@ namespace VentureCarRentals.Pages.User.Payments
                 };
 
                 _context.Bookings.Add(booking);
+
+                /*
+                    IMPORTANT:
+                    Save booking first so EF/database generates BookingId.
+
+                    BookingId is needed by:
+                    - Payment
+                    - RentalAgreement
+                    - Notification message
+                */
                 await _context.SaveChangesAsync();
 
                 /*
-                    IMPORTANT FEATURE:
-                    Pickup-only payment.
+                    IMPORTANT:
+                    Pickup-only payment flow.
 
-                    Even if the user selects a saved demo card, the system does NOT mark it as paid.
-                    Payment stays pending until admin approval, agreement signing, and pickup payment completion.
+                    Even if the user chooses a saved demo card, the payment is not
+                    completed during customer booking submission.
+
+                    Payment remains pending until admin processes the booking flow.
                 */
                 var payment = new Payment
                 {
                     BookingId = booking.BookingId,
                     Amount = TotalPrice,
 
-                    // This records the preferred pickup payment method only.
+                    // Records preferred pickup payment method.
                     PaymentMethod = selectedCard == null
                         ? "cash_pickup"
                         : $"card_pickup_{selectedCard.CardBrand}",
 
-                    // Payment is not completed while booking is still pending.
+                    // Payment is pending while the booking is still waiting for admin approval.
                     PaymentStatus = "pending_admin_approval",
 
-                    // PaidAt remains null until admin confirms payment.
+                    // PaidAt is null because payment is not confirmed yet.
                     PaidAt = null
                 };
 
@@ -308,7 +360,9 @@ namespace VentureCarRentals.Pages.User.Payments
                     "The final signed agreement will be completed face-to-face and uploaded by the admin. " +
                     "Payment is pickup-only and will not be marked as completed until admin approval, agreement signing, and pickup payment completion.";
 
-                // Generate blank PDF rental agreement with empty signature lines.
+                // IMPORTANT:
+                // Generate a blank rental agreement PDF with empty signature lines.
+                // This can later be signed and uploaded/approved by the admin.
                 var generatedAgreementFileUrl = RentalAgreementContractGenerator.GenerateBlankAgreementFile(
                     _environment.WebRootPath,
                     booking,
@@ -318,7 +372,7 @@ namespace VentureCarRentals.Pages.User.Payments
                     driverLicenseNumber
                 );
 
-                // Save rental agreement record with generated blank PDF path.
+                // Save rental agreement record connected to the booking.
                 var rentalAgreement = new RentalAgreement
                 {
                     BookingId = booking.BookingId,
@@ -331,27 +385,55 @@ namespace VentureCarRentals.Pages.User.Payments
 
                 _context.RentalAgreements.Add(rentalAgreement);
 
+                /*
+                    IMPORTANT:
+                    Notify admin that a new booking is waiting for review.
+                */
+                _context.Notifications.Add(new Notification
+                {
+                    RecipientType = "admin",
+                    UserId = null,
+                    Title = "New Pending Booking",
+                    Message = $"{renter.FirstName} {renter.LastName} submitted booking #{booking.BookingId}.",
+                    Type = "booking",
+                    TargetUrl = "/Admin/Bookings/BookingList?tab=pending",
+                    IsRead = false,
+                    CreatedAt = DateTime.Now
+                });
+
+                /*
+                    IMPORTANT:
+                    This saves:
+                    - Payment
+                    - RentalAgreement
+                    - Notification
+                */
                 await _context.SaveChangesAsync();
+
+                // Commit the transaction only after all records are saved.
                 await transaction.CommitAsync();
 
                 /*
-                    SUCCESS MESSAGE:
-                    This appears as a toast on My Bookings after redirect.
-                */
-                TempData["Success"] =
-                    $"Booking request submitted successfully. Please wait for admin approval. " +
-                    $"Once approved, pick up the car on {BorrowDateTime:MMM dd, yyyy hh:mm tt}. " +
-                    $"During pickup, you must sign the rental agreement contract and complete your payment at the rental office. " +
-                    $"Your payment will remain pending until the agreement signing and payment confirmation are completed.";
+                    IMPORTANT:
+                    These TempData values are used by the modal in My Bookings.
 
-                return RedirectToPage("/User/Bookings/Index", new
-                {
-                    Tab = "pending"
-                });
+                    BookingRequestSubmitted:
+                    - tells My Bookings page to show the success modal
+
+                    BookingPickupDate:
+                    - displays the pickup schedule inside the modal
+                */
+                TempData["BookingRequestSubmitted"] = "true";
+                TempData["BookingPickupDate"] = BorrowDateTime.ToString("MMMM dd, yyyy hh:mm tt");
+
+                // Redirect to My Bookings where the modal will appear.
+                return RedirectToPage("/User/Bookings/Index");
             }
             catch
             {
-                // Rollback prevents incomplete records if booking, payment, or agreement generation fails.
+                // IMPORTANT:
+                // Rollback prevents incomplete records if booking, payment,
+                // agreement generation, or notification creation fails.
                 await transaction.RollbackAsync();
 
                 ErrorMessage = "Something went wrong while submitting your booking request. Please try again.";
@@ -387,11 +469,14 @@ namespace VentureCarRentals.Pages.User.Payments
                 return false;
             }
 
-            // Price calculation based on number of rental days.
+            // IMPORTANT:
+            // Price calculation is based on number of rental days.
+            // Math.Ceiling is used so partial days still count as 1 rental day.
             TotalPrice = TotalDays * (double)Car.PricePerDay;
 
-            // Load both active and inactive cards.
-            // Inactive cards are visible but cannot be selected for booking payment.
+            // Load active and inactive cards.
+            // Inactive cards can be visible in the UI, but should not be selectable
+            // for completing a booking.
             SavedCards = await _context.UserPaymentMethods
                 .Where(p =>
                     p.UserId == userId &&
@@ -437,6 +522,9 @@ namespace VentureCarRentals.Pages.User.Payments
             BorrowDateTime = borrowDateTime;
             ReturnDateTime = returnDateTime;
 
+            // IMPORTANT:
+            // Any partial day counts as a full rental day.
+            // Example: 25 hours = 2 days.
             TotalDays = Math.Ceiling((ReturnDateTime - BorrowDateTime).TotalHours / 24);
 
             return true;

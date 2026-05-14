@@ -833,6 +833,272 @@ textarea {
     }
 }
 
+/* =========================================================
+   ADMIN SIDEBAR - SAME STYLE AS USER SIDEBAR + HAMBURGER
+   ========================================================= */
+
+/* IMPORTANT:
+   Admin wrapper behaves like the user wrapper.
+*/
+.admin-wrapper {
+    display: flex;
+    min-height: 100vh;
+    background: #f8f7f2;
+}
+
+/* IMPORTANT:
+   Admin sidebar now uses the same visual style as user sidebar.
+*/
+.admin-sidebar {
+    width: 260px;
+    min-height: 100vh;
+    background: #171717;
+    color: #ffffff;
+    padding: 36px 26px;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+}
+
+/* Brand */
+.brand-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 50px;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+}
+
+.admin-logo {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+}
+
+.brand-box span {
+    font-size: 14px;
+    font-weight: 800;
+    color: #ffffff;
+}
+
+/* Menu */
+.sidebar-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+    .sidebar-menu a {
+        color: #cfcfcf;
+        text-decoration: none;
+        padding: 11px 12px;
+        border-radius: 7px;
+        font-size: 14px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        transition: 0.2s ease;
+    }
+
+        .sidebar-menu a:hover,
+        .sidebar-menu a.active {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .sidebar-menu a.active {
+            border-left: 4px solid #ffffff;
+        }
+
+    .sidebar-menu hr {
+        border-color: rgba(255, 255, 255, 0.18);
+        margin: 18px 0;
+    }
+
+    .sidebar-menu small {
+        color: #9ca3af;
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin: 4px 0 2px 12px;
+    }
+
+/* Notification link still works inside admin sidebar */
+.sidebar-notification-link {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+    .sidebar-notification-link span:first-child {
+        display: inline-flex;
+        align-items: center;
+        gap: 13px;
+    }
+
+.sidebar-notification-count {
+    min-width: 22px;
+    height: 22px;
+    padding: 0 7px;
+    border-radius: 999px;
+    background: #ef4444;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 900;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Logout */
+.logout-btn {
+    margin-top: auto;
+    background: #444444;
+    color: #ffffff;
+    text-decoration: none;
+    padding: 13px;
+    border-radius: 7px;
+    text-align: center;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+    .logout-btn:hover {
+        background: #555555;
+        color: #ffffff;
+    }
+
+/* Admin main area */
+.admin-main {
+    flex: 1;
+    width: 100%;
+    padding: 32px 70px 40px;
+}
+
+/* Mobile topbar hidden on desktop */
+.admin-mobile-topbar {
+    display: none;
+}
+
+/* Hamburger button */
+.admin-menu-btn {
+    display: none;
+    border: none;
+    background: #111111;
+    color: #ffffff;
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+    font-size: 24px;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Overlay */
+.admin-sidebar-overlay {
+    display: none;
+}
+
+/* Desktop */
+@media (min-width: 994px) {
+    .admin-sidebar {
+        position: relative;
+        left: 0;
+    }
+
+    .admin-sidebar-overlay {
+        display: none !important;
+    }
+}
+
+/* Tablet / Mobile */
+@media (max-width: 993px) {
+    .admin-wrapper {
+        display: block;
+        min-height: 100vh;
+    }
+
+    .admin-main {
+        width: 100%;
+        padding: 24px;
+    }
+
+    .admin-mobile-topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        height: 42px;
+        margin-bottom: 24px;
+    }
+
+    .admin-menu-btn {
+        display: inline-flex;
+    }
+
+    .admin-mobile-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        color: #111827;
+        font-size: 13px;
+    }
+
+        .admin-mobile-brand img {
+            width: 34px;
+            height: 34px;
+            object-fit: contain;
+        }
+
+    /* IMPORTANT:
+       Sidebar becomes slide-in on mobile.
+    */
+    .admin-sidebar {
+        position: fixed;
+        top: 0;
+        left: -280px;
+        width: 260px;
+        height: 100vh;
+        min-height: 100vh;
+        z-index: 1050;
+        transition: left 0.3s ease;
+        overflow-y: auto;
+    }
+
+        .admin-sidebar.show {
+            left: 0;
+        }
+
+    .admin-sidebar-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        z-index: 1040;
+    }
+
+        .admin-sidebar-overlay.show {
+            display: block;
+        }
+}
+
+@media (max-width: 576px) {
+    .admin-main {
+        padding: 18px;
+    }
+
+    .admin-mobile-brand span {
+        font-size: 12px;
+    }
+}
 
 /* ADMIN DASHBOARD*/
 

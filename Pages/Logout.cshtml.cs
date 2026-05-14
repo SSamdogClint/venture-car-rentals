@@ -23,7 +23,7 @@ namespace VentureCarRentals.Pages
             Response.Headers["Pragma"] = "no-cache";
             Response.Headers["Expires"] = "0";
 
-            return RedirectToPage("/Login");
+            return RedirectToPage("/Guest/Cars/BrowseCars");
         }
 
         public IActionResult OnPost()

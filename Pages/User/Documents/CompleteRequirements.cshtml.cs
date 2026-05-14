@@ -13,10 +13,14 @@ namespace VentureCarRentals.Pages.User.Documents
 
         public CompleteRequirementsModel(AppDbContext context, IWebHostEnvironment environment)
         {
+            // Database context for Users, UserDocuments, and Notifications.
             _context = context;
+
+            // Used to save uploaded document files inside wwwroot/uploads/documents.
             _environment = environment;
         }
 
+        // These route values preserve the selected booking schedule if the user came from booking flow.
         [BindProperty(SupportsGet = true)]
         public int CarId { get; set; }
 
@@ -32,6 +36,7 @@ namespace VentureCarRentals.Pages.User.Documents
         [BindProperty(SupportsGet = true)]
         public string? ReturnTime { get; set; }
 
+        // Renter personal information.
         [BindProperty]
         public string FirstName { get; set; } = "";
 
@@ -68,9 +73,11 @@ namespace VentureCarRentals.Pages.User.Documents
         [BindProperty]
         public DateTime? Birthday { get; set; }
 
+        // local or foreign renter.
         [BindProperty]
         public string RenterType { get; set; } = "local";
 
+        // Local renter: driver's license.
         [BindProperty]
         public string DriverLicenseNumber { get; set; } = "";
 
@@ -80,6 +87,7 @@ namespace VentureCarRentals.Pages.User.Documents
         [BindProperty]
         public IFormFile? DriverLicenseFile { get; set; }
 
+        // Local renter: one secondary ID.
         [BindProperty]
         public string SecondaryDocType { get; set; } = "";
 
@@ -89,6 +97,7 @@ namespace VentureCarRentals.Pages.User.Documents
         [BindProperty]
         public IFormFile? SecondaryDocFile { get; set; }
 
+        // Foreign renter: passport.
         [BindProperty]
         public string PassportNumber { get; set; } = "";
 
@@ -98,6 +107,7 @@ namespace VentureCarRentals.Pages.User.Documents
         [BindProperty]
         public IFormFile? PassportFile { get; set; }
 
+        // Foreign renter: international driving permit.
         [BindProperty]
         public string InternationalPermitNumber { get; set; } = "";
 
@@ -123,6 +133,7 @@ namespace VentureCarRentals.Pages.User.Documents
                 return RedirectToPage("/Login");
             }
 
+            // Pre-fill form using saved user profile information.
             FirstName = user.FirstName;
             LastName = user.LastName;
             Email = user.Email;
@@ -136,10 +147,10 @@ namespace VentureCarRentals.Pages.User.Documents
             ZipCode = user.ZipCode;
             Country = string.IsNullOrWhiteSpace(user.Country) ? "Philippines" : user.Country;
 
-            // Default birthday shows 18 years old if no birthday is saved yet
+            // Default birthday shows 18 years old if no birthday is saved yet.
             Birthday = user.Birthday ?? DateTime.Today.AddYears(-18);
 
-            // Default expiry dates so the input will not show only mm/dd/yyyy
+            // Default expiry dates so the input will not show only mm/dd/yyyy.
             DriverLicenseExpiry = DateTime.Today.AddYears(5);
             PassportExpiry = DateTime.Today.AddYears(5);
             InternationalPermitExpiry = DateTime.Today.AddYears(5);
@@ -151,6 +162,7 @@ namespace VentureCarRentals.Pages.User.Documents
         {
             var userId = HttpContext.Session.GetInt32("UserId");
 
+            // User must be logged in before submitting verification requirements.
             if (userId == null)
             {
                 return RedirectToPage("/Login");
@@ -163,6 +175,20 @@ namespace VentureCarRentals.Pages.User.Documents
                 return RedirectToPage("/Login");
             }
 
+            /*
+                IMPORTANT:
+                This checks if the user already uploaded documents before this submission.
+
+                If true:
+                    Admin notification title becomes "Updated Verification Documents".
+
+                If false:
+                    Admin notification title becomes "New Verification Request".
+            */
+            var hadDocumentsBeforeSubmit = await _context.UserDocuments
+                .AnyAsync(d => d.UserId == user.UserId);
+
+            // Validate required renter profile fields.
             if (string.IsNullOrWhiteSpace(FirstName) ||
                 string.IsNullOrWhiteSpace(LastName) ||
                 string.IsNullOrWhiteSpace(PhoneNumber) ||
@@ -178,6 +204,7 @@ namespace VentureCarRentals.Pages.User.Documents
                 return Page();
             }
 
+            // Validate required documents for local renters.
             if (RenterType == "local")
             {
                 if (string.IsNullOrWhiteSpace(DriverLicenseNumber) ||
@@ -191,6 +218,7 @@ namespace VentureCarRentals.Pages.User.Documents
                 }
             }
 
+            // Validate required documents for foreign renters.
             if (RenterType == "foreign")
             {
                 if (string.IsNullOrWhiteSpace(PassportNumber) ||
@@ -203,6 +231,13 @@ namespace VentureCarRentals.Pages.User.Documents
                 }
             }
 
+            /*
+                IMPORTANT:
+                Update the user profile first.
+
+                This makes sure the admin can see the latest renter information
+                when reviewing the uploaded documents.
+            */
             user.FirstName = FirstName;
             user.MiddleName = MiddleName ?? "";
             user.LastName = LastName;
@@ -215,6 +250,14 @@ namespace VentureCarRentals.Pages.User.Documents
             user.Country = Country;
             user.Birthday = Birthday;
 
+            /*
+                IMPORTANT:
+                Save local renter documents.
+
+                Local renters must provide:
+                1. Driver's License
+                2. One Secondary ID
+            */
             if (RenterType == "local")
             {
                 await SaveDocumentAsync(
@@ -236,6 +279,14 @@ namespace VentureCarRentals.Pages.User.Documents
                 );
             }
 
+            /*
+                IMPORTANT:
+                Save foreign renter documents.
+
+                Foreign renters must provide:
+                1. Passport
+                2. International Driving Permit
+            */
             if (RenterType == "foreign")
             {
                 await SaveDocumentAsync(
@@ -257,9 +308,46 @@ namespace VentureCarRentals.Pages.User.Documents
                 );
             }
 
+            /*
+                IMPORTANT:
+                ADMIN NOTIFICATION WHEN USER SUBMITS VERIFICATION DOCUMENTS
+
+                This creates a notification for the admin bell/dropdown.
+
+                RecipientType = "admin"
+                    Means this notification is for the admin side.
+
+                UserId = null
+                    Means it is not owned by one customer account.
+
+                TargetUrl
+                    Opens the admin verification page directly for this selected user.
+            */
+            _context.Notifications.Add(new Notification
+            {
+                RecipientType = "admin",
+                UserId = null,
+                Title = hadDocumentsBeforeSubmit
+                    ? "Updated Verification Documents"
+                    : "New Verification Request",
+                Message = $"{user.FirstName} {user.LastName} submitted verification documents for admin review.",
+                Type = "document",
+                TargetUrl = $"/Admin/Documents/Verification?UserId={user.UserId}",
+                IsRead = false,
+                CreatedAt = DateTime.Now
+            });
+
+            /*
+                IMPORTANT:
+                SaveChangesAsync saves:
+                - Updated user profile
+                - Uploaded document records
+                - Admin notification record
+            */
             await _context.SaveChangesAsync();
 
-            TempData["VerificationSubmitted"] = "Thank you for submitting your verification requirements. Please wait for 30 minutes to 1 day while the admin reviews and confirms your account verification.";
+            TempData["VerificationSubmitted"] =
+                "Thank you for submitting your verification requirements. Please wait for 30 minutes to 1 day while the admin reviews and confirms your account verification.";
 
             return RedirectToPage("/User/Home");
         }
@@ -272,25 +360,43 @@ namespace VentureCarRentals.Pages.User.Documents
             string issuingCountry,
             DateTime? expiryDate)
         {
+            /*
+                IMPORTANT:
+                This method saves the uploaded file to:
+
+                wwwroot/uploads/documents
+
+                Then it creates or updates the UserDocument database record.
+            */
+
             var uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads", "documents");
 
+            // Create folder if it does not exist yet.
             if (!Directory.Exists(uploadsFolder))
             {
                 Directory.CreateDirectory(uploadsFolder);
             }
 
+            // Get file extension like .jpg, .png, .pdf.
             var extension = Path.GetExtension(file.FileName).ToLower();
+
+            // Create unique file name to prevent duplicate file name conflict.
             var fileName = $"doc_{userId}_{Guid.NewGuid()}{extension}";
+
+            // Final physical file path.
             var filePath = Path.Combine(uploadsFolder, fileName);
 
+            // Save uploaded file to the server.
             using (var stream = new FileStream(filePath, FileMode.Create))
             {
                 await file.CopyToAsync(stream);
             }
 
+            // Check if the user already uploaded the same document type before.
             var document = await _context.UserDocuments
                 .FirstOrDefaultAsync(d => d.UserId == userId && d.DocType == docType);
 
+            // If document does not exist, create a new one.
             if (document == null)
             {
                 document = new UserDocument
@@ -303,6 +409,12 @@ namespace VentureCarRentals.Pages.User.Documents
                 _context.UserDocuments.Add(document);
             }
 
+            /*
+                IMPORTANT:
+                Every new submission resets the document status to pending.
+
+                This means admin must review it again.
+            */
             document.DocNumber = docNumber;
             document.FileUrl = $"/uploads/documents/{fileName}";
             document.IssuingCountry = issuingCountry;

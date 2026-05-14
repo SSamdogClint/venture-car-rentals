@@ -28,6 +28,22 @@
             @await Html.PartialAsync("_AdminSidebar")
 
             <main class="admin-main">
+
+                <!-- IMPORTANT:
+                     This topbar appears only on tablet/mobile.
+                     It contains the hamburger button for the admin sidebar.
+                -->
+                <div class="admin-mobile-topbar">
+                    <button type="button" class="admin-menu-btn" onclick="toggleAdminSidebar()">
+                        <i class="bi bi-list"></i>
+                    </button>
+
+                    <div class="admin-mobile-brand">
+                        <img src="~/images/logo.png" asp-append-version="true" alt="Logo" />
+                        <span>CAR RENTALS</span>
+                    </div>
+                </div>
+
                 @RenderBody()
             </main>
         </div>

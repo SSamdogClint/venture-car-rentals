@@ -1,0 +1,426 @@
+﻿@page
+@model VentureCarRentals.Pages.User.Profile.IndexModel
+@{
+    ViewData["Title"] = "Profile";
+    Layout = "_Layout";
+}
+
+<div class="user-wrapper">
+
+    @await Html.PartialAsync("/Pages/User/_UserSidebar.cshtml")
+
+    <main class="user-main">
+
+        <div class="user-topbar mb-4">
+            <a asp-page="/User/Home" class="back-link">
+                <i class="bi bi-arrow-left"></i> Back
+            </a>
+
+            <i class="bi bi-bell notification-bell"></i>
+        </div>
+
+        <section class="container-fluid px-0">
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger" role="alert">
+                    <strong>Please check the highlighted fields below.</strong>
+
+                    <ul class="mb-0 mt-2">
+                        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                        {
+                            <li>@error.ErrorMessage</li>
+                        }
+                    </ul>
+                </div>
+            }
+
+            <form method="post" enctype="multipart/form-data" novalidate>
+
+                <input type="hidden" asp-for="CarId" />
+                <input type="hidden" asp-for="BorrowDate" />
+                <input type="hidden" asp-for="BorrowTime" />
+                <input type="hidden" asp-for="ReturnDate" />
+                <input type="hidden" asp-for="ReturnTime" />
+
+                <!-- PROFILE CARD -->
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+                    <div class="card-body p-4">
+
+                        <div class="row g-3 align-items-center">
+                            <div class="col-auto">
+                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center"
+                                     style="width: 76px; height: 76px; font-size: 28px; font-weight: 800;">
+                                    @(string.IsNullOrWhiteSpace(Model.FirstName) ? "U" : Model.FirstName.Substring(0, 1).ToUpper())
+                                </div>
+                            </div>
+
+                            <div class="col">
+                                <h4 class="fw-bold mb-1">@Model.FirstName @Model.LastName</h4>
+                                <p class="text-muted mb-1">@Model.Email</p>
+
+                                <div class="d-flex flex-wrap gap-2">
+                                    <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-2">
+                                        Customer Account
+                                    </span>
+
+                                    <span class="badge bg-light text-dark border rounded-pill px-3 py-2 text-capitalize">
+                                        @Model.RenterType Renter
+                                    </span>
+
+                                    <span class="badge bg-light text-dark border rounded-pill px-3 py-2">
+                                        Registered:
+                                        @(Model.CreatedAt == DateTime.MinValue ? "Not set" : Model.CreatedAt.ToString("MMM dd, yyyy"))
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- RENTER TYPE -->
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+                    <div class="card-body p-4">
+
+                        <h5 class="fw-bold mb-3">Renter Type</h5>
+
+                        <!--
+                            IMPORTANT:
+                            This select controls which address and document fields are required.
+
+                            Local:
+                            Full local address + Driver License + Secondary ID
+
+                            Foreign:
+                            Country, City, Zip Code + Passport + International Permit
+                        -->
+                        <select asp-for="RenterType"
+                                class="form-control"
+                                id="renterType"
+                                onchange="toggleRenterSections()">
+                            <option value="local">Local Renter</option>
+                            <option value="foreign">Foreign Renter</option>
+                        </select>
+
+                        <small class="text-muted d-block mt-2" id="renterTypeHelp">
+                            Local renters must provide full local address and local identification documents.
+                        </small>
+
+                    </div>
+                </div>
+
+                <!-- RENTER INFORMATION -->
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+                    <div class="card-body p-4">
+
+                        <h3 class="fw-bold mb-2">Renter’s Information</h3>
+                        <hr />
+
+                        <div class="row g-3">
+
+                            <div class="col-md-4">
+                                <label asp-for="FirstName" class="form-label fw-semibold">First Name</label>
+                                <input asp-for="FirstName" class="form-control" placeholder="Juan" />
+                                <span asp-validation-for="FirstName" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label asp-for="MiddleName" class="form-label fw-semibold">Middle Name</label>
+                                <input asp-for="MiddleName" class="form-control" placeholder="Santos" />
+                            </div>
+
+                            <div class="col-md-4">
+                                <label asp-for="LastName" class="form-label fw-semibold">Last Name</label>
+                                <input asp-for="LastName" class="form-control" placeholder="Dela Cruz" />
+                                <span asp-validation-for="LastName" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="Email" class="form-label fw-semibold">Email Address</label>
+                                <input asp-for="Email" class="form-control" placeholder="juan@example.com" readonly />
+                                <span asp-validation-for="Email" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="PhoneNumber" class="form-label fw-semibold">Phone Number</label>
+                                <input asp-for="PhoneNumber" class="form-control" placeholder="09XXXXXXXXX" />
+                                <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6 local-profile-field">
+                                <label asp-for="Street" class="form-label fw-semibold">Street</label>
+                                <input asp-for="Street" class="form-control" placeholder="123 Mango Street" />
+                                <span asp-validation-for="Street" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6 local-profile-field">
+                                <label asp-for="Barangay" class="form-label fw-semibold">Barangay</label>
+                                <input asp-for="Barangay" class="form-control" placeholder="Lahug" />
+                                <span asp-validation-for="Barangay" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="City" class="form-label fw-semibold">City</label>
+                                <input asp-for="City" class="form-control" placeholder="Cebu City" />
+                                <span asp-validation-for="City" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6 local-profile-field">
+                                <label asp-for="State" class="form-label fw-semibold">State / Province</label>
+                                <input asp-for="State" class="form-control" placeholder="Cebu" />
+                                <span asp-validation-for="State" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="ZipCode" class="form-label fw-semibold">Zip Code</label>
+                                <input asp-for="ZipCode" class="form-control" placeholder="6000" />
+                                <span asp-validation-for="ZipCode" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="Country" class="form-label fw-semibold">Country</label>
+                                <input asp-for="Country" class="form-control" placeholder="Philippines" />
+                                <span asp-validation-for="Country" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="Birthday" class="form-label fw-semibold">Birthday</label>
+                                <input asp-for="Birthday"
+                                       type="date"
+                                       max="@DateTime.Today.AddYears(-18).ToString("yyyy-MM-dd")"
+                                       class="form-control" />
+                                <span asp-validation-for="Birthday" class="text-danger small"></span>
+                                <small class="text-muted">You must be at least 18 years old to rent a vehicle.</small>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- RENTAL DOCUMENTS -->
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+                    <div class="card-body p-4">
+
+                        <h3 class="fw-bold mb-2">Rental Documents</h3>
+                        <hr />
+
+                        <!-- LOCAL DOCUMENTS -->
+                        <div id="localDocuments">
+
+                            <h5 class="mt-3">Driver’s License</h5>
+
+                            @if (Model.HasDriverLicense)
+                            {
+                                <div class="alert alert-info py-2">
+                                    Existing driver's license uploaded.
+                                    <a href="@Model.ExistingDriverLicenseFileUrl" target="_blank">Open file</a>
+                                    <span class="badge bg-secondary ms-2">@Model.ExistingDriverLicenseStatus</span>
+                                </div>
+                            }
+
+                            <div class="row g-3">
+
+                                <div class="col-md-4">
+                                    <label asp-for="DriverLicenseNumber" class="form-label fw-semibold">Driver’s License Number</label>
+                                    <input asp-for="DriverLicenseNumber" class="form-control" placeholder="N01-23-456789" />
+                                    <span asp-validation-for="DriverLicenseNumber" class="text-danger small"></span>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label asp-for="DriverLicenseExpiry" class="form-label fw-semibold">Driver’s License Expiration Date</label>
+                                    <input asp-for="DriverLicenseExpiry" type="date" class="form-control" />
+                                    <span asp-validation-for="DriverLicenseExpiry" class="text-danger small"></span>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label asp-for="DriverLicenseFile" class="form-label fw-semibold">Driver’s License Image / File</label>
+                                    <input asp-for="DriverLicenseFile" type="file" class="form-control" accept="image/*,.pdf" />
+                                    <span asp-validation-for="DriverLicenseFile" class="text-danger small"></span>
+                                    <small class="text-muted">Upload only if new or replacing. JPG, PNG, PDF. Max 50 MB.</small>
+                                </div>
+
+                            </div>
+
+                            <h5 class="mt-4">Secondary ID</h5>
+
+                            @if (Model.HasSecondaryId)
+                            {
+                                <div class="alert alert-info py-2">
+                                    Existing secondary ID uploaded.
+                                    <a href="@Model.ExistingSecondaryFileUrl" target="_blank">Open file</a>
+                                    <span class="badge bg-secondary ms-2">@Model.ExistingSecondaryStatus</span>
+                                </div>
+                            }
+
+                            <div class="row g-3">
+
+                                <div class="col-md-4">
+                                    <label asp-for="SecondaryDocType" class="form-label fw-semibold">Secondary ID Type</label>
+                                    <select asp-for="SecondaryDocType" class="form-control">
+                                        <option value="">Select Secondary ID</option>
+                                        <option value="national_id">National ID</option>
+                                        <option value="police_clearance">Police Clearance</option>
+                                        <option value="nbi_clearance">NBI Clearance</option>
+                                        <option value="philhealth_id">PhilHealth ID</option>
+                                        <option value="sss_id">SSS ID</option>
+                                        <option value="umid">UMID</option>
+                                        <option value="voters_id">Voter’s ID</option>
+                                        <option value="company_id">Company ID</option>
+                                    </select>
+                                    <span asp-validation-for="SecondaryDocType" class="text-danger small"></span>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label asp-for="SecondaryDocNumber" class="form-label fw-semibold">Secondary ID Number</label>
+                                    <input asp-for="SecondaryDocNumber" class="form-control" placeholder="1234-5678-9012" />
+                                    <span asp-validation-for="SecondaryDocNumber" class="text-danger small"></span>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label asp-for="SecondaryDocFile" class="form-label fw-semibold">Secondary ID Image / File</label>
+                                    <input asp-for="SecondaryDocFile" type="file" class="form-control" accept="image/*,.pdf" />
+                                    <span asp-validation-for="SecondaryDocFile" class="text-danger small"></span>
+                                    <small class="text-muted">Upload only if new or replacing. JPG, PNG, PDF. Max 50 MB.</small>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- FOREIGN DOCUMENTS -->
+                        <div id="foreignDocuments" style="display:none;">
+
+                            <h5 class="mt-3">Passport</h5>
+
+                            @if (Model.HasPassport)
+                            {
+                                <div class="alert alert-info py-2">
+                                    Existing passport uploaded.
+                                    <a href="@Model.ExistingPassportFileUrl" target="_blank">Open file</a>
+                                    <span class="badge bg-secondary ms-2">@Model.ExistingPassportStatus</span>
+                                </div>
+                            }
+
+                            <div class="row g-3">
+
+                                <div class="col-md-4">
+                                    <label asp-for="PassportNumber" class="form-label fw-semibold">Passport Number</label>
+                                    <input asp-for="PassportNumber" class="form-control" placeholder="P1234567" />
+                                    <span asp-validation-for="PassportNumber" class="text-danger small"></span>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label asp-for="PassportExpiry" class="form-label fw-semibold">Passport Expiration Date</label>
+                                    <input asp-for="PassportExpiry" type="date" class="form-control" />
+                                    <span asp-validation-for="PassportExpiry" class="text-danger small"></span>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label asp-for="PassportFile" class="form-label fw-semibold">Passport Image / File</label>
+                                    <input asp-for="PassportFile" type="file" class="form-control" accept="image/*,.pdf" />
+                                    <span asp-validation-for="PassportFile" class="text-danger small"></span>
+                                    <small class="text-muted">Upload only if new or replacing. JPG, PNG, PDF. Max 50 MB.</small>
+                                </div>
+
+                            </div>
+
+                            <h5 class="mt-4">International Driving Permit / License</h5>
+
+                            @if (Model.HasInternationalPermit)
+                            {
+                                <div class="alert alert-info py-2">
+                                    Existing international permit uploaded.
+                                    <a href="@Model.ExistingInternationalPermitFileUrl" target="_blank">Open file</a>
+                                    <span class="badge bg-secondary ms-2">@Model.ExistingInternationalPermitStatus</span>
+                                </div>
+                            }
+
+                            <div class="row g-3">
+
+                                <div class="col-md-4">
+                                    <label asp-for="InternationalPermitNumber" class="form-label fw-semibold">International Permit / License Number</label>
+                                    <input asp-for="InternationalPermitNumber" class="form-control" placeholder="IDP-123456" />
+                                    <span asp-validation-for="InternationalPermitNumber" class="text-danger small"></span>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label asp-for="InternationalPermitExpiry" class="form-label fw-semibold">International Permit Expiration Date</label>
+                                    <input asp-for="InternationalPermitExpiry" type="date" class="form-control" />
+                                    <span asp-validation-for="InternationalPermitExpiry" class="text-danger small"></span>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label asp-for="InternationalPermitFile" class="form-label fw-semibold">International Permit Image / File</label>
+                                    <input asp-for="InternationalPermitFile" type="file" class="form-control" accept="image/*,.pdf" />
+                                    <span asp-validation-for="InternationalPermitFile" class="text-danger small"></span>
+                                    <small class="text-muted">Upload only if new or replacing. JPG, PNG, PDF. Max 50 MB.</small>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="text-end mt-5">
+                            <button type="submit" class="btn btn-primary px-5">
+                                Save Changes
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+
+            </form>
+
+        </section>
+
+    </main>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleRenterSections() {
+            const renterType = document.getElementById("renterType").value;
+            const localDocs = document.getElementById("localDocuments");
+            const foreignDocs = document.getElementById("foreignDocuments");
+            const localProfileFields = document.querySelectorAll(".local-profile-field");
+            const renterTypeHelp = document.getElementById("renterTypeHelp");
+
+            const isForeign = renterType === "foreign";
+
+            localDocs.style.display = isForeign ? "none" : "block";
+            foreignDocs.style.display = isForeign ? "block" : "none";
+
+            localProfileFields.forEach(function (field) {
+                field.style.display = isForeign ? "none" : "";
+            });
+
+            if (renterTypeHelp) {
+                renterTypeHelp.textContent = isForeign
+                    ? "Foreign renters only need Country, City, Zip Code, Passport, and International Driving Permit."
+                    : "Local renters must provide full local address, Driver's License, and one Secondary ID.";
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            toggleRenterSections();
+        });
+    </script>
+}
